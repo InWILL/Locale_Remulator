@@ -61,12 +61,12 @@ HWND WINAPI HookCreateWindowExA(
 UINT WINAPI HookGdiGetCodePage(HDC hdc)
 {
 	UNREFERENCED_PARAMETER(hdc);
-	return 932;
+	return settings.CodePage;
 }
 
 UINT WINAPI HookGetACP(void)
 {
-	return 932;
+	return settings.CodePage;
 }
 
 
@@ -127,11 +127,6 @@ static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WP
 	WCHAR CharBuffer[2];
 	int type = 0;
 
-	//char classname[256]; GetClassNameA(hWnd, classname, sizeof(classname));
-	//if (lstrcmpiA(classname, "TListBox") == 0) {
-	//ntprintfA(256, 1, "%s: proc-%p hwnd=%p, msg=%04x, wParam=%d, lParam=%d\n", __FUNCTION__, lpProcAddress, hWnd, uMsg, wParam, lParam);
-	//}
-
 	switch (uMsg) {
 	case LB_FINDSTRINGEXACT: // LN305
 	case LB_ADDSTRING: // LN305
@@ -175,7 +170,7 @@ int WINAPI HookMultiByteToWideChar(UINT CodePage, DWORD dwFlags,
 	LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar)
 {
 	//filelog << CodePage << std::endl;
-	CodePage = (CodePage >= CP_UTF7) ? CodePage : 932;
+	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
 	return OriginalMultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar);
 }
 
@@ -183,6 +178,6 @@ int WINAPI HookWideCharToMultiByte(UINT CodePage, DWORD dwFlags,
 	LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar)
 {
 	//	if (lpMultiByteStr && lpWideCharStr) OutputDebugStringW(lpWideCharStr);
-	CodePage = (CodePage >= CP_UTF7) ? CodePage : 932;
+	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
 	return OriginalWideCharToMultiByte(CodePage, dwFlags, lpWideCharStr, cchWideChar, lpMultiByteStr, cbMultiByte, lpDefaultChar, lpUsedDefaultChar);
 }

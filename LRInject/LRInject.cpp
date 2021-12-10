@@ -7,14 +7,15 @@
 bool inject(DWORD pId, char* dllToInject);
 DWORD startup(char* cmdline);
 
-using namespace std;
-
-int main(int argc, char* argv[])
+extern "C" __declspec(dllexport) int LRInject(char* filepath, char* dllpath, const UINT CodePage)
 {
+	LRProfile profile;
+	profile.CodePage = CodePage;
+
 	LRConfigFileMap filemap;
-	filemap.WrtieConfigFileMap();
-	DWORD pid = startup(argv[1]);
-	inject(pid, argv[2]);
+	filemap.WrtieConfigFileMap(&profile);
+	DWORD pid = startup(filepath);
+	inject(pid, dllpath);
 	Sleep(100);
 	filemap.FreeConfigFileMap();
 	return 0;

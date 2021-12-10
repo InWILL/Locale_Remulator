@@ -10,16 +10,11 @@
 #endif
 
 #include "../LRHookFunc/LRHookFunc.h"
-#include"../LRCommonLibrary/LRCommonLibrary.h"
-
 #pragma comment(lib, "LRHookFunc.lib")
-#pragma comment(lib, "LRCommonLibrary.lib")
 
 
 //typedef int (WINAPI* MESSAGEBOXA)(HWND, LPCSTR, LPCSTR, UINT);
 //MESSAGEBOXA fpMessageBoxA = NULL;
-
-std::ofstream filelog;
 
 extern LPVOID HookDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
 {

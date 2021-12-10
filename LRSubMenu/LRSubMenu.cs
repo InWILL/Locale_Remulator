@@ -176,7 +176,7 @@ namespace LRSubMenus
             ToolStripMenuItem MainMenu;
             MainMenu = new ToolStripMenuItem
             {
-                Text = "Local Remulator x64",
+                Text = "Locale Remulator x64",
                 Image = Properties.Resources.file_icon
             };
             foreach (var profile in profiles)
@@ -206,8 +206,8 @@ namespace LRSubMenus
 
             Directory.SetCurrentDirectory(currentpath);
 
-            proc.StartInfo.FileName = "LRInject.exe";
-            proc.StartInfo.Arguments = filepath+" LRHook.dll ";
+            proc.StartInfo.FileName = "LRProc.exe";
+            proc.StartInfo.Arguments = filepath+" LRHook.dll "+profile.Name;
             if(profile.RunAsAdmin) proc.StartInfo.Verb = "runas";
             //MessageBox.Show(currentpath);
             proc.Start();

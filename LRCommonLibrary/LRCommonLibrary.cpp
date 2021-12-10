@@ -2,7 +2,7 @@
 
 //Create File Map to share memory
 //https://docs.microsoft.com/en-us/windows/win32/memory/creating-named-shared-memory
-int LRConfigFileMap::WrtieConfigFileMap()
+int LRConfigFileMap::WrtieConfigFileMap(LRProfile *profile)
 {
 	hMapFile = CreateFileMapping(
 		INVALID_HANDLE_VALUE,    // use paging file
@@ -17,7 +17,7 @@ int LRConfigFileMap::WrtieConfigFileMap()
 		MessageBox(NULL, TEXT("Could not create file mapping object."), NULL, NULL);
 		return 1;
 	}
-	pBuf = (UINT*)MapViewOfFile(hMapFile,   // handle to map object
+	pBuf = (LRProfile*)MapViewOfFile(hMapFile,   // handle to map object
 		FILE_MAP_ALL_ACCESS, // read/write permission
 		0,
 		0,
@@ -32,7 +32,7 @@ int LRConfigFileMap::WrtieConfigFileMap()
 		return 1;
 	}
 
-	CopyMemory(pBuf, &szMsg, sizeof(UINT));
+	CopyMemory(pBuf, profile, sizeof(LRProfile));
 	
 	return 0;
 }
@@ -50,7 +50,7 @@ int LRConfigFileMap::ReadConfigFileMap()
 		return 1;
 	}
 
-	pBuf = (UINT*)MapViewOfFile(hMapFile, // handle to map object
+	pBuf = (LRProfile*)MapViewOfFile(hMapFile, // handle to map object
 		FILE_MAP_ALL_ACCESS,  // read/write permission
 		0,
 		0,
@@ -64,7 +64,8 @@ int LRConfigFileMap::ReadConfigFileMap()
 
 		return 1;
 	}
-	std::cout << *pBuf;
+	CopyMemory(&settings, pBuf, sizeof(LRProfile));
+	//std::cout << settings.CodePage;
 	//MessageBox(NULL, pBuf, TEXT("Process2"), MB_OK);
 
 	return 0;
@@ -72,7 +73,7 @@ int LRConfigFileMap::ReadConfigFileMap()
 
 void LRConfigFileMap::FreeConfigFileMap()
 {
-	//UnmapViewOfFile(pBuf);
+	UnmapViewOfFile(&pBuf);
 
 	CloseHandle(hMapFile);
 }

@@ -7,20 +7,22 @@
 
 #define BUF_SIZE 256
 const TCHAR szConfigFileMap[] = TEXT("LRConfigFileMap");
-const UINT szMsg = 932;
+//const UINT szMsg = 932;
 
 struct LRProfile
 {
 	UINT CodePage;
 };
 
+static LRProfile settings;
+
 class LRConfigFileMap
 {
 public:
-	int WrtieConfigFileMap();
+	int WrtieConfigFileMap(LRProfile *profile);
 	int ReadConfigFileMap();
 	void FreeConfigFileMap();
 private:
 	HANDLE hMapFile;
-	UINT *pBuf;
+	LRProfile* pBuf;
 };

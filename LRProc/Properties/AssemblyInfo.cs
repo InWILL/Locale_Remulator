@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("LRInstaller")]
+[assembly: AssemblyTitle("LRProc")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("LRInstaller")]
+[assembly: AssemblyProduct("LRProc")]
 [assembly: AssemblyCopyright("Copyright ©  2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("fabb01f9-f437-4fb9-b7e7-d3089ffdbf98")]
+[assembly: Guid("43cdd6b4-9ad6-4c9b-a4b7-f4b069968afc")]
 
 // Version information for an assembly consists of the following four values:
 //
