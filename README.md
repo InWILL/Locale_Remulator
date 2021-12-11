@@ -11,13 +11,9 @@ The most important reason is that Japan MapleStory will become 64-bit.
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
-
 * [.NET Framework 4.7.2 or higher](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net472)
 
 ## Install
-
-A step by step series of examples that tell you how to get a development env running
 
 Run `register.bat` to register right-click menu.
 
