@@ -25,10 +25,6 @@ Run `unregister.bat` to remove right-click menu.
 
 Select a .exe application and right click, there will show a section named "Locale Remulator x64", and choose what config you want.
 
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
 ## Built With
 
 * [MinHook](https://github.com/TsudaKageyu/minhook) - Used to hook unicode function
