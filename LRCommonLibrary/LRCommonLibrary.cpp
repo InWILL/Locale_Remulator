@@ -9,7 +9,7 @@ int LRConfigFileMap::WrtieConfigFileMap(LRProfile *profile)
 		NULL,                    // default security
 		PAGE_READWRITE,          // read/write access
 		0,                       // maximum object size (high-order DWORD)
-		sizeof(UINT),                // maximum object size (low-order DWORD)
+		BUF_SIZE,                // maximum object size (low-order DWORD)
 		szConfigFileMap);                 // name of mapping object
 
 	if (hMapFile == NULL)
@@ -18,7 +18,7 @@ int LRConfigFileMap::WrtieConfigFileMap(LRProfile *profile)
 		return 1;
 	}
 	pBuf = (LRProfile*)MapViewOfFile(hMapFile,   // handle to map object
-		FILE_MAP_ALL_ACCESS, // read/write permission
+		FILE_MAP_WRITE, // read/write permission
 		0,
 		0,
 		BUF_SIZE);
@@ -32,15 +32,15 @@ int LRConfigFileMap::WrtieConfigFileMap(LRProfile *profile)
 		return 1;
 	}
 
-	CopyMemory(pBuf, profile, sizeof(LRProfile));
+	CopyMemory((PVOID)pBuf, profile, BUF_SIZE);
 	
 	return 0;
 }
 
-int LRConfigFileMap::ReadConfigFileMap()
+int LRConfigFileMap::ReadConfigFileMap(LRProfile* profile)
 {
 	hMapFile = OpenFileMapping(
-		FILE_MAP_ALL_ACCESS,   // read/write access
+		FILE_MAP_READ,   // read/write access
 		FALSE,                 // do not inherit the name
 		szConfigFileMap);               // name of mapping object
 
@@ -51,7 +51,7 @@ int LRConfigFileMap::ReadConfigFileMap()
 	}
 
 	pBuf = (LRProfile*)MapViewOfFile(hMapFile, // handle to map object
-		FILE_MAP_ALL_ACCESS,  // read/write permission
+		FILE_MAP_READ,  // read/write permission
 		0,
 		0,
 		BUF_SIZE);
@@ -64,16 +64,16 @@ int LRConfigFileMap::ReadConfigFileMap()
 
 		return 1;
 	}
-	CopyMemory(&settings, pBuf, sizeof(LRProfile));
-	//std::cout << settings.CodePage;
+	//CopyMemory(&settings, pBuf, BUF_SIZE);
+	//settings.CodePage=pBuf->CodePage;
 	//MessageBox(NULL, pBuf, TEXT("Process2"), MB_OK);
-
+	CopyMemory(profile, pBuf, BUF_SIZE);
 	return 0;
 }
 
 void LRConfigFileMap::FreeConfigFileMap()
 {
-	UnmapViewOfFile(&pBuf);
+	UnmapViewOfFile(pBuf);
 
 	CloseHandle(hMapFile);
 }

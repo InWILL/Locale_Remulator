@@ -127,6 +127,11 @@ static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WP
 	WCHAR CharBuffer[2];
 	int type = 0;
 
+	//char classname[256]; GetClassNameA(hWnd, classname, sizeof(classname));
+	//if (lstrcmpiA(classname, "TListBox") == 0) {
+	//ntprintfA(256, 1, "%s: proc-%p hwnd=%p, msg=%04x, wParam=%d, lParam=%d\n", __FUNCTION__, lpProcAddress, hWnd, uMsg, wParam, lParam);
+	//}
+
 	switch (uMsg) {
 	case LB_FINDSTRINGEXACT: // LN305
 	case LB_ADDSTRING: // LN305

@@ -1,9 +1,10 @@
 #pragma once
 #include<Windows.h>
 #include"LROriginalFunc.h"
-
 #include"../LRCommonLibrary/LRCommonLibrary.h"
 #pragma comment(lib, "LRCommonLibrary.lib")
+
+extern LRProfile settings;
 
 void HookFunctions();
 extern LPVOID HookDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL);

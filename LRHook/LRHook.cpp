@@ -9,12 +9,19 @@
 #pragma comment(lib, "libMinHook.x86.lib")
 #endif
 
+#include"../LRCommonLibrary/LRCommonLibrary.h"
+#pragma comment(lib, "LRCommonLibrary.lib")
+
 #include "../LRHookFunc/LRHookFunc.h"
 #pragma comment(lib, "LRHookFunc.lib")
 
 
+
 //typedef int (WINAPI* MESSAGEBOXA)(HWND, LPCSTR, LPCSTR, UINT);
 //MESSAGEBOXA fpMessageBoxA = NULL;
+
+//std::fstream filelog;
+LRProfile settings;
 
 extern LPVOID HookDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
 {
@@ -32,17 +39,24 @@ extern LPVOID HookDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDL
 // Hook shit
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
-	LRConfigFileMap filemap;
+	
 	switch (ul_reason_for_call) {
 	case DLL_PROCESS_ATTACH:
 		std::cout << "DLL_PROCESS_ATTACH\n";
-		filemap.ReadConfigFileMap();
+		
+		LRConfigFileMap filemap;
+		//filelog.open("test.log", std::ios::out);
+		//filelog << GetLastError() << std::endl;
+		filemap.ReadConfigFileMap(&settings);
+		//filelog << settings.CodePage << std::endl;
+		filemap.FreeConfigFileMap();
+		
 		if (MH_Initialize() != MH_OK)
 		{
 			return 1;
 		}
 		HookFunctions();
-		//filelog.open("test.log");
+		
 		break;
 	case DLL_THREAD_ATTACH:
 		std::cout << "DLL_THREAD_ATTACH\n";
@@ -52,8 +66,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 		break;
 	case DLL_PROCESS_DETACH:
 		std::cout << "DLL_PROCESS_DETACH\n";
-		filemap.FreeConfigFileMap();
 		MH_Uninitialize();
+		//filelog.close();
 		break;
 	}
 	return true;

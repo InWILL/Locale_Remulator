@@ -207,7 +207,7 @@ namespace LRSubMenus
             Directory.SetCurrentDirectory(currentpath);
 
             proc.StartInfo.FileName = "LRProc.exe";
-            proc.StartInfo.Arguments = filepath+" LRHook.dll "+profile.Name;
+            proc.StartInfo.Arguments = filepath+" LRHook.dll "+profile.CodePage;
             if(profile.RunAsAdmin) proc.StartInfo.Verb = "runas";
             //MessageBox.Show(currentpath);
             proc.Start();

@@ -3,26 +3,26 @@
 #include <stdio.h>
 #include <conio.h>
 #include <tchar.h>
+#include<cstring>
 #include<iostream>
 
-#define BUF_SIZE 256
 const TCHAR szConfigFileMap[] = TEXT("LRConfigFileMap");
-//const UINT szMsg = 932;
+//const TCHAR szMsg[] = TEXT("Message from first process.");
 
 struct LRProfile
 {
 	UINT CodePage;
 };
 
-static LRProfile settings;
+const int BUF_SIZE = sizeof(LRProfile);
 
 class LRConfigFileMap
 {
 public:
 	int WrtieConfigFileMap(LRProfile *profile);
-	int ReadConfigFileMap();
+	int ReadConfigFileMap(LRProfile* profile);
 	void FreeConfigFileMap();
 private:
 	HANDLE hMapFile;
-	LRProfile* pBuf;
+	LRProfile *pBuf;
 };
