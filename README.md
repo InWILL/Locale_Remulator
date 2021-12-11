@@ -1,5 +1,4 @@
 # Locale Remulator
-===============
 
 [![license](https://img.shields.io/github/license/InWILL/Locale_Remulator.svg)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 
