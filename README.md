@@ -26,7 +26,7 @@ Run `unregister.bat` to remove right-click menu.
 
 ## Usage
 
-Select a .exe application and right click, there will show a section named "Locale Remulator x64", and choose what config you want.
+Select a `*.exe` application and right click, there will show a section named "Locale Remulator x64", and choose what config you want.
 
 ## Built With
 
