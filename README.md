@@ -10,7 +10,8 @@ wiki在做了在做了（咕咕咕······
 
 System Region and Language Simulator.
 
-The project is similar with Locale-Emulator, but which don't support 64-bit application. So I base on Minhook to start a new project.
+The project is similar with Locale-Emulator, but which doesn't support 64-bit application. So I base on Minhook to start a new project.
+
 The most important reason is that Japan MapleStory will become 64-bit.
 
 ## Getting Started
