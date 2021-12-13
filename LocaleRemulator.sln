@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31410.357
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LRInject", "LRInject\LRInject.vcxproj", "{162096E9-09D4-4B56-8E8E-21A6B2F947A2}"
 EndProject
@@ -22,6 +22,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LRProc", "LRProc\LRProc.csproj", "{43CDD6B4-9AD6-4C9B-A4B7-F4B069968AFC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LRSample", "LRSample\LRSample.vcxproj", "{C1A21DD7-A4CA-41D2-AD6C-206E0D8669CF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libMinHook", "minhook\build\VC16\libMinHook.vcxproj", "{F142A341-5EE0-442D-A15F-98AE9B48DBAE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LREditor", "LREditor\LREditor.csproj", "{6B1DC588-17F5-4C0D-8ABF-18E4112D5626}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -110,6 +114,30 @@ Global
 		{C1A21DD7-A4CA-41D2-AD6C-206E0D8669CF}.Release|x64.Build.0 = Release|x64
 		{C1A21DD7-A4CA-41D2-AD6C-206E0D8669CF}.Release|x86.ActiveCfg = Release|Win32
 		{C1A21DD7-A4CA-41D2-AD6C-206E0D8669CF}.Release|x86.Build.0 = Release|Win32
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|Any CPU.Build.0 = Debug|x64
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|x64.ActiveCfg = Debug|x64
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|x64.Build.0 = Debug|x64
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|x86.ActiveCfg = Debug|Win32
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|x86.Build.0 = Debug|Win32
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|Any CPU.ActiveCfg = Release|x64
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|Any CPU.Build.0 = Release|x64
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x64.ActiveCfg = Release|x64
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x64.Build.0 = Release|x64
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x86.ActiveCfg = Release|Win32
+		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Release|x86.Build.0 = Release|Win32
+		{6B1DC588-17F5-4C0D-8ABF-18E4112D5626}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B1DC588-17F5-4C0D-8ABF-18E4112D5626}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B1DC588-17F5-4C0D-8ABF-18E4112D5626}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6B1DC588-17F5-4C0D-8ABF-18E4112D5626}.Debug|x64.Build.0 = Debug|Any CPU
+		{6B1DC588-17F5-4C0D-8ABF-18E4112D5626}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6B1DC588-17F5-4C0D-8ABF-18E4112D5626}.Debug|x86.Build.0 = Debug|Any CPU
+		{6B1DC588-17F5-4C0D-8ABF-18E4112D5626}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B1DC588-17F5-4C0D-8ABF-18E4112D5626}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B1DC588-17F5-4C0D-8ABF-18E4112D5626}.Release|x64.ActiveCfg = Release|Any CPU
+		{6B1DC588-17F5-4C0D-8ABF-18E4112D5626}.Release|x64.Build.0 = Release|Any CPU
+		{6B1DC588-17F5-4C0D-8ABF-18E4112D5626}.Release|x86.ActiveCfg = Release|Any CPU
+		{6B1DC588-17F5-4C0D-8ABF-18E4112D5626}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

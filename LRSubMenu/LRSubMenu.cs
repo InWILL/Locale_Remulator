@@ -170,7 +170,6 @@ namespace LRSubMenus
         // </summary>
         protected void MenuFiles()
         {
-            LRConfig.CheckConfigFile();
             LRProfile[] profiles = LRConfig.GetProfiles();
 
             ToolStripMenuItem MainMenu;
@@ -190,8 +189,17 @@ namespace LRSubMenus
                 SubMenu.Click += (sender, args) => CallInject(profile);
                 MainMenu.DropDownItems.Add(SubMenu);
             }
+
+            var Menu_Editor = new ToolStripMenuItem
+            {
+                Text = "Edit Profile List",
+                Image = Properties.Resources.file_icon
+            };
+            Menu_Editor.DropDownItems.Clear();
+            Menu_Editor.Click += (sender, args) => CallLREditor();
+            MainMenu.DropDownItems.Add(Menu_Editor);
             // Lets attach the submenus to the main menu
-            
+
             menu.Items.Clear();
             menu.Items.Add(MainMenu);
         }
@@ -207,8 +215,21 @@ namespace LRSubMenus
             Directory.SetCurrentDirectory(currentpath);
 
             proc.StartInfo.FileName = "LRProc.exe";
-            proc.StartInfo.Arguments = filepath+" LRHook.dll "+profile.CodePage;
+            proc.StartInfo.Arguments = filepath+" LRHook.dll "+profile.Guid;
             if(profile.RunAsAdmin) proc.StartInfo.Verb = "runas";
+            //MessageBox.Show(currentpath);
+            proc.Start();
+            proc.WaitForExit();
+            proc.Close();
+        }
+        private void CallLREditor()
+        {
+            var proc = new Process();
+            var filepath = SelectedItemPaths.First();
+
+            Directory.SetCurrentDirectory(currentpath);
+
+            proc.StartInfo.FileName = "LREditor.exe";
             //MessageBox.Show(currentpath);
             proc.Start();
             proc.WaitForExit();

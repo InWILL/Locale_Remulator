@@ -20,11 +20,11 @@ namespace LRCSharpLibrary
         public static string ConfigPath =
             Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                          "LRConfig.xml");
-        public static LRProfile GetProfile(string name)
+        public static LRProfile GetProfile(string Guid)
         {
             try
             {
-                return GetProfiles().Where(p => p.Name == name).ToArray()[0];
+                return GetProfiles().Where(p => p.Guid == Guid).ToArray()[0];
             }
             catch
             {
@@ -33,6 +33,7 @@ namespace LRCSharpLibrary
         }
         public static LRProfile[] GetProfiles()
         {
+            CheckConfigFile();
             try
             {
                 var dict = XDocument.Load(ConfigPath);
@@ -40,6 +41,7 @@ namespace LRCSharpLibrary
                 var profiles =
                     proc.Select(p => new LRProfile(p.Attribute("Name").Value,
                                                  p.Attribute("Guid").Value,
+                                                 p.Element("Location").Value,
                                                  uint.Parse(p.Element("CodePage").Value),
                                                  bool.Parse(p.Element("RunAsAdmin").Value)
                                                 )).ToArray();
@@ -61,11 +63,13 @@ namespace LRCSharpLibrary
                                   {
                                       new LRProfile("Run in Japanese",
                                                     Guid.NewGuid().ToString(),
+                                                    "ja-JP",
                                                     932,
                                                     false
                                           ),
                                       new LRProfile("Run in Japanese (Admin)",
                                                     Guid.NewGuid().ToString(),
+                                                    "ja-JP",
                                                     932,
                                                     true
                                           )
@@ -73,7 +77,7 @@ namespace LRCSharpLibrary
 
             WriteConfig(defaultProfiles);
         }
-        private static void WriteConfig(LRProfile[] profiles)
+        public static void WriteConfig(LRProfile[] profiles)
         {
             var baseNode = new XElement("Profiles");
 
@@ -82,6 +86,7 @@ namespace LRCSharpLibrary
                 baseNode.Add(new XElement("Profile",
                                           new XAttribute("Name", p.Name),
                                           new XAttribute("Guid", p.Guid),
+                                          new XElement("Location", p.Location),
                                           new XElement("CodePage",p.CodePage),
                                           new XElement("RunAsAdmin", p.RunAsAdmin)
                                  )

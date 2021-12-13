@@ -1,7 +1,7 @@
 #include <iostream>
 #include<fstream>
 #include <assert.h>
-#include "MinHook.h"
+#include "../minhook/include/MinHook.h"
 
 #if defined _M_X64
 #pragma comment(lib, "libMinHook.x64.lib")
