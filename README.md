@@ -18,7 +18,7 @@ The most important reason is that Japan MapleStory will become 64-bit.
 
 ### Prerequisites
 
-* [.NET Framework 4.7.2 or higher](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net472)
+* [.NET Framework Runtime 4.7.2 or higher](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net472)
 
 ## Install
 
