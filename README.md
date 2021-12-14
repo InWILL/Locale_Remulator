@@ -32,10 +32,28 @@ Run `unregister.bat` to remove right-click menu.
 
 Select a `*.exe` application and right click, there will show a section named "Locale Remulator x64", and choose what config you want.
 
-## Built With
+## Built
+
+### Prerequisites
 
 * [Detours](https://github.com/microsoft/Detours) - Used to hook unicode functions
 * [SharpShell](https://github.com/dwmkerr/sharpshell) - Used to generate right-click menu
+
+### Compile
+choose solution Platform x86 or x64.
+Copy these file at the same Location
+```
+unregister.bat
+LREditor.dll
+LREditor.exe
+LREditor.runtimeconfig.json
+LRHook.dll
+LRProc.dll
+LRProc.exe
+LRSubMenus.dll
+register.bat
+SharpShell.dll
+```
 
 ## License
 
