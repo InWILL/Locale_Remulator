@@ -20,6 +20,17 @@ namespace LRCSharpLibrary
         public static string ConfigPath =
             Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                          "LRConfig.xml");
+        public static LRProfile GetProfile(uint CodePage)
+        {
+            try
+            {
+                return GetProfiles().Where(p => p.CodePage == CodePage).ToArray()[0];
+            }
+            catch
+            {
+                return new LRProfile();
+            }
+        }
         public static LRProfile GetProfile(string Guid)
         {
             try

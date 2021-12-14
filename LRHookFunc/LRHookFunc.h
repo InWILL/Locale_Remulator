@@ -1,16 +1,16 @@
 #pragma once
 #include<Windows.h>
+#include <detours/detours.h>
 #include"LROriginalFunc.h"
 #include"../LRCommonLibrary/LRCommonLibrary.h"
 #pragma comment(lib, "LRCommonLibrary.lib")
 
 extern LRProfile settings;
 
-void HookFunctions();
-extern LPVOID HookDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL);
-//extern LPVOID HookFunc(LPVOID lpszFuncName, LPVOID lpHookAddress);
-UINT WINAPI HookGdiGetCodePage(HDC hdc);
+void AttachFunctions();
+void DetachFunctions();
 UINT WINAPI HookGetACP(void);
+UINT WINAPI HookGetOEMCP(void);
 int WINAPI HookMessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
 HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
@@ -21,6 +21,23 @@ int WINAPI HookMultiByteToWideChar(UINT CodePage, DWORD dwFlags,
 	LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
 int WINAPI HookWideCharToMultiByte(UINT CodePage, DWORD dwFlags,
 	LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar);
+
+//Minhook version Code
+/*LONG AttachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
+{
+	LPVOID funcptr = hDLL ? (LPVOID)(DWORD_PTR)GetProcAddress(hDLL, lpszFuncName) : (LPVOID)lpszFuncName;
+	LPVOID outputptr;
+	return DetourAttach(&funcptr, lpHookAddress);
+	// return the original funcaddress !
+}
+
+LONG DetachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
+{
+	LPVOID funcptr = hDLL ? (LPVOID)(DWORD_PTR)GetProcAddress(hDLL, lpszFuncName) : (LPVOID)lpszFuncName;
+	LPVOID outputptr;
+	return DetourDetach(&funcptr, lpHookAddress);
+	// return the original funcaddress !
+}*/
 
 
 inline VOID FreeStringInternal(LPVOID pBuffer/*ecx*/)

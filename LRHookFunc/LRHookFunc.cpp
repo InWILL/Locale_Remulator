@@ -1,22 +1,21 @@
 #include"LRHookFunc.h"
 
-UINT WINAPI HookGetOEMCP(void) { return HookGetACP(); }
-
-
-void HookFunctions() {
-	HMODULE hDLL;
-	hDLL = LoadLibraryA("User32.dll");
-	//HookDllFunc("MessageBoxA", HookMessageBoxA, hDLL);
-	hDLL = LoadLibraryA("gdi32.dll");
-	HookDllFunc("GdiGetCodePage", (LPVOID)(DWORD_PTR)HookGdiGetCodePage, hDLL);
-	HookDllFunc((LPCSTR)(DWORD_PTR)GetACP, (LPVOID)(DWORD_PTR)HookGetACP, NULL);
-	HookDllFunc((LPCSTR)(DWORD_PTR)GetOEMCP, (LPVOID)(DWORD_PTR)HookGetOEMCP, NULL);
+void AttachFunctions() {
 	//HookDllFunc((LPCSTR)(DWORD_PTR)CreateWindowExA, (LPVOID)(DWORD_PTR)HookCreateWindowExA, NULL);
 	//HookFunc(&MessageBoxA, &HookMessageBoxA);
-	HookDllFunc((LPCSTR)(DWORD_PTR)SendMessageA, (LPVOID)(DWORD_PTR)HookSendMessageA, NULL);
-	//hDLL = LoadLibraryA("Kernel32.dll");
-	fpMultiByteToWideChar = (LPBYTE)HookDllFunc((LPCSTR)(DWORD_PTR)MultiByteToWideChar, (LPVOID)(DWORD_PTR)HookMultiByteToWideChar, NULL);
-	fpWideCharToMultiByte = (LPBYTE)HookDllFunc((LPCSTR)(DWORD_PTR)WideCharToMultiByte, (LPVOID)(DWORD_PTR)HookWideCharToMultiByte, NULL);
+	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
+	DetourAttach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
+	DetourAttach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
+	DetourAttach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
+	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
+}
+
+void DetachFunctions() {
+	DetourDetach(&(PVOID&)OriginalGetACP, HookGetACP);
+	DetourDetach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
+	DetourDetach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
+	DetourDetach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
+	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 }
 
 int WINAPI HookMessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
@@ -58,23 +57,14 @@ HWND WINAPI HookCreateWindowExA(
 	return hwnd;
 }
 
-UINT WINAPI HookGdiGetCodePage(HDC hdc)
-{
-	UNREFERENCED_PARAMETER(hdc);
-	return settings.CodePage;
-}
-
 UINT WINAPI HookGetACP(void)
 {
 	return settings.CodePage;
 }
-
-
-/*LRESULT WINAPI HookSendMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+UINT WINAPI HookGetOEMCP(void)
 {
-	filelog << return_current_time_and_date() << " " << std::hex << uMsg << " " << wParam << " " << lParam << std::endl;
-	return fpSendMessage(hWnd, uMsg, wParam, lParam);
-}*/
+	return settings.CodePage;
+}
 
 static int CheckWindowStyle(HWND hWnd, DWORD type/*ebx*/) {
 
@@ -174,7 +164,6 @@ LRESULT WINAPI HookSendMessageA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 int WINAPI HookMultiByteToWideChar(UINT CodePage, DWORD dwFlags,
 	LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar)
 {
-	//filelog << CodePage << std::endl;
 	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
 	return OriginalMultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar);
 }

@@ -98,6 +98,7 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
+      <AdditionalOptions>/export:DetourFinishHelperProcess,@1,NONAME %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -118,6 +119,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>$(OUTDIR);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/export:DetourFinishHelperProcess,@1,NONAME %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -158,17 +160,11 @@
     <ClCompile Include="LRHook.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MinHook.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\LRCommonLibrary\LRCommonLibrary.vcxproj">
       <Project>{a20cb1c6-9374-45a4-bce4-aa2d16274906}</Project>
     </ProjectReference>
     <ProjectReference Include="..\LRHookFunc\LRHookFunc.vcxproj">
       <Project>{71e244d1-ce4d-454b-8324-54b0ec660c7e}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\minhook\build\VC16\libMinHook.vcxproj">
-      <Project>{f142a341-5ee0-442d-a15f-98ae9b48dbae}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
