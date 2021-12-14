@@ -2,7 +2,7 @@
 
 [![license](https://img.shields.io/github/license/InWILL/Locale_Remulator.svg)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 
-类似于Locale Emulator，但是没有64位，所以基于MinHook重新实现了一个(现已改为Detours)，外围部分参照了LE的代码。
+类似于Locale Emulator，但是没有64位，所以基于Detours重新实现了一个，外围部分参照了LE的代码。
 
 最主要的原因是日服MapleStory要实装64位了。
 
