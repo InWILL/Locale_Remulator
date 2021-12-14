@@ -41,7 +41,9 @@ Select a `*.exe` application and right click, there will show a section named "L
 
 ### Compile
 choose solution Platform x86 or x64.
+
 Copy these file at the same Location
+
 ```
 unregister.bat
 LREditor.dll
