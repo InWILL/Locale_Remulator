@@ -5,15 +5,25 @@
 #include"../LRCommonLibrary/LRCommonLibrary.h"
 #pragma comment(lib, "LRCommonLibrary.lib")
 
-bool inject(DWORD pId, char* dllToInject);
-DWORD startup(char* cmdline);
+#ifdef _DEBUG
+#using <../LRSubMenu/bin/Debug/LRSubMenus.dll>
+#else
+#using <../LRSubMenu/bin/Release/LRSubMenus.dll>
+#endif
 
-extern "C" __declspec(dllexport) int LRInject(char* filepath, char* dllpath, UINT CodePage)
+//extern "C" __declspec(dllexport) int LRInject(char* filepath, char* dllpath, UINT CodePage)
+int main(int argc,char *argv[])
 {
-	LRProfile profile;
-	profile.CodePage = CodePage;
+	char* filepath = argv[1];
+	char* dllpath = argv[2];
+	System::String^ Guid = gcnew System::String(argv[3]);
+	LRCSharpLibrary::LRProfile^ alpha = LRCSharpLibrary::LRConfig::GetProfile(Guid);
+
+	LRProfile beta;
+	beta.CodePage = alpha->CodePage;
+
 	LRConfigFileMap filemap;
-	filemap.WrtieConfigFileMap(&profile);
+	filemap.WrtieConfigFileMap(&beta);
 	
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;

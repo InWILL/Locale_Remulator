@@ -10,6 +10,7 @@ extern LRProfile settings;
 void AttachFunctions();
 void DetachFunctions();
 UINT WINAPI HookGetACP(void);
+UINT WINAPI HookGetOEMCP(void);
 int WINAPI HookMessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
 HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
