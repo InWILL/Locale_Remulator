@@ -15,6 +15,7 @@ namespace LRSubMenus
     [ComVisible(true)]
     [COMServerAssociation(AssociationType.ClassOfExtension,".exe")]
     //[COMServerAssociation(AssociationType.Directory)]
+
     public class LRSubMenuExtension : SharpContextMenu
     {
         //  lets create the menu strip.
@@ -22,6 +23,7 @@ namespace LRSubMenus
         private static string currentpath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
         //identify if a executable file is 64-bit
+        /*
         public enum BinaryType : uint
         {
             SCS_32BIT_BINARY = 0,
@@ -62,6 +64,7 @@ namespace LRSubMenus
                 }
             }
         }
+        */
         // <summary>
         // Determines whether the menu item can be shown for the selected item.
         // </summary>
@@ -71,8 +74,8 @@ namespace LRSubMenus
         protected override bool CanShowMenu()
         {
             //  We can show the item only for a single selection.
-            string filepath = SelectedItemPaths.First().ToString();
-            BinaryType? filetype= GetBinaryType(filepath);
+            //string filepath = SelectedItemPaths.First().ToString();
+            //BinaryType? filetype= GetBinaryType(filepath);
 
             //if (filetype == BinaryType.SCS_64BIT_BINARY)
             if(SelectedItemPaths.Count() == 1)
@@ -190,6 +193,8 @@ namespace LRSubMenus
                 MainMenu.DropDownItems.Add(SubMenu);
             }
 
+            MainMenu.DropDownItems.Add("-");
+
             var Menu_Editor = new ToolStripMenuItem
             {
                 Text = "Edit Profile List",
@@ -215,7 +220,7 @@ namespace LRSubMenus
             Directory.SetCurrentDirectory(currentpath);
 
             proc.StartInfo.FileName = "LRProc.exe";
-            proc.StartInfo.Arguments = filepath+" LRHook.dll "+profile.Guid;
+            proc.StartInfo.Arguments = "\""+filepath+"\" "+profile.Guid;
             if(profile.RunAsAdmin) proc.StartInfo.Verb = "runas";
             //MessageBox.Show(currentpath);
             proc.Start();

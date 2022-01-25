@@ -1,7 +1,5 @@
 #include<Windows.h>
-#include <iostream>
-#include <assert.h>
-#include <detours/detours.h>
+#include<detours.h>
 
 #include"../LRCommonLibrary/LRCommonLibrary.h"
 #pragma comment(lib, "LRCommonLibrary.lib")
@@ -16,6 +14,7 @@
 
 
 LRProfile settings;
+//std::ofstream filelog;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
 	if (DetourIsHelperProcess()) {
@@ -24,10 +23,13 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	switch (ul_reason_for_call) {
 	case DLL_PROCESS_ATTACH:
 		std::cout << "DLL_PROCESS_ATTACH\n";
+		//filelog.open("test.log", std::ios::out);
+
 		LRConfigFileMap filemap;
-		
 		filemap.ReadConfigFileMap(&settings);
 		filemap.FreeConfigFileMap();
+		settings.hHeap = HeapCreate(0, 0, 0);
+		settings.nTlsIndex = TlsAlloc();
 		
 		DetourRestoreAfterWith();
 		DetourTransactionBegin();
@@ -45,6 +47,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 		break;
 	case DLL_PROCESS_DETACH:
 		std::cout << "DLL_PROCESS_DETACH\n";
+		
+		//filelog.close();
+
 		DetourTransactionBegin();
 		DetourUpdateThread(GetCurrentThread());
 

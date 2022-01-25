@@ -11,7 +11,8 @@ int LRConfigFileMap::WrtieConfigFileMap(LRProfile *profile)
 		0,                       // maximum object size (high-order DWORD)
 		BUF_SIZE,                // maximum object size (low-order DWORD)
 		szConfigFileMap);                 // name of mapping object
-
+	if (GetLastError() == ERROR_ALREADY_EXISTS)
+		return 1;
 	if (hMapFile == NULL)
 	{
 		MessageBox(NULL, TEXT("Could not create file mapping object."), NULL, NULL);

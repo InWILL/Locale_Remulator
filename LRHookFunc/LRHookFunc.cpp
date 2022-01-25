@@ -2,23 +2,39 @@
 
 void AttachFunctions() {
 	//HookDllFunc((LPCSTR)(DWORD_PTR)CreateWindowExA, (LPVOID)(DWORD_PTR)HookCreateWindowExA, NULL);
-	//HookFunc(&MessageBoxA, &HookMessageBoxA);
+	//DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourAttach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
 	DetourAttach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
 	DetourAttach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
+	DetourAttach(&(PVOID&)OriginalWinExec, HookWinExec);
+	//DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
+	
+	//DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
+	//DetourAttach(&(PVOID&)OriginalDefDlgProcA, HookDefDlgProcA);
 }
 
 void DetachFunctions() {
+	//DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourDetach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourDetach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
 	DetourDetach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
 	DetourDetach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
+	DetourDetach(&(PVOID&)OriginalWinExec, HookWinExec);
+	//DetourDetach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
+	
+	//DetourDetach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
+	//DetourDetach(&(PVOID&)OriginalDefDlgProcA, HookDefDlgProcA);
 }
 
-int WINAPI HookMessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
+int WINAPI HookMessageBoxA(
+	_In_opt_ HWND hWnd,
+	_In_opt_ LPCSTR lpText,
+	_In_opt_ LPCSTR lpCaption,
+	_In_ UINT uType)
+{
 	LPCWSTR wlpText = MultiByteToWideCharInternal(lpText);
 	LPCWSTR wlpCaption = MultiByteToWideCharInternal(lpCaption);
 	int ret = MessageBoxW(hWnd, wlpText, wlpCaption, uType);
@@ -121,7 +137,6 @@ static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WP
 	//if (lstrcmpiA(classname, "TListBox") == 0) {
 	//ntprintfA(256, 1, "%s: proc-%p hwnd=%p, msg=%04x, wParam=%d, lParam=%d\n", __FUNCTION__, lpProcAddress, hWnd, uMsg, wParam, lParam);
 	//}
-
 	switch (uMsg) {
 	case LB_FINDSTRINGEXACT: // LN305
 	case LB_ADDSTRING: // LN305
@@ -158,13 +173,81 @@ static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WP
 
 LRESULT WINAPI HookSendMessageA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	//filelog << std::hex << uMsg << std::endl;
 	return SendUnicodeMessage((LPVOID)(DWORD_PTR)SendMessageW, hWnd, uMsg, wParam, lParam, 0, 0, 0, 0);
+}
+
+typedef struct {
+	WNDPROC		AnsiSystemClassProc;
+	WNDPROC		UnicodeSystemClassProc;
+} SYSTEM_CLASS_WNDPROC;
+
+typedef struct {
+	DWORD		InternalCall;
+	DWORD		DBCSLeadByte;
+	DWORD		IsFontAvailable;
+	DWORD		CurrentCallType;
+	DLGPROC		DialogProc;
+	DWORD		IsCreateFileCall;
+	LONG		hWindowHooking; // counter for avoiding setup/uninst hook-recursive
+	HHOOK		hWindowCbtHookAnsi;
+	HHOOK		hWindowCbtHookUnicode;
+	SYSTEM_CLASS_WNDPROC SystemClassDesc[15];
+	//	WNDPROC		DynamicClassProc[MAXSYSCLASSDESC]; // runtime cache !?
+} NTLEA_TLS_DATA;
+
+char const* SystemClassNameA[] = {
+	"BUTTON", "COMBOBOX", "ComboLBox", /*"#32770",*/ "EDIT", "LISTBOX", "MDICLIENT", "RichEdit", "RICHEDIT_CLASS",
+	"SCROLLBAR", "STATIC", "SysTreeView32", "SysListView32", "SysAnimate32", "SysHeader32", "tooltips_class32",
+	//	"SysTabControl32", "ToolbarWindow32", "ComboBoxEx32", "SysDateTimePick32", "SysMonthCal32", "ReBarWindow32", 
+	//	"msctls_progress32", "msctls_trackbar32", "msctls_statusbar32", "msctls_updown32", "msctls_hotkey32",
+		/*NULL, */
+};
+wchar_t const* SystemClassNameW[] = {
+	L"BUTTON", L"COMBOBOX", L"ComboLBox", /*L"32770",*/ L"EDIT", L"LISTBOX", L"MDICLIENT", L"RichEdit", L"RICHEDIT_CLASS",
+	L"SCROLLBAR", L"STATIC", L"SysTreeView32", L"SysListView32", L"SysAnimate32", L"SysHeader32", L"tooltips_class32",
+	//	L"SysTabControl32", L"ToolbarWindow32", L"ComboBoxEx32", L"SysDateTimePick32", L"SysMonthCal32", L"ReBarWindow32",
+	//	L"msctls_progress32", L"msctls_trackbar32", L"msctls_statusbar32", L"msctls_updown32", L"msctls_hotkey32",
+		/*NULL, */
+};
+
+inline LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/) {
+	return HeapAlloc(settings.hHeap, HEAP_ZERO_MEMORY, size);
+}
+
+inline NTLEA_TLS_DATA* GetTlsValueInternal(void) {
+	DWORD n = GetLastError();
+	NTLEA_TLS_DATA* p = (NTLEA_TLS_DATA*)TlsGetValue(settings.nTlsIndex);
+	SetLastError(n); // thus the tlsgetvalue won't affect the env 
+	if (!p) {
+		p = (NTLEA_TLS_DATA*)AllocateZeroedMemory(sizeof(NTLEA_TLS_DATA));
+		TlsSetValue(settings.nTlsIndex, p);
+		for (int i = 0; i < 15; ++i) {
+			WNDCLASSA wndclassa;
+			if (GetClassInfoA(NULL, SystemClassNameA[i], &wndclassa)) {
+				p->SystemClassDesc[i].AnsiSystemClassProc = wndclassa.lpfnWndProc;
+			}
+			WNDCLASSW wndclassw;
+			if (GetClassInfoW(NULL, SystemClassNameW[i], &wndclassw)) {
+				p->SystemClassDesc[i].UnicodeSystemClassProc = wndclassw.lpfnWndProc;
+			}
+			//	ntprintfA(256, 1, "info: %s - %p %p\n", SystemClassNameA[i], wndclassa.lpfnWndProc, wndclassw.lpfnWndProc);
+		}
+		SetLastError(0); // also restore the errorstate !
+	}
+	return p;
 }
 
 int WINAPI HookMultiByteToWideChar(UINT CodePage, DWORD dwFlags,
 	LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar)
 {
-	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
+	/*if (GetTlsValueInternal()->IsCreateFileCall) {
+		GetTlsValueInternal()->IsCreateFileCall = 0;
+		CodePage= (CodePage >= CP_UTF7) ? CodePage : CP_ACP; // create file should use default CP, or else file won't be found !! 
+	}
+	else
+	*/
+		CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
 	return OriginalMultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar);
 }
 
@@ -174,4 +257,72 @@ int WINAPI HookWideCharToMultiByte(UINT CodePage, DWORD dwFlags,
 	//	if (lpMultiByteStr && lpWideCharStr) OutputDebugStringW(lpWideCharStr);
 	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
 	return OriginalWideCharToMultiByte(CodePage, dwFlags, lpWideCharStr, cchWideChar, lpMultiByteStr, cbMultiByte, lpDefaultChar, lpUsedDefaultChar);
+}
+
+UINT WINAPI HookWinExec(
+	_In_ LPCSTR lpCmdLine,
+	_In_ UINT uCmdShow
+)
+{
+	LPSTR lpCommandLine = (LPSTR)LocalAlloc(0, strlen(lpCmdLine) + 1);
+	sprintf(lpCommandLine, "%s", lpCmdLine);
+
+	LRConfigFileMap filemap;
+	filemap.WrtieConfigFileMap(&settings);
+
+	STARTUPINFOA si;
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&si, sizeof(STARTUPINFOA));
+	ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
+	si.cb = sizeof(STARTUPINFOA);
+	/*return HookCreateProcessA(NULL, lpCommandLine, NULL, NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
+		&si, &pi);*/
+	bool ret = DetourCreateProcessWithDllExA(NULL, lpCommandLine, NULL,
+		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
+		&si, &pi, "LRHook.dll", NULL);
+	filemap.FreeConfigFileMap();
+	if (ret == TRUE)
+		return 0x21;
+	else return 0;
+	//return OriginalWinExec(lpCmdLine, uCmdShow);
+}
+
+bool WINAPI HookIsDebuggerPresent()
+{
+	return 0;
+}
+
+inline LRESULT CallProcAddress(LPVOID lpProcAddress, HWND hWnd, HWND hMDIClient,
+	BOOL bMDIClientEnabled, INT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	typedef LRESULT(WINAPI* fnWNDProcAddress)(HWND, int, WPARAM, LPARAM);
+	typedef LRESULT(WINAPI* fnMDIProcAddress)(HWND, HWND, int, WPARAM, LPARAM);
+	// MDI or not ??? 
+	return (bMDIClientEnabled) ? ((fnMDIProcAddress)(DWORD_PTR)lpProcAddress)(hWnd, hMDIClient, uMsg, wParam, lParam)
+		: ((fnWNDProcAddress)(DWORD_PTR)lpProcAddress)(hWnd, uMsg, wParam, lParam);
+}
+
+static LRESULT CALLBACK DefConversionProc(LPVOID lpProcAddress, HWND hWnd, HWND hMDIClient,
+	BOOL bMDIClientEnabled, INT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	return CallProcAddress(lpProcAddress, hWnd, hMDIClient, bMDIClientEnabled, uMsg, wParam, lParam);
+}
+
+LRESULT WINAPI HookDefWindowProcA(
+	_In_ HWND hWnd,
+	_In_ UINT Msg,
+	_In_ WPARAM wParam,
+	_In_ LPARAM lParam)
+{
+	return DefConversionProc((LPVOID)(DWORD_PTR)DefWindowProcW, hWnd, NULL, FALSE, Msg, wParam, lParam);
+}
+
+LRESULT WINAPI HookDefDlgProcA(
+	_In_ HWND hDlg,
+	_In_ UINT Msg,
+	_In_ WPARAM wParam,
+	_In_ LPARAM lParam)
+{
+	return 0;
+	return DefConversionProc((LPVOID)(DWORD_PTR)DefDlgProcW, hDlg, NULL, FALSE, Msg, wParam, lParam);
 }

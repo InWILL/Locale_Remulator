@@ -5,12 +5,15 @@
 #include <tchar.h>
 #include<cstring>
 #include<iostream>
+#include<fstream>
 
 const TCHAR szConfigFileMap[] = TEXT("LRConfigFileMap");
 //const TCHAR szMsg[] = TEXT("Message from first process.");
 
 struct LRProfile
 {
+	HANDLE hHeap;
+	DWORD nTlsIndex;
 	UINT CodePage;
 };
 
