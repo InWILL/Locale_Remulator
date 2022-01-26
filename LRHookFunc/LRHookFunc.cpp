@@ -9,7 +9,8 @@ void AttachFunctions() {
 	DetourAttach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 	DetourAttach(&(PVOID&)OriginalWinExec, HookWinExec);
-	//DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
+	DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
+	//DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
 	
 	//DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
 	//DetourAttach(&(PVOID&)OriginalDefDlgProcA, HookDefDlgProcA);
@@ -23,7 +24,8 @@ void DetachFunctions() {
 	DetourDetach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 	DetourDetach(&(PVOID&)OriginalWinExec, HookWinExec);
-	//DetourDetach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
+	DetourDetach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
+	//DetourDetach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
 	
 	//DetourDetach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
 	//DetourDetach(&(PVOID&)OriginalDefDlgProcA, HookDefDlgProcA);
@@ -241,13 +243,14 @@ inline NTLEA_TLS_DATA* GetTlsValueInternal(void) {
 int WINAPI HookMultiByteToWideChar(UINT CodePage, DWORD dwFlags,
 	LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar)
 {
-	/*if (GetTlsValueInternal()->IsCreateFileCall) {
+	/*
+	if (GetTlsValueInternal()->IsCreateFileCall) {
 		GetTlsValueInternal()->IsCreateFileCall = 0;
 		CodePage= (CodePage >= CP_UTF7) ? CodePage : CP_ACP; // create file should use default CP, or else file won't be found !! 
 	}
 	else
 	*/
-		CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
+	//CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
 	return OriginalMultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar);
 }
 
@@ -255,7 +258,7 @@ int WINAPI HookWideCharToMultiByte(UINT CodePage, DWORD dwFlags,
 	LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar)
 {
 	//	if (lpMultiByteStr && lpWideCharStr) OutputDebugStringW(lpWideCharStr);
-	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
+	//CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
 	return OriginalWideCharToMultiByte(CodePage, dwFlags, lpWideCharStr, cchWideChar, lpMultiByteStr, cbMultiByte, lpDefaultChar, lpUsedDefaultChar);
 }
 
@@ -279,7 +282,7 @@ UINT WINAPI HookWinExec(
 		&si, &pi);*/
 	bool ret = DetourCreateProcessWithDllExA(NULL, lpCommandLine, NULL,
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
-		&si, &pi, "LRHook.dll", NULL);
+		&si, &pi, settings.DllPath, NULL);
 	filemap.FreeConfigFileMap();
 	if (ret == TRUE)
 		return 0x21;
@@ -287,42 +290,50 @@ UINT WINAPI HookWinExec(
 	//return OriginalWinExec(lpCmdLine, uCmdShow);
 }
 
-bool WINAPI HookIsDebuggerPresent()
+BOOL WINAPI HookCreateProcessA(
+	_In_opt_ LPCSTR lpApplicationName,
+	_Inout_opt_ LPSTR lpCommandLine,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpProcessAttributes,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	_In_ BOOL bInheritHandles,
+	_In_ DWORD dwCreationFlags,
+	_In_opt_ LPVOID lpEnvironment,
+	_In_opt_ LPCSTR lpCurrentDirectory,
+	_In_ LPSTARTUPINFOA lpStartupInfo,
+	_Out_ LPPROCESS_INFORMATION lpProcessInformation
+)
 {
-	return 0;
+	//MessageBoxA(NULL, lpApplicationName, lpCommandLine, NULL);
+	return DetourCreateProcessWithDllExA(
+		lpApplicationName,
+		lpCommandLine,
+		lpProcessAttributes,
+		lpThreadAttributes,
+		bInheritHandles,
+		dwCreationFlags,
+		lpEnvironment,
+		lpCurrentDirectory,
+		lpStartupInfo,
+		lpProcessInformation, 
+		settings.DllPath, 
+		OriginalCreateProcessA);
 }
 
-inline LRESULT CallProcAddress(LPVOID lpProcAddress, HWND hWnd, HWND hMDIClient,
-	BOOL bMDIClientEnabled, INT uMsg, WPARAM wParam, LPARAM lParam)
+HINSTANCE HookShellExecuteA(
+	_In_opt_ HWND hwnd,
+	_In_opt_ LPCSTR lpOperation,
+	_In_ LPCSTR lpFile,
+	_In_opt_ LPCSTR lpParameters,
+	_In_opt_ LPCSTR lpDirectory,
+	_In_ INT nShowCmd
+)
 {
-	typedef LRESULT(WINAPI* fnWNDProcAddress)(HWND, int, WPARAM, LPARAM);
-	typedef LRESULT(WINAPI* fnMDIProcAddress)(HWND, HWND, int, WPARAM, LPARAM);
-	// MDI or not ??? 
-	return (bMDIClientEnabled) ? ((fnMDIProcAddress)(DWORD_PTR)lpProcAddress)(hWnd, hMDIClient, uMsg, wParam, lParam)
-		: ((fnWNDProcAddress)(DWORD_PTR)lpProcAddress)(hWnd, uMsg, wParam, lParam);
-}
-
-static LRESULT CALLBACK DefConversionProc(LPVOID lpProcAddress, HWND hWnd, HWND hMDIClient,
-	BOOL bMDIClientEnabled, INT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	return CallProcAddress(lpProcAddress, hWnd, hMDIClient, bMDIClientEnabled, uMsg, wParam, lParam);
-}
-
-LRESULT WINAPI HookDefWindowProcA(
-	_In_ HWND hWnd,
-	_In_ UINT Msg,
-	_In_ WPARAM wParam,
-	_In_ LPARAM lParam)
-{
-	return DefConversionProc((LPVOID)(DWORD_PTR)DefWindowProcW, hWnd, NULL, FALSE, Msg, wParam, lParam);
-}
-
-LRESULT WINAPI HookDefDlgProcA(
-	_In_ HWND hDlg,
-	_In_ UINT Msg,
-	_In_ WPARAM wParam,
-	_In_ LPARAM lParam)
-{
-	return 0;
-	return DefConversionProc((LPVOID)(DWORD_PTR)DefDlgProcW, hDlg, NULL, FALSE, Msg, wParam, lParam);
+	MessageBox(NULL, TEXT("ShellExecuteA"), TEXT("ShellExecuteA"), NULL);
+	return OriginalShellExecuteA(
+		hwnd,
+		lpOperation,
+		lpFile,
+		lpParameters,
+		lpDirectory,
+		nShowCmd);
 }

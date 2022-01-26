@@ -12,6 +12,7 @@ const TCHAR szConfigFileMap[] = TEXT("LRConfigFileMap");
 
 struct LRProfile
 {
+	char DllPath[300];
 	HANDLE hHeap;
 	DWORD nTlsIndex;
 	UINT CodePage;

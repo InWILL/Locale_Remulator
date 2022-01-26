@@ -12,17 +12,16 @@
 #endif
 
 //extern "C" __declspec(dllexport) int LRInject(char* filepath, char* dllpath, UINT CodePage)
-int _tmain(int argc,_TCHAR *argv[])
+int main(int argc,char *argv[])
 {
-	_TCHAR* filepath = argv[1];
-	char* dllpath32 = "LRHook32.dll";
-	char* dllpath64 = "LRHook64.dll";
+	char* filepath = argv[1];
+	char* dllpath = argv[3];
 	System::String^ Guid = gcnew System::String(argv[2]);
 	LRCSharpLibrary::LRProfile^ alpha = LRCSharpLibrary::LRConfig::GetProfile(Guid);
 
 	LRProfile beta;
 	beta.CodePage = alpha->CodePage;
-
+	strcpy(beta.DllPath, dllpath);
 	LRConfigFileMap filemap;
 	filemap.WrtieConfigFileMap(&beta);
 	
@@ -34,16 +33,12 @@ int _tmain(int argc,_TCHAR *argv[])
 
 	DWORD type = 0;
 	GetBinaryType(filepath, &type);
-	if (type == SCS_64BIT_BINARY)
-		DetourCreateProcessWithDllEx(NULL, filepath, NULL,
-			NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
-			&si, &pi, dllpath64, NULL);
-	else
-		DetourCreateProcessWithDllEx(NULL, filepath, NULL,
-			NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
-			&si, &pi, dllpath32, NULL);
+	
+	DetourCreateProcessWithDllEx(NULL, filepath, NULL,
+		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
+		&si, &pi, dllpath, NULL);
 
-	Sleep(100);
+	WaitForSingleObject(pi.hProcess, INFINITE);
 	filemap.FreeConfigFileMap();
 	return 0;
 }

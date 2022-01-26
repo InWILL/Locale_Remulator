@@ -23,7 +23,7 @@ namespace LRSubMenus
         private static string currentpath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
         //identify if a executable file is 64-bit
-        /*
+        
         public enum BinaryType : uint
         {
             SCS_32BIT_BINARY = 0,
@@ -64,7 +64,7 @@ namespace LRSubMenus
                 }
             }
         }
-        */
+        
         // <summary>
         // Determines whether the menu item can be shown for the selected item.
         // </summary>
@@ -216,16 +216,23 @@ namespace LRSubMenus
         {
             var proc = new Process();
             var filepath = SelectedItemPaths.First();
-
-            Directory.SetCurrentDirectory(currentpath);
-
-            proc.StartInfo.FileName = "LRProc.exe";
-            proc.StartInfo.Arguments = "\""+filepath+"\" "+profile.Guid;
-            if(profile.RunAsAdmin) proc.StartInfo.Verb = "runas";
+            var filedirectory = Path.GetDirectoryName(filepath);
+            var LRPath = currentpath;
+#if DEBUG
+            if (GetBinaryType(filepath) == BinaryType.SCS_32BIT_BINARY)
+                LRPath = currentpath+@"\Debug";
+            else LRPath = currentpath+@"\x64\Debug";
+#else
+            if (GetBinaryType(filepath) == BinaryType.SCS_32BIT_BINARY)
+                LRPath = currentpath+@"\Release";
+            else LRPath = currentpath+@"\x64\Release";
+#endif
+            proc.StartInfo.FileName = LRPath + @"\LRProc.exe";
+            proc.StartInfo.Arguments = "\"" + filepath + "\" " + profile.Guid+" \""+ LRPath + "\\LRHook.dll\"";
+            proc.StartInfo.WorkingDirectory = filedirectory;
+            if (profile.RunAsAdmin) proc.StartInfo.Verb = "runas";
             //MessageBox.Show(currentpath);
             proc.Start();
-            proc.WaitForExit();
-            proc.Close();
         }
         private void CallLREditor()
         {

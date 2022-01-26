@@ -1,6 +1,7 @@
 # Locale Remulator
 
 [![license](https://img.shields.io/github/license/InWILL/Locale_Remulator.svg)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
+[![GitHub all releases](https://img.shields.io/github/downloads/InWILL/Locale_Remulator/total)](https://github.com/InWILL/Locale_Remulator/releases/latest)
 
 类似于Locale Emulator，但是没有64位，所以基于Detours重新实现了一个，外围部分参照了LE的代码。
 
@@ -14,15 +15,22 @@ The project is similar with Locale-Emulator, but LE doesn't support 64-bit appli
 
 The most important reason is that Japan MapleStory will become 64-bit.
 
+## Download
+
+Download available at <https://github.com/InWILL/Locale_Remulator/releases/latest>.
+
 ## Getting Started
 
 ### Prerequisites
 
-* [.NET Framework 4.8 or higher](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48)
+* [.NET Framework 4.8](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48)
+* [.NET Desktop Runtime 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
 ## Install
 
 Run `register.bat` to register right-click menu.
+
+If you installed old version in the past, please restart explorer or reboot system after registering new version.
 
 ## Uninstall
 
@@ -40,6 +48,7 @@ Select a `*.exe` application and right click, there will show a section named "L
 * [SharpShell](https://github.com/dwmkerr/sharpshell) - Used to generate right-click menu
 
 ### Compile
+
 choose solution Platform x86 or x64.
 
 Copy these files at the same Location

@@ -25,23 +25,32 @@ UINT WINAPI HookWinExec(
 	_In_ LPCSTR lpCmdLine,
 	_In_ UINT uCmdShow
 );
+BOOL WINAPI HookCreateProcessA(
+	_In_opt_ LPCSTR lpApplicationName,
+	_Inout_opt_ LPSTR lpCommandLine,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpProcessAttributes,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	_In_ BOOL bInheritHandles,
+	_In_ DWORD dwCreationFlags,
+	_In_opt_ LPVOID lpEnvironment,
+	_In_opt_ LPCSTR lpCurrentDirectory,
+	_In_ LPSTARTUPINFOA lpStartupInfo,
+	_Out_ LPPROCESS_INFORMATION lpProcessInformation
+);
+HINSTANCE HookShellExecuteA(
+	_In_opt_ HWND hwnd,
+	_In_opt_ LPCSTR lpOperation,
+	_In_ LPCSTR lpFile,
+	_In_opt_ LPCSTR lpParameters,
+	_In_opt_ LPCSTR lpDirectory,
+	_In_ INT nShowCmd
+);
 int WINAPI HookMessageBoxA(
 	_In_opt_ HWND hWnd,
 	_In_opt_ LPCSTR lpText,
 	_In_opt_ LPCSTR lpCaption,
 	_In_ UINT uType);
 
-LRESULT WINAPI HookDefWindowProcA(
-	_In_ HWND hWnd,
-	_In_ UINT Msg,
-	_In_ WPARAM wParam,
-	_In_ LPARAM lParam);
-
-LRESULT WINAPI HookDefDlgProcA(
-	_In_ HWND hDlg,
-	_In_ UINT Msg,
-	_In_ WPARAM wParam,
-	_In_ LPARAM lParam);
 
 //Minhook version Code
 /*LONG AttachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
