@@ -26,17 +26,17 @@ Download available at <https://github.com/InWILL/Locale_Remulator/releases/lates
 * [.NET Framework 4.8](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48)
 * [.NET Desktop Runtime 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
-## Install
+### Install
 
 Run `register.bat` to register right-click menu.
 
 If you installed old version in the past, please restart explorer or reboot system after registering new version.
 
-## Uninstall
+### Uninstall
 
 Run `unregister.bat` to remove right-click menu.
 
-## Usage
+### Usage
 
 Select a `*.exe` application and right click, there will show a section named "Locale Remulator x64", and choose what config you want.
 
