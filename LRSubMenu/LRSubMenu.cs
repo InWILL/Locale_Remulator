@@ -228,7 +228,7 @@ namespace LRSubMenus
             else LRPath = currentpath+@"\x64\Release";
 #endif
             proc.StartInfo.FileName = LRPath + @"\LRProc.exe";
-            proc.StartInfo.Arguments = "\"" + filepath + "\" " + profile.Guid+" \""+ LRPath + "\\LRHook.dll\"";
+            proc.StartInfo.Arguments = "\"" + filepath + "\" " + profile.Guid+" \""+ LRPath + "\\LRHook.dll\" \""+ currentpath+"\\LRConfig.xml\"";
             proc.StartInfo.WorkingDirectory = filedirectory;
             if (profile.RunAsAdmin) proc.StartInfo.Verb = "runas";
             //MessageBox.Show(currentpath);

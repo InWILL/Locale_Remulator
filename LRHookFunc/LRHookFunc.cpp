@@ -5,11 +5,13 @@ void AttachFunctions() {
 	//DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourAttach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
+	DetourAttach(&(PVOID&)OriginalGetCPInfo, HookGetCPInfo);
 	DetourAttach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
 	DetourAttach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 	DetourAttach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
+	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
 	
 	//DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
@@ -20,11 +22,13 @@ void DetachFunctions() {
 	//DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourDetach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourDetach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
+	DetourDetach(&(PVOID&)OriginalGetCPInfo, HookGetCPInfo);
 	DetourDetach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
 	DetourDetach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 	DetourDetach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourDetach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
+	DetourDetach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourDetach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
 	
 	//DetourDetach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
@@ -82,6 +86,14 @@ UINT WINAPI HookGetACP(void)
 UINT WINAPI HookGetOEMCP(void)
 {
 	return settings.CodePage;
+}
+
+BOOL WINAPI HookGetCPInfo(
+	_In_ UINT       CodePage,
+	_Out_ LPCPINFO  lpCPInfo)
+{
+	CodePage = settings.CodePage;
+	return OriginalGetCPInfo(CodePage, lpCPInfo);
 }
 
 static int CheckWindowStyle(HWND hWnd, DWORD type/*ebx*/) {
@@ -179,86 +191,17 @@ LRESULT WINAPI HookSendMessageA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	return SendUnicodeMessage((LPVOID)(DWORD_PTR)SendMessageW, hWnd, uMsg, wParam, lParam, 0, 0, 0, 0);
 }
 
-typedef struct {
-	WNDPROC		AnsiSystemClassProc;
-	WNDPROC		UnicodeSystemClassProc;
-} SYSTEM_CLASS_WNDPROC;
-
-typedef struct {
-	DWORD		InternalCall;
-	DWORD		DBCSLeadByte;
-	DWORD		IsFontAvailable;
-	DWORD		CurrentCallType;
-	DLGPROC		DialogProc;
-	DWORD		IsCreateFileCall;
-	LONG		hWindowHooking; // counter for avoiding setup/uninst hook-recursive
-	HHOOK		hWindowCbtHookAnsi;
-	HHOOK		hWindowCbtHookUnicode;
-	SYSTEM_CLASS_WNDPROC SystemClassDesc[15];
-	//	WNDPROC		DynamicClassProc[MAXSYSCLASSDESC]; // runtime cache !?
-} NTLEA_TLS_DATA;
-
-char const* SystemClassNameA[] = {
-	"BUTTON", "COMBOBOX", "ComboLBox", /*"#32770",*/ "EDIT", "LISTBOX", "MDICLIENT", "RichEdit", "RICHEDIT_CLASS",
-	"SCROLLBAR", "STATIC", "SysTreeView32", "SysListView32", "SysAnimate32", "SysHeader32", "tooltips_class32",
-	//	"SysTabControl32", "ToolbarWindow32", "ComboBoxEx32", "SysDateTimePick32", "SysMonthCal32", "ReBarWindow32", 
-	//	"msctls_progress32", "msctls_trackbar32", "msctls_statusbar32", "msctls_updown32", "msctls_hotkey32",
-		/*NULL, */
-};
-wchar_t const* SystemClassNameW[] = {
-	L"BUTTON", L"COMBOBOX", L"ComboLBox", /*L"32770",*/ L"EDIT", L"LISTBOX", L"MDICLIENT", L"RichEdit", L"RICHEDIT_CLASS",
-	L"SCROLLBAR", L"STATIC", L"SysTreeView32", L"SysListView32", L"SysAnimate32", L"SysHeader32", L"tooltips_class32",
-	//	L"SysTabControl32", L"ToolbarWindow32", L"ComboBoxEx32", L"SysDateTimePick32", L"SysMonthCal32", L"ReBarWindow32",
-	//	L"msctls_progress32", L"msctls_trackbar32", L"msctls_statusbar32", L"msctls_updown32", L"msctls_hotkey32",
-		/*NULL, */
-};
-
-inline LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/) {
-	return HeapAlloc(settings.hHeap, HEAP_ZERO_MEMORY, size);
-}
-
-inline NTLEA_TLS_DATA* GetTlsValueInternal(void) {
-	DWORD n = GetLastError();
-	NTLEA_TLS_DATA* p = (NTLEA_TLS_DATA*)TlsGetValue(settings.nTlsIndex);
-	SetLastError(n); // thus the tlsgetvalue won't affect the env 
-	if (!p) {
-		p = (NTLEA_TLS_DATA*)AllocateZeroedMemory(sizeof(NTLEA_TLS_DATA));
-		TlsSetValue(settings.nTlsIndex, p);
-		for (int i = 0; i < 15; ++i) {
-			WNDCLASSA wndclassa;
-			if (GetClassInfoA(NULL, SystemClassNameA[i], &wndclassa)) {
-				p->SystemClassDesc[i].AnsiSystemClassProc = wndclassa.lpfnWndProc;
-			}
-			WNDCLASSW wndclassw;
-			if (GetClassInfoW(NULL, SystemClassNameW[i], &wndclassw)) {
-				p->SystemClassDesc[i].UnicodeSystemClassProc = wndclassw.lpfnWndProc;
-			}
-			//	ntprintfA(256, 1, "info: %s - %p %p\n", SystemClassNameA[i], wndclassa.lpfnWndProc, wndclassw.lpfnWndProc);
-		}
-		SetLastError(0); // also restore the errorstate !
-	}
-	return p;
-}
-
 int WINAPI HookMultiByteToWideChar(UINT CodePage, DWORD dwFlags,
 	LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar)
 {
-	/*
-	if (GetTlsValueInternal()->IsCreateFileCall) {
-		GetTlsValueInternal()->IsCreateFileCall = 0;
-		CodePage= (CodePage >= CP_UTF7) ? CodePage : CP_ACP; // create file should use default CP, or else file won't be found !! 
-	}
-	else
-	*/
-	//CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
+	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
 	return OriginalMultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar);
 }
 
 int WINAPI HookWideCharToMultiByte(UINT CodePage, DWORD dwFlags,
 	LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar)
 {
-	//	if (lpMultiByteStr && lpWideCharStr) OutputDebugStringW(lpWideCharStr);
-	//CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
+	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
 	return OriginalWideCharToMultiByte(CodePage, dwFlags, lpWideCharStr, cchWideChar, lpMultiByteStr, cbMultiByte, lpDefaultChar, lpUsedDefaultChar);
 }
 
@@ -328,7 +271,7 @@ HINSTANCE HookShellExecuteA(
 	_In_ INT nShowCmd
 )
 {
-	MessageBox(NULL, TEXT("ShellExecuteA"), TEXT("ShellExecuteA"), NULL);
+	//MessageBox(NULL, TEXT("ShellExecuteA"), TEXT("ShellExecuteA"), NULL);
 	return OriginalShellExecuteA(
 		hwnd,
 		lpOperation,
@@ -336,4 +279,21 @@ HINSTANCE HookShellExecuteA(
 		lpParameters,
 		lpDirectory,
 		nShowCmd);
+}
+
+BOOL WINAPI HookSetWindowTextA(
+	_In_ HWND hWnd,
+	_In_opt_ LPCSTR lpString
+)
+{
+	//MessageBox(NULL, TEXT("Test"), NULL, NULL);
+	LPCWSTR wstr = NULL;
+	if (lpString) {
+		wstr = MultiByteToWideCharInternal(lpString);
+	}
+	BOOL ret = SetWindowTextW(hWnd, wstr);
+	if (wstr) {
+		FreeStringInternal((LPVOID)wstr);
+	}
+	return ret;
 }

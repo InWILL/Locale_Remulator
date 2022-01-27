@@ -5,6 +5,8 @@
 #include"../LRCommonLibrary/LRCommonLibrary.h"
 #pragma comment(lib, "LRCommonLibrary.lib")
 
+using namespace System::Reflection;
+
 #ifdef _DEBUG
 #using <../LRSubMenu/bin/Debug/LRSubMenus.dll>
 #else
@@ -17,7 +19,8 @@ int main(int argc,char *argv[])
 	char* filepath = argv[1];
 	char* dllpath = argv[3];
 	System::String^ Guid = gcnew System::String(argv[2]);
-	LRCSharpLibrary::LRProfile^ alpha = LRCSharpLibrary::LRConfig::GetProfile(Guid);
+	System::String^ ConfigPath = gcnew System::String(argv[4]);
+	LRCSharpLibrary::LRProfile^ alpha = LRCSharpLibrary::LRConfig::GetProfile(Guid, ConfigPath);
 
 	LRProfile beta;
 	beta.CodePage = alpha->CodePage;

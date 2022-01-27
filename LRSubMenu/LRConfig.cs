@@ -20,11 +20,11 @@ namespace LRCSharpLibrary
         public static string ConfigPath =
             Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                          "LRConfig.xml");
-        public static LRProfile GetProfile(uint CodePage)
+        public static LRProfile GetProfile(string Guid,string path)
         {
             try
             {
-                return GetProfiles().Where(p => p.CodePage == CodePage).ToArray()[0];
+                return GetProfiles(path).Where(p => p.Guid == Guid).ToArray()[0];
             }
             catch
             {
@@ -42,12 +42,12 @@ namespace LRCSharpLibrary
                 return new LRProfile();
             }
         }
-        public static LRProfile[] GetProfiles()
+        public static LRProfile[] GetProfiles(string path)
         {
             CheckConfigFile();
             try
             {
-                var dict = XDocument.Load(ConfigPath);
+                var dict = XDocument.Load(path);
                 var proc = from i in dict.Descendants("LRConfig").Elements("Profiles").Elements() select i;
                 var profiles =
                     proc.Select(p => new LRProfile(p.Attribute("Name").Value,
@@ -62,6 +62,10 @@ namespace LRCSharpLibrary
             {
                 return new LRProfile[0];
             }
+        }
+        public static LRProfile[] GetProfiles()
+        {
+            return GetProfiles(ConfigPath);
         }
         public static void CheckConfigFile()
         {

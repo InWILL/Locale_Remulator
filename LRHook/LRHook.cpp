@@ -30,7 +30,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 		filemap.FreeConfigFileMap();
 		settings.hHeap = HeapCreate(0, 0, 0);
 		settings.nTlsIndex = TlsAlloc();
-		
+
 		DetourRestoreAfterWith();
 		DetourTransactionBegin();
 		DetourUpdateThread(GetCurrentThread());

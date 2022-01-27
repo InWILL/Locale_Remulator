@@ -12,6 +12,10 @@ void AttachFunctions();
 void DetachFunctions();
 UINT WINAPI HookGetACP(void);
 UINT WINAPI HookGetOEMCP(void);
+BOOL WINAPI HookGetCPInfo(
+	_In_ UINT       CodePage,
+	_Out_ LPCPINFO  lpCPInfo);
+
 HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
 	int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
@@ -49,8 +53,13 @@ int WINAPI HookMessageBoxA(
 	_In_opt_ HWND hWnd,
 	_In_opt_ LPCSTR lpText,
 	_In_opt_ LPCSTR lpCaption,
-	_In_ UINT uType);
+	_In_ UINT uType
+);
 
+BOOL WINAPI HookSetWindowTextA(
+	_In_ HWND hWnd,
+	_In_opt_ LPCSTR lpString
+);
 
 //Minhook version Code
 /*LONG AttachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
@@ -72,14 +81,14 @@ LONG DetachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
 
 inline VOID FreeStringInternal(LPVOID pBuffer/*ecx*/)
 {
-	HeapFree(GetProcessHeap(), 0, pBuffer);
+	HeapFree(settings.hHeap, 0, pBuffer);
 }
 
 inline LPCWSTR MultiByteToWideCharInternal(LPCSTR lstr)
 {
 	int lsize = lstrlenA(lstr)/* size without '\0' */, n = 0;
 	int wsize = lsize << 1;
-	LPWSTR wstr = (LPWSTR)HeapAlloc(GetProcessHeap(), 0, wsize);
+	LPWSTR wstr = (LPWSTR)HeapAlloc(settings.hHeap, 0, wsize);
 	if (wstr) {
 		n = MultiByteToWideChar(CP_ACP, 0, lstr, lsize, wstr, wsize);
 		wstr[n] = L'\0'; // make tail ! 
@@ -91,10 +100,14 @@ inline LPCSTR WideCharToMultiByteInternal(LPCWSTR wstr)
 {
 	int wsize = lstrlenW(wstr)/* size without '\0' */, n = 0;
 	int lsize = wsize;
-	LPSTR lstr = (LPSTR)HeapAlloc(GetProcessHeap(), 0, lsize);
+	LPSTR lstr = (LPSTR)HeapAlloc(settings.hHeap, 0, lsize);
 	if (lstr) {
 		n = WideCharToMultiByte(CP_ACP, 0, wstr, wsize, lstr, lsize, NULL, NULL);
 		lstr[n] = '\0'; // make tail ! 
 	}
 	return lstr;
+}
+
+inline LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/) {
+	return HeapAlloc(settings.hHeap, HEAP_ZERO_MEMORY, size);
 }
