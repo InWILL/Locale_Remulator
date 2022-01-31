@@ -33,18 +33,11 @@ namespace LRCSharpLibrary
         }
         public static LRProfile GetProfile(string Guid)
         {
-            try
-            {
-                return GetProfiles().Where(p => p.Guid == Guid).ToArray()[0];
-            }
-            catch
-            {
-                return new LRProfile();
-            }
+            return GetProfile(Guid, ConfigPath);
         }
         public static LRProfile[] GetProfiles(string path)
         {
-            CheckConfigFile();
+            CheckConfigFile(path);
             try
             {
                 var dict = XDocument.Load(path);
@@ -68,9 +61,9 @@ namespace LRCSharpLibrary
         {
             return GetProfiles(ConfigPath);
         }
-        public static void CheckConfigFile()
+        public static void CheckConfigFile(string path)
         {
-            if (!File.Exists(ConfigPath))
+            if (!File.Exists(path))
                 BuildDefaultConfigFile();
         }
         private static void BuildDefaultConfigFile()
