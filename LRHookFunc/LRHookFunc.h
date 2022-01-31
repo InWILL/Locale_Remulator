@@ -6,15 +6,19 @@
 #pragma comment(lib, "LRCommonLibrary.lib")
 
 extern LRProfile settings;
-extern std::ofstream filelog;
+extern std::wofstream filelog;
+
+typedef struct
+{
+	UINT OriginalCodePage;
+	LPVOID pImmGetCompositionStringA;
+	LPVOID pImmGetCandidateListA;
+}Addresses;
 
 void AttachFunctions();
 void DetachFunctions();
 UINT WINAPI HookGetACP(void);
 UINT WINAPI HookGetOEMCP(void);
-BOOL WINAPI HookGetCPInfo(
-	_In_ UINT       CodePage,
-	_Out_ LPCPINFO  lpCPInfo);
 
 HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
@@ -27,8 +31,7 @@ int WINAPI HookWideCharToMultiByte(UINT CodePage, DWORD dwFlags,
 	LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar);
 UINT WINAPI HookWinExec(
 	_In_ LPCSTR lpCmdLine,
-	_In_ UINT uCmdShow
-);
+	_In_ UINT uCmdShow);
 BOOL WINAPI HookCreateProcessA(
 	_In_opt_ LPCSTR lpApplicationName,
 	_Inout_opt_ LPSTR lpCommandLine,
@@ -39,30 +42,45 @@ BOOL WINAPI HookCreateProcessA(
 	_In_opt_ LPVOID lpEnvironment,
 	_In_opt_ LPCSTR lpCurrentDirectory,
 	_In_ LPSTARTUPINFOA lpStartupInfo,
-	_Out_ LPPROCESS_INFORMATION lpProcessInformation
-);
+	_Out_ LPPROCESS_INFORMATION lpProcessInformation);
 HINSTANCE HookShellExecuteA(
 	_In_opt_ HWND hwnd,
 	_In_opt_ LPCSTR lpOperation,
 	_In_ LPCSTR lpFile,
 	_In_opt_ LPCSTR lpParameters,
 	_In_opt_ LPCSTR lpDirectory,
-	_In_ INT nShowCmd
-);
+	_In_ INT nShowCmd);
 int WINAPI HookMessageBoxA(
 	_In_opt_ HWND hWnd,
 	_In_opt_ LPCSTR lpText,
 	_In_opt_ LPCSTR lpCaption,
-	_In_ UINT uType
-);
+	_In_ UINT uType);
 
 BOOL WINAPI HookSetWindowTextA(
 	_In_ HWND hWnd,
-	_In_opt_ LPCSTR lpString
+	_In_opt_ LPCSTR lpString);
+
+int WINAPI HookGetWindowTextA(
+	_In_ HWND hWnd,
+	_Out_writes_(nMaxCount) LPSTR lpString,
+	_In_ int nMaxCount);
+
+LONG WINAPI HookImmGetCompositionStringA(
+	HIMC hIMC,
+	DWORD dwIndex,
+	LPSTR lpBuf,
+	DWORD  dwBufLen
+);
+
+DWORD WINAPI HookImmGetCandidateListA(
+	HIMC            hIMC,
+	DWORD           deIndex,
+	LPCANDIDATELIST lpCandList,
+	DWORD           dwBufLen
 );
 
 //Minhook version Code
-/*LONG AttachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
+/*inline LONG AttachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
 {
 	LPVOID funcptr = hDLL ? (LPVOID)(DWORD_PTR)GetProcAddress(hDLL, lpszFuncName) : (LPVOID)lpszFuncName;
 	LPVOID outputptr;
@@ -70,14 +88,13 @@ BOOL WINAPI HookSetWindowTextA(
 	// return the original funcaddress !
 }
 
-LONG DetachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
+inline LONG DetachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
 {
 	LPVOID funcptr = hDLL ? (LPVOID)(DWORD_PTR)GetProcAddress(hDLL, lpszFuncName) : (LPVOID)lpszFuncName;
 	LPVOID outputptr;
 	return DetourDetach(&funcptr, lpHookAddress);
 	// return the original funcaddress !
 }*/
-
 
 inline VOID FreeStringInternal(LPVOID pBuffer/*ecx*/)
 {
@@ -87,7 +104,7 @@ inline VOID FreeStringInternal(LPVOID pBuffer/*ecx*/)
 inline LPCWSTR MultiByteToWideCharInternal(LPCSTR lstr)
 {
 	int lsize = lstrlenA(lstr)/* size without '\0' */, n = 0;
-	int wsize = lsize << 1;
+	int wsize = (lsize + 1) << 1;
 	LPWSTR wstr = (LPWSTR)HeapAlloc(settings.hHeap, 0, wsize);
 	if (wstr) {
 		n = MultiByteToWideChar(CP_ACP, 0, lstr, lsize, wstr, wsize);
@@ -99,10 +116,34 @@ inline LPCWSTR MultiByteToWideCharInternal(LPCSTR lstr)
 inline LPCSTR WideCharToMultiByteInternal(LPCWSTR wstr)
 {
 	int wsize = lstrlenW(wstr)/* size without '\0' */, n = 0;
-	int lsize = wsize;
+	int lsize = (wsize + 1) << 1;
 	LPSTR lstr = (LPSTR)HeapAlloc(settings.hHeap, 0, lsize);
 	if (lstr) {
 		n = WideCharToMultiByte(CP_ACP, 0, wstr, wsize, lstr, lsize, NULL, NULL);
+		lstr[n] = '\0'; // make tail ! 
+	}
+	return lstr;
+}
+
+inline LPWSTR OriginalMultiByteToWideCharInternal(UINT CodePage,LPCSTR lstr)
+{
+	int lsize = lstrlenA(lstr)/* size without '\0' */, n = 0;
+	int wsize = (lsize + 1) << 1;
+	LPWSTR wstr = (LPWSTR)HeapAlloc(settings.hHeap, 0, wsize);
+	if (wstr) {
+		n = OriginalMultiByteToWideChar(CodePage, 0, lstr, lsize, wstr, wsize);
+		wstr[n] = L'\0'; // make tail !
+	}
+	return wstr;
+}
+
+inline LPSTR OriginalWideCharToMultiByteInternal(UINT CodePage,LPCWSTR wstr)
+{
+	int wsize = lstrlenW(wstr)/* size without '\0' */, n = 0;
+	int lsize = (wsize + 1) << 1;
+	LPSTR lstr = (LPSTR)HeapAlloc(settings.hHeap, 0, lsize);
+	if (lstr) {
+		n = OriginalWideCharToMultiByte(CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
 		lstr[n] = '\0'; // make tail ! 
 	}
 	return lstr;

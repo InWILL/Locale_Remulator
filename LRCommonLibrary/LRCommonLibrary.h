@@ -14,8 +14,8 @@ struct LRProfile
 {
 	char DllPath[300];
 	HANDLE hHeap;
-	DWORD nTlsIndex;
 	UINT CodePage;
+	bool HookIME;
 };
 
 const int BUF_SIZE = sizeof(LRProfile);

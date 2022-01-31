@@ -14,7 +14,7 @@
 
 
 LRProfile settings;
-//std::ofstream filelog;
+//std::wofstream filelog;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
 	if (DetourIsHelperProcess()) {
@@ -28,8 +28,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 		LRConfigFileMap filemap;
 		filemap.ReadConfigFileMap(&settings);
 		filemap.FreeConfigFileMap();
-		settings.hHeap = HeapCreate(0, 0, 0);
-		settings.nTlsIndex = TlsAlloc();
+		//settings.hHeap = HeapCreate(0, 0, 0);
+		settings.hHeap = GetProcessHeap();
 
 		DetourRestoreAfterWith();
 		DetourTransactionBegin();

@@ -46,6 +46,7 @@ namespace LREditor
             p.Location = cultureinfos[ComboBox_CodePage.SelectedIndex].Name;
             p.CodePage = (uint)cultureinfos[ComboBox_CodePage.SelectedIndex].TextInfo.ANSICodePage;
             p.RunAsAdmin = CheckBox_RunAsAdmin.IsChecked ?? false;
+            p.HookIME = CheckBox_IME.IsChecked ?? false;    
             profiles[ComboBox_Profile.SelectedIndex] = p;
             LRConfig.WriteConfig(profiles.ToArray());
         }
@@ -67,6 +68,7 @@ namespace LREditor
                 p.Location = cultureinfos[ComboBox_CodePage.SelectedIndex].Name;
                 p.CodePage = (uint)cultureinfos[ComboBox_CodePage.SelectedIndex].TextInfo.ANSICodePage;
                 p.RunAsAdmin = CheckBox_RunAsAdmin.IsChecked ?? false;
+                p.HookIME = CheckBox_IME.IsChecked ?? false;
                 profiles.Add(p);
                 LRConfig.WriteConfig(profiles.ToArray());
                 ComboBox_Profile.Items.Refresh();
@@ -95,6 +97,7 @@ namespace LREditor
             LRProfile p = (LRProfile)ComboBox_Profile.SelectedItem;
             ComboBox_CodePage.SelectedIndex = cultureinfos.FindIndex(c=>c.Name==p.Location);
             CheckBox_RunAsAdmin.IsChecked = p.RunAsAdmin;
+            CheckBox_IME.IsChecked = p.HookIME;
         }
     }
 }

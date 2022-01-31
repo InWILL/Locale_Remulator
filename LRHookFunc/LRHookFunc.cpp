@@ -1,17 +1,36 @@
 #include"LRHookFunc.h"
 
+//WNDPROC originalProc;
+Addresses addresses = { NULL };
+
 void AttachFunctions() {
 	//HookDllFunc((LPCSTR)(DWORD_PTR)CreateWindowExA, (LPVOID)(DWORD_PTR)HookCreateWindowExA, NULL);
 	//DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourAttach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
-	DetourAttach(&(PVOID&)OriginalGetCPInfo, HookGetCPInfo);
 	DetourAttach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
 	DetourAttach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 	DetourAttach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
 	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
+	DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
+	//originalProc = (WNDPROC)SetWindowLongPtr(GetTopWindow(NULL), GWLP_WNDPROC, (LONG_PTR)myHookProc);
+	
+	addresses.OriginalCodePage = OriginalGetACP();
+	if (settings.HookIME)
+	{
+		HMODULE dllmodule = GetModuleHandleA("Imm32.dll");
+		if (dllmodule)
+		{
+			addresses.pImmGetCompositionStringA = (LPVOID)GetProcAddress(dllmodule, "ImmGetCompositionStringA");
+			addresses.pImmGetCandidateListA = (LPVOID)GetProcAddress(dllmodule, "ImmGetCandidateListA");
+		}
+		if (addresses.pImmGetCompositionStringA)
+			DetourAttach(&addresses.pImmGetCompositionStringA, HookImmGetCompositionStringA);
+		if (addresses.pImmGetCandidateListA)
+			DetourAttach(&addresses.pImmGetCandidateListA, HookImmGetCandidateListA);
+	}
 	//DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
 	
 	//DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
@@ -22,13 +41,22 @@ void DetachFunctions() {
 	//DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourDetach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourDetach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
-	DetourDetach(&(PVOID&)OriginalGetCPInfo, HookGetCPInfo);
 	DetourDetach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
 	DetourDetach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 	DetourDetach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourDetach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
 	DetourDetach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
+	DetourDetach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
+
+	if (settings.HookIME)
+	{
+		if (addresses.pImmGetCompositionStringA)
+			DetourDetach(&addresses.pImmGetCompositionStringA, HookImmGetCompositionStringA);
+		if (addresses.pImmGetCandidateListA)
+			DetourDetach(&addresses.pImmGetCandidateListA, HookImmGetCandidateListA);
+	}
+
 	//DetourDetach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
 	
 	//DetourDetach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
@@ -86,14 +114,6 @@ UINT WINAPI HookGetACP(void)
 UINT WINAPI HookGetOEMCP(void)
 {
 	return settings.CodePage;
-}
-
-BOOL WINAPI HookGetCPInfo(
-	_In_ UINT       CodePage,
-	_Out_ LPCPINFO  lpCPInfo)
-{
-	CodePage = settings.CodePage;
-	return OriginalGetCPInfo(CodePage, lpCPInfo);
 }
 
 static int CheckWindowStyle(HWND hWnd, DWORD type/*ebx*/) {
@@ -194,6 +214,13 @@ LRESULT WINAPI HookSendMessageA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 int WINAPI HookMultiByteToWideChar(UINT CodePage, DWORD dwFlags,
 	LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar)
 {
+	//if (lpMultiByteStr)
+	//filelog  << CodePage << "###" << dwFlags << "###" << lpMultiByteStr << "###" << cbMultiByte << "###" << cchWideChar << "###" << (int)lpMultiByteStr[0] << "###" << lpMultiByteStr[0] << lpMultiByteStr[1] << std::endl;
+	//if (-93 <= lpMultiByteStr[0] && lpMultiByteStr[0] <= -31)
+	//	CodePage = 936;
+	//else if (32 <= lpMultiByteStr[0] && lpMultiByteStr[0] <= 126)
+	//	CodePage = CodePage;
+	//else 
 	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
 	return OriginalMultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar);
 }
@@ -294,6 +321,85 @@ BOOL WINAPI HookSetWindowTextA(
 	BOOL ret = SetWindowTextW(hWnd, wstr);
 	if (wstr) {
 		FreeStringInternal((LPVOID)wstr);
+	}
+	return ret;
+}
+
+int WINAPI HookGetWindowTextA(HWND hWindow, LPSTR lpString, int nMaxCount)
+{
+	int len = (int)SendMessageW(hWindow, WM_GETTEXTLENGTH, 0, 0) + 1;
+	LPWSTR lpStringW = (LPWSTR)AllocateZeroedMemory(len * sizeof(wchar_t));
+
+	int ret = GetWindowTextW(hWindow, lpStringW, len);
+	if (ret > 0) {
+		int size = WideCharToMultiByte(CP_ACP, 0, lpStringW, -1, lpString, nMaxCount, NULL, NULL);
+		if (size > 0) ret = size - 1;
+		else {
+			if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+				lpString[nMaxCount - 1] = '\0'; ret = nMaxCount - 1;
+			}
+			else {
+				lpString[0] = '\0'; ret = 0;
+			}
+		}
+	}
+	else {
+		lpString[0] = '\0'; ret = 0;
+	}
+	FreeStringInternal(lpStringW);
+	return ret;
+}
+
+LONG WINAPI HookImmGetCompositionStringA(
+	HIMC hIMC, 
+	DWORD dwIndex,
+	LPSTR lpBuf,
+	DWORD  dwBufLen
+)
+{
+	typedef LONG(* Fn)(HIMC,DWORD,LPVOID, DWORD);
+	LONG ret = ((Fn)addresses.pImmGetCompositionStringA)(hIMC, dwIndex, lpBuf, dwBufLen);
+	if (lpBuf)
+	{
+		LPWSTR wstr = OriginalMultiByteToWideCharInternal(addresses.OriginalCodePage, lpBuf);
+		if (wstr)
+		{
+			int wsize = lstrlenW(wstr), n = 0;
+			int lsize = (wsize + 1) << 1;
+			n = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lpBuf, lsize, NULL, NULL);
+			dwBufLen = lsize;
+			lpBuf[n] = '\0';
+			FreeStringInternal((LPVOID)wstr);
+		}
+	}
+	return ret;
+}
+
+DWORD WINAPI HookImmGetCandidateListA(
+	HIMC            hIMC,
+	DWORD           deIndex,
+	LPCANDIDATELIST lpCandList,
+	DWORD           dwBufLen
+)
+{
+	typedef LONG(*Fn)(HIMC, DWORD, LPCANDIDATELIST, DWORD);
+	DWORD ret= ((Fn)addresses.pImmGetCandidateListA)(hIMC, deIndex, lpCandList, dwBufLen);
+	if (lpCandList)
+	{
+		for (int i = 0; i < lpCandList->dwCount; i++)
+		{
+			LPSTR lstr = (LPSTR)lpCandList + lpCandList->dwOffset[i];
+			LPWSTR wstr = OriginalMultiByteToWideCharInternal(addresses.OriginalCodePage, lstr);
+			if (wstr)
+			{
+				int wsize = lstrlenW(wstr), n = 0;
+				int lsize = (wsize + 1) << 1;
+				n = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
+				dwBufLen = lsize;
+				lstr[n] = '\0';
+				FreeStringInternal((LPVOID)wstr);
+			}
+		}
 	}
 	return ret;
 }

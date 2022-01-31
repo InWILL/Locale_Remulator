@@ -38,7 +38,7 @@
         <GroupBox Header="Advance Settings" Grid.Row="3" Margin="0,2,0,0">
             <Grid>
                 <CheckBox x:Name="CheckBox_RunAsAdmin" Content="Run as Administrator" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                <CheckBox Content="None" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top"/>
+                <CheckBox x:Name="CheckBox_IME" Content="Hook Input Method Editor" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top"/>
                 <CheckBox Content="None" HorizontalAlignment="Left" Margin="10,49,0,0" VerticalAlignment="Top"/>
                 <CheckBox Content="None" HorizontalAlignment="Left" Margin="10,69,0,0" VerticalAlignment="Top"/>
             </Grid>

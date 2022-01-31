@@ -24,10 +24,6 @@ static int (WINAPI* OriginalWideCharToMultiByte)(
 
 static UINT(WINAPI* OriginalGetACP)(void) = GetACP;
 static UINT(WINAPI* OriginalGetOEMCP)(void) = GetOEMCP;
-static BOOL(WINAPI* OriginalGetCPInfo)(
-	_In_ UINT       CodePage,
-	_Out_ LPCPINFO  lpCPInfo
-	) = GetCPInfo;
 
 static LRESULT(WINAPI* OriginalSendMessageA)(
 	_In_ HWND hWnd,
@@ -74,3 +70,9 @@ static BOOL(WINAPI* OriginalSetWindowTextA)(
 	_In_ HWND hWnd,
 	_In_opt_ LPCSTR lpString
 	) = SetWindowTextA;
+
+static int(WINAPI* OriginalGetWindowTextA)(
+	_In_ HWND hWnd,
+	_Out_writes_(nMaxCount) LPSTR lpString,
+	_In_ int nMaxCount
+	) = GetWindowTextA;

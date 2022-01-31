@@ -54,7 +54,8 @@ namespace LRCSharpLibrary
                                                  p.Attribute("Guid").Value,
                                                  p.Element("Location").Value,
                                                  uint.Parse(p.Element("CodePage").Value),
-                                                 bool.Parse(p.Element("RunAsAdmin").Value)
+                                                 bool.Parse(p.Element("RunAsAdmin").Value),
+                                                 bool.Parse(p.Element("HookIME").Value)
                                                 )).ToArray();
                 return profiles;
             }
@@ -80,13 +81,22 @@ namespace LRCSharpLibrary
                                                     Guid.NewGuid().ToString(),
                                                     "ja-JP",
                                                     932,
+                                                    false,
                                                     false
                                           ),
                                       new LRProfile("Run in Japanese (Admin)",
                                                     Guid.NewGuid().ToString(),
                                                     "ja-JP",
                                                     932,
+                                                    true,
                                                     true
+                                          ),
+                                      new LRProfile("Run in Taiwan (Admin)",
+                                                    Guid.NewGuid().ToString(),
+                                                    "zh-Hant-TW",
+                                                    950,
+                                                    true,
+                                                    false
                                           )
                                   };
 
@@ -103,7 +113,8 @@ namespace LRCSharpLibrary
                                           new XAttribute("Guid", p.Guid),
                                           new XElement("Location", p.Location),
                                           new XElement("CodePage",p.CodePage),
-                                          new XElement("RunAsAdmin", p.RunAsAdmin)
+                                          new XElement("RunAsAdmin", p.RunAsAdmin),
+                                          new XElement("HookIME", p.HookIME)
                                  )
                     );
             }
