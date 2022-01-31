@@ -44,7 +44,7 @@ Select a `*.exe` application and right click, there will show a section named "L
 
 ## Built With
 
-* [Detours](https://github.com/microsoft/Detours) - Used to hook unicode functions
+* [Detours](https://github.com/microsoft/Detours) - Used to hook ANSI/Unicode functions
 * [SharpShell](https://github.com/dwmkerr/sharpshell) - Used to generate right-click menu
 
 ## Deployment
