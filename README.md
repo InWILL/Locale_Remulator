@@ -32,6 +32,8 @@ Run `register.bat` to register right-click menu.
 
 If you installed old version in the past, please restart explorer or reboot system after registering new version.
 
+如果先前注册过旧版LR，注册新版LR后，请重启资源管理器或者重启系统。
+
 ### Uninstall
 
 Run `unregister.bat` to remove right-click menu.
@@ -40,31 +42,50 @@ Run `unregister.bat` to remove right-click menu.
 
 Select a `*.exe` application and right click, there will show a section named "Locale Remulator x64", and choose what config you want.
 
-## Built
-
-### Prerequisites
+## Built With
 
 * [Detours](https://github.com/microsoft/Detours) - Used to hook unicode functions
 * [SharpShell](https://github.com/dwmkerr/sharpshell) - Used to generate right-click menu
 
-### Compile
+## Deployment
 
 choose solution Platform x86 or x64.
 
-Copy these files at the same Location
+Copy files to keep this file path.
 
 ```
-unregister.bat
-LREditor.dll
-LREditor.exe
-LREditor.runtimeconfig.json
-LRHook.dll
-LRProc.dll
-LRProc.exe
-LRSubMenus.dll
-register.bat
-SharpShell.dll
+Locale_Remulator
+│  LREditor.dll
+│  LREditor.exe
+│  LREditor.runtimeconfig.json
+│  LRSubMenus.dll
+│  register.bat
+│  SharpShell.dll
+│  unregister.bat
+│
+├─Release
+│      LRHook.dll
+│      LRProc.exe
+│      LRSubMenus.dll
+│      SharpShell.dll
+│
+└─x64
+    └─Release
+            LRHook.dll
+            LRProc.exe
+            LRSubMenus.dll
+            SharpShell.dll
 ```
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/InWILL/Locale_Remulator/tags). 
+
+## Authors
+
+* **InWILL** - *Initial work* - [InWILL](https://github.com/InWILL)
+
+See also the list of [contributors](https://github.com/InWILL/Locale_Remulator/graphs/contributors) who participated in this project.
 
 ## License
 
