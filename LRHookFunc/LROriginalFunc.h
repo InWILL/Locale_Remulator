@@ -1,5 +1,7 @@
 #pragma once
 #include<Windows.h>
+#include<imm.h>
+#pragma comment(lib, "Imm32.lib")
 
 static int (WINAPI* OriginalMultiByteToWideChar)(
 	UINT CodePage, 
@@ -76,3 +78,17 @@ static int(WINAPI* OriginalGetWindowTextA)(
 	_Out_writes_(nMaxCount) LPSTR lpString,
 	_In_ int nMaxCount
 	) = GetWindowTextA;
+
+static LONG(WINAPI* OriginalImmGetCompositionStringA)(
+	HIMC hIMC,
+	DWORD dwIndex,
+	LPVOID lpBuf,
+	DWORD  dwBufLen
+	) = ImmGetCompositionStringA;
+
+static DWORD(WINAPI* OriginalImmGetCandidateListA)(
+	HIMC            hIMC,
+	DWORD           deIndex,
+	LPCANDIDATELIST lpCandList,
+	DWORD           dwBufLen
+) = ImmGetCandidateListA;

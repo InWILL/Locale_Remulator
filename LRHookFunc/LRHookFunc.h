@@ -8,13 +8,6 @@
 extern LRProfile settings;
 extern std::wofstream filelog;
 
-typedef struct
-{
-	UINT OriginalCodePage;
-	LPVOID pImmGetCompositionStringA;
-	LPVOID pImmGetCandidateListA;
-}Addresses;
-
 void AttachFunctions();
 void DetachFunctions();
 UINT WINAPI HookGetACP(void);
@@ -101,49 +94,31 @@ inline VOID FreeStringInternal(LPVOID pBuffer/*ecx*/)
 	HeapFree(settings.hHeap, 0, pBuffer);
 }
 
-inline LPCWSTR MultiByteToWideCharInternal(LPCSTR lstr)
+inline LPWSTR MultiByteToWideCharInternal(LPCSTR lstr, UINT CodePage = CP_ACP)
 {
 	int lsize = lstrlenA(lstr)/* size without '\0' */, n = 0;
 	int wsize = (lsize + 1) << 1;
 	LPWSTR wstr = (LPWSTR)HeapAlloc(settings.hHeap, 0, wsize);
 	if (wstr) {
-		n = MultiByteToWideChar(CP_ACP, 0, lstr, lsize, wstr, wsize);
+		if (CodePage)
+			n = OriginalMultiByteToWideChar(CodePage, 0, lstr, lsize, wstr, wsize);
+		else
+			n = MultiByteToWideChar(CodePage, 0, lstr, lsize, wstr, wsize);
 		wstr[n] = L'\0'; // make tail ! 
 	}
 	return wstr;
 }
 
-inline LPCSTR WideCharToMultiByteInternal(LPCWSTR wstr)
+inline LPSTR WideCharToMultiByteInternal(LPCWSTR wstr, UINT CodePage = CP_ACP)
 {
 	int wsize = lstrlenW(wstr)/* size without '\0' */, n = 0;
 	int lsize = (wsize + 1) << 1;
 	LPSTR lstr = (LPSTR)HeapAlloc(settings.hHeap, 0, lsize);
 	if (lstr) {
-		n = WideCharToMultiByte(CP_ACP, 0, wstr, wsize, lstr, lsize, NULL, NULL);
-		lstr[n] = '\0'; // make tail ! 
-	}
-	return lstr;
-}
-
-inline LPWSTR OriginalMultiByteToWideCharInternal(UINT CodePage,LPCSTR lstr)
-{
-	int lsize = lstrlenA(lstr)/* size without '\0' */, n = 0;
-	int wsize = (lsize + 1) << 1;
-	LPWSTR wstr = (LPWSTR)HeapAlloc(settings.hHeap, 0, wsize);
-	if (wstr) {
-		n = OriginalMultiByteToWideChar(CodePage, 0, lstr, lsize, wstr, wsize);
-		wstr[n] = L'\0'; // make tail !
-	}
-	return wstr;
-}
-
-inline LPSTR OriginalWideCharToMultiByteInternal(UINT CodePage,LPCWSTR wstr)
-{
-	int wsize = lstrlenW(wstr)/* size without '\0' */, n = 0;
-	int lsize = (wsize + 1) << 1;
-	LPSTR lstr = (LPSTR)HeapAlloc(settings.hHeap, 0, lsize);
-	if (lstr) {
-		n = OriginalWideCharToMultiByte(CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
+		if (CodePage)
+			n = WideCharToMultiByte(CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
+		else
+			n = WideCharToMultiByte(CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
 		lstr[n] = '\0'; // make tail ! 
 	}
 	return lstr;
