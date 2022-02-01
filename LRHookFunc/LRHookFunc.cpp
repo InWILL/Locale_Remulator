@@ -291,7 +291,6 @@ BOOL WINAPI HookSetWindowTextA(
 	_In_opt_ LPCSTR lpString
 )
 {
-	//MessageBox(NULL, TEXT("Test"), NULL, NULL);
 	LPCWSTR wstr = NULL;
 	if (lpString) {
 		wstr = MultiByteToWideCharInternal(lpString);
@@ -303,12 +302,12 @@ BOOL WINAPI HookSetWindowTextA(
 	return ret;
 }
 
-int WINAPI HookGetWindowTextA(HWND hWindow, LPSTR lpString, int nMaxCount)
+int WINAPI HookGetWindowTextA(_In_ HWND hWnd, _Out_writes_(nMaxCount) LPSTR lpString, _In_ int nMaxCount)
 {
-	int len = (int)SendMessageW(hWindow, WM_GETTEXTLENGTH, 0, 0) + 1;
+	int len = (int)SendMessageW(hWnd, WM_GETTEXTLENGTH, 0, 0) + 1;
 	LPWSTR lpStringW = (LPWSTR)AllocateZeroedMemory(len * sizeof(wchar_t));
 
-	int ret = GetWindowTextW(hWindow, lpStringW, len);
+	int ret = GetWindowTextW(hWnd, lpStringW, len);
 	if (ret > 0) {
 		int size = WideCharToMultiByte(CP_ACP, 0, lpStringW, -1, lpString, nMaxCount, NULL, NULL);
 		if (size > 0) ret = size - 1;
