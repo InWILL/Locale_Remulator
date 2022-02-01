@@ -17,8 +17,8 @@ void AttachFunctions() {
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 	DetourAttach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
-	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
-	DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
+	//DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
+	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	Original.CodePage = OriginalGetACP();
 	if (settings.HookIME)
 	{
@@ -40,8 +40,8 @@ void DetachFunctions() {
 	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 	DetourDetach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourDetach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
-	DetourDetach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
-	DetourDetach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
+	//DetourDetach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
+	//DetourDetach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA);
 	DetourDetach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
 
