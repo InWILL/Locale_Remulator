@@ -1,10 +1,6 @@
 #include"LRHookFunc.h"
 
 //WNDPROC originalProc;
-typedef struct ORIGINAL
-{
-	UINT CodePage;
-};
 ORIGINAL Original = { NULL };
 
 void AttachFunctions() {
@@ -17,7 +13,7 @@ void AttachFunctions() {
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 	DetourAttach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
-	//DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
+	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	Original.CodePage = OriginalGetACP();
 	if (settings.HookIME)
@@ -40,7 +36,7 @@ void DetachFunctions() {
 	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 	DetourDetach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourDetach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
-	//DetourDetach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
+	DetourDetach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourDetach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA);
 	DetourDetach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
@@ -214,7 +210,7 @@ UINT WINAPI HookWinExec(
 	_In_ LPCSTR lpCmdLine,
 	_In_ UINT uCmdShow
 )
-{
+{;
 	LPSTR lpCommandLine = (LPSTR)LocalAlloc(0, strlen(lpCmdLine) + 1);
 	sprintf(lpCommandLine, "%s", lpCmdLine);
 

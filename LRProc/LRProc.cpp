@@ -48,6 +48,7 @@ BOOL                ShowPrintJobBalloon();
 BOOL                RestoreTooltip();
 
 //extern "C" __declspec(dllexport) int LRInject(char* filepath, char* dllpath, UINT CodePage)
+//int main(int argc,char* argv[])
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
 {
 	char* filepath = __argv[1];
@@ -68,12 +69,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 	ZeroMemory(&si, sizeof(STARTUPINFO));
 	ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
 	si.cb = sizeof(STARTUPINFO);
+    //std::cout << beta.CodePage;
 	
 	DetourCreateProcessWithDllExA(NULL, filepath, NULL,
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
 		&si, &pi, dllpath, NULL);
     
 	WaitForSingleObject(pi.hProcess, INFINITE);
+    Sleep(5000);
 	filemap.FreeConfigFileMap();
 
     /*

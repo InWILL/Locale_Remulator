@@ -90,6 +90,13 @@ namespace LRCSharpLibrary
                                                     950,
                                                     true,
                                                     false
+                                          ),
+                                      new LRProfile("Run in Korean (Admin)",
+                                                    Guid.NewGuid().ToString(),
+                                                    "ko-KR",
+                                                    949,
+                                                    true,
+                                                    false
                                           )
                                   };
 

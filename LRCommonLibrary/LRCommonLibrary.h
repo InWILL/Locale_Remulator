@@ -12,10 +12,9 @@ const TCHAR szConfigFileMap[] = TEXT("LRConfigFileMap");
 
 struct LRProfile
 {
-	char DllPath[300];
-	HANDLE hHeap;
 	UINT CodePage;
 	bool HookIME;
+	char DllPath[300];
 };
 
 const int BUF_SIZE = sizeof(LRProfile);

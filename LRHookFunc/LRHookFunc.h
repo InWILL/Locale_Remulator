@@ -5,8 +5,15 @@
 #include"../LRCommonLibrary/LRCommonLibrary.h"
 #pragma comment(lib, "LRCommonLibrary.lib")
 
+typedef struct ORIGINAL
+{
+	HANDLE hHeap;
+	UINT CodePage;
+};
+
 extern LRProfile settings;
 extern std::wofstream filelog;
+extern ORIGINAL Original;
 
 void AttachFunctions();
 void DetachFunctions();
@@ -91,14 +98,14 @@ inline LONG DetachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDL
 
 inline VOID FreeStringInternal(LPVOID pBuffer/*ecx*/)
 {
-	HeapFree(settings.hHeap, 0, pBuffer);
+	HeapFree(Original.hHeap, 0, pBuffer);
 }
 
 inline LPWSTR MultiByteToWideCharInternal(LPCSTR lstr, UINT CodePage = CP_ACP)
 {
 	int lsize = lstrlenA(lstr)/* size without '\0' */, n = 0;
 	int wsize = (lsize + 1) << 1;
-	LPWSTR wstr = (LPWSTR)HeapAlloc(settings.hHeap, 0, wsize);
+	LPWSTR wstr = (LPWSTR)HeapAlloc(Original.hHeap, 0, wsize);
 	if (wstr) {
 		if (CodePage)
 			n = OriginalMultiByteToWideChar(CodePage, 0, lstr, lsize, wstr, wsize);
@@ -113,10 +120,10 @@ inline LPSTR WideCharToMultiByteInternal(LPCWSTR wstr, UINT CodePage = CP_ACP)
 {
 	int wsize = lstrlenW(wstr)/* size without '\0' */, n = 0;
 	int lsize = (wsize + 1) << 1;
-	LPSTR lstr = (LPSTR)HeapAlloc(settings.hHeap, 0, lsize);
+	LPSTR lstr = (LPSTR)HeapAlloc(Original.hHeap, 0, lsize);
 	if (lstr) {
 		if (CodePage)
-			n = WideCharToMultiByte(CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
+			n = OriginalWideCharToMultiByte(CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
 		else
 			n = WideCharToMultiByte(CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
 		lstr[n] = '\0'; // make tail ! 
@@ -125,5 +132,5 @@ inline LPSTR WideCharToMultiByteInternal(LPCWSTR wstr, UINT CodePage = CP_ACP)
 }
 
 inline LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/) {
-	return HeapAlloc(settings.hHeap, HEAP_ZERO_MEMORY, size);
+	return HeapAlloc(Original.hHeap, HEAP_ZERO_MEMORY, size);
 }

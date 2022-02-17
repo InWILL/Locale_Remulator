@@ -219,16 +219,12 @@ namespace LRSubMenus
             var filedirectory = Path.GetDirectoryName(filepath);
             var LRPath = currentpath;
 #if DEBUG
-            if (GetBinaryType(filepath) == BinaryType.SCS_32BIT_BINARY)
-                LRPath = currentpath+@"\Debug";
-            else LRPath = currentpath+@"\x64\Debug";
+            LRPath = currentpath+@"\x64\Debug";
 #else
-            if (GetBinaryType(filepath) == BinaryType.SCS_32BIT_BINARY)
-                LRPath = currentpath+@"\Release";
-            else LRPath = currentpath+@"\x64\Release";
+            LRPath = currentpath+@"\x64\Release";
 #endif
             proc.StartInfo.FileName = LRPath + @"\LRProc.exe";
-            proc.StartInfo.Arguments = "\"" + filepath + "\" " + profile.Guid+" \""+ LRPath + "\\LRHook.dll\" \""+ currentpath+"\\LRConfig.xml\"";
+            proc.StartInfo.Arguments = "\"" + filepath + "\" " + profile.Guid+" \""+ LRPath + "\\LRHookx64.dll\" \""+ currentpath+"\\LRConfig.xml\"";
             proc.StartInfo.WorkingDirectory = filedirectory;
             if (profile.RunAsAdmin) proc.StartInfo.Verb = "runas";
             //MessageBox.Show(currentpath);
@@ -244,8 +240,6 @@ namespace LRSubMenus
             proc.StartInfo.FileName = "LREditor.exe";
             //MessageBox.Show(currentpath);
             proc.Start();
-            proc.WaitForExit();
-            proc.Close();
         }
     }
 }
