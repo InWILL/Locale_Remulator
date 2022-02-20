@@ -15,10 +15,16 @@ void AttachFunctions() {
 	DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
 	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
+	DetourAttach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
+	DetourAttach(&(PVOID&)OriginalTextOutA, HookTextOutA);
+	
 	Original.CodePage = OriginalGetACP();
 	if (settings.HookIME)
 	{
-		DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA);
+		if (settings.CodePage == 949)
+			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
+		else
+			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_MWM);
 		DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
 	}
 
@@ -38,7 +44,13 @@ void DetachFunctions() {
 	DetourDetach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
 	DetourDetach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourDetach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
-	DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA);
+	DetourDetach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
+	DetourDetach(&(PVOID&)OriginalTextOutA, HookTextOutA);
+
+	if (settings.CodePage == 949)
+		DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
+	else
+		DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_MWM);
 	DetourDetach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
 
 	//DetourDetach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
@@ -210,7 +222,7 @@ UINT WINAPI HookWinExec(
 	_In_ LPCSTR lpCmdLine,
 	_In_ UINT uCmdShow
 )
-{;
+{
 	LPSTR lpCommandLine = (LPSTR)LocalAlloc(0, strlen(lpCmdLine) + 1);
 	sprintf(lpCommandLine, "%s", lpCmdLine);
 
@@ -323,7 +335,7 @@ int WINAPI HookGetWindowTextA(_In_ HWND hWnd, _Out_writes_(nMaxCount) LPSTR lpSt
 	return ret;
 }
 
-LONG WINAPI HookImmGetCompositionStringA(
+LONG WINAPI HookImmGetCompositionStringA_MWM(
 	HIMC hIMC, 
 	DWORD dwIndex,
 	LPSTR lpBuf,
@@ -341,10 +353,30 @@ LONG WINAPI HookImmGetCompositionStringA(
 			n = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lpBuf, lsize, NULL, NULL);
 			dwBufLen = lsize;
 			lpBuf[n] = '\0';
-			FreeStringInternal((LPVOID)wstr);
 		}
+		FreeStringInternal((LPVOID)wstr);
 	}
 	return ret;
+}
+
+LONG WINAPI HookImmGetCompositionStringA_WM(
+	HIMC hIMC,
+	DWORD dwIndex,
+	LPSTR lpBuf,
+	DWORD  dwBufLen
+)
+{
+	LONG wsize = ImmGetCompositionStringW(hIMC, dwIndex, NULL, 0);
+	LPWSTR wstr = (LPWSTR)HeapAlloc(Original.hHeap, 0, wsize);
+	ImmGetCompositionStringW(hIMC, dwIndex, wstr, wsize);
+	LONG lsize = (wsize) << 1;
+	if (lpBuf) 
+	{
+		lsize = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lpBuf, lsize, NULL, NULL);
+		lpBuf[lsize] = '\0'; // make tail ! 
+	}
+	FreeStringInternal(wstr);
+	return lsize;
 }
 
 DWORD WINAPI HookImmGetCandidateListA(
@@ -368,9 +400,38 @@ DWORD WINAPI HookImmGetCandidateListA(
 				n = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
 				dwBufLen = lsize;
 				lstr[n] = '\0';
-				FreeStringInternal((LPVOID)wstr);
+				FreeStringInternal(wstr);
 			}
 		}
 	}
 	return ret;
+}
+
+//set font characters set
+HFONT WINAPI HookCreateFontIndirectA(
+	LOGFONTA* lplf
+)
+{
+	//lplf->lfCharSet = JOHAB_CHARSET;
+	if (strcmp(settings.lfFaceName, "None") != 0)
+		strcpy(lplf->lfFaceName, settings.lfFaceName);
+	return OriginalCreateFontIndirectA(lplf);
+}
+
+BOOL WINAPI HookTextOutA(
+	HDC    hdc,
+	int    x,
+	int    y,
+	LPSTR lpString,
+	int    c
+)
+{
+	LPWSTR wstr = MultiByteToWideCharInternal(lpString, settings.CodePage);
+	if (wstr)
+	{
+		bool ret = TextOutW(hdc, x, y, wstr, 1);
+		FreeStringInternal(wstr);
+		return ret;
+	}
+	return OriginalTextOutA(hdc, x, y, lpString, c);
 }

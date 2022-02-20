@@ -11,6 +11,7 @@
 #pragma comment(lib, "comctl32.lib")
 
 using namespace System::Reflection;
+using namespace System::Runtime::InteropServices;
 
 #ifdef _DEBUG
 #using <../LRSubMenu/bin/Debug/LRSubMenus.dll>
@@ -54,11 +55,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 	char* filepath = __argv[1];
 	char* dllpath = __argv[3];
 	System::String^ Guid = gcnew System::String(__argv[2]);
-	System::String^ ConfigPath = gcnew System::String(__argv[4]);
-	LRCSharpLibrary::LRProfile^ alpha = LRCSharpLibrary::LRConfig::GetProfile(Guid, ConfigPath);
+	LRCSharpLibrary::LRProfile^ alpha = LRCSharpLibrary::LRConfig::GetProfile(Guid);
 
 	LRProfile beta;
 	beta.CodePage = alpha->CodePage;
+    strcpy(beta.lfFaceName, (char*)(void*)Marshal::StringToHGlobalAnsi(alpha->Font));
 	beta.HookIME = alpha->HookIME;
 	strcpy(beta.DllPath, dllpath);
 	LRConfigFileMap filemap;
@@ -70,13 +71,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 	ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
 	si.cb = sizeof(STARTUPINFO);
     //std::cout << beta.CodePage;
-	
+
 	DetourCreateProcessWithDllExA(NULL, filepath, NULL,
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
 		&si, &pi, dllpath, NULL);
     
+    Sleep(60000);
 	WaitForSingleObject(pi.hProcess, INFINITE);
-    Sleep(5000);
 	filemap.FreeConfigFileMap();
 
     /*

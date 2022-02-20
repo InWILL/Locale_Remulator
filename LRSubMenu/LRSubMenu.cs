@@ -21,6 +21,7 @@ namespace LRSubMenus
         //  lets create the menu strip.
         private ContextMenuStrip menu = new ContextMenuStrip();
         private static string currentpath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        private static string dllpath = Path.Combine(currentpath, "LRHookx64.dll");
 
         //identify if a executable file is 64-bit
         
@@ -217,14 +218,8 @@ namespace LRSubMenus
             var proc = new Process();
             var filepath = SelectedItemPaths.First();
             var filedirectory = Path.GetDirectoryName(filepath);
-            var LRPath = currentpath;
-#if DEBUG
-            LRPath = currentpath+@"\x64\Debug";
-#else
-            LRPath = currentpath+@"\x64\Release";
-#endif
-            proc.StartInfo.FileName = LRPath + @"\LRProc.exe";
-            proc.StartInfo.Arguments = "\"" + filepath + "\" " + profile.Guid+" \""+ LRPath + "\\LRHookx64.dll\" \""+ currentpath+"\\LRConfig.xml\"";
+            proc.StartInfo.FileName = currentpath+"\\LRProc.exe";
+            proc.StartInfo.Arguments = "\"" + filepath + "\" " + profile.Guid + " \""+dllpath+"\"";
             proc.StartInfo.WorkingDirectory = filedirectory;
             if (profile.RunAsAdmin) proc.StartInfo.Verb = "runas";
             //MessageBox.Show(currentpath);
@@ -236,7 +231,6 @@ namespace LRSubMenus
             var filepath = SelectedItemPaths.First();
 
             Directory.SetCurrentDirectory(currentpath);
-
             proc.StartInfo.FileName = "LREditor.exe";
             //MessageBox.Show(currentpath);
             proc.Start();

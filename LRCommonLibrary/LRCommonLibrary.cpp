@@ -47,7 +47,7 @@ int LRConfigFileMap::ReadConfigFileMap(LRProfile* profile)
 
 	if (hMapFile == NULL)
 	{
-		MessageBox(NULL, TEXT("Could not open file mapping object."), NULL, NULL);
+		//MessageBox(NULL, TEXT("Could not open file mapping object."), NULL, NULL);
 		return 1;
 	}
 
@@ -59,15 +59,12 @@ int LRConfigFileMap::ReadConfigFileMap(LRProfile* profile)
 
 	if (pBuf == NULL)
 	{
-		MessageBox(NULL, TEXT("Could not map view of file."), NULL, NULL);
+		//MessageBox(NULL, TEXT("Could not map view of file."), NULL, NULL);
 
 		CloseHandle(hMapFile);
 
 		return 1;
 	}
-	//CopyMemory(&settings, pBuf, BUF_SIZE);
-	//settings.CodePage=pBuf->CodePage;
-	//MessageBox(NULL, pBuf, TEXT("Process2"), MB_OK);
 	CopyMemory(profile, pBuf, BUF_SIZE);
 	return 0;
 }

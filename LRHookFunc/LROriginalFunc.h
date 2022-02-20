@@ -52,7 +52,7 @@ static BOOL(WINAPI* OriginalCreateProcessA)(
 	_Out_ LPPROCESS_INFORMATION lpProcessInformation
 	) = CreateProcessA;
 
-static HINSTANCE(__stdcall *OriginalShellExecuteA)(
+static HINSTANCE(WINAPI *OriginalShellExecuteA)(
 	_In_opt_ HWND hwnd, 
 	_In_opt_ LPCSTR lpOperation, 
 	_In_ LPCSTR lpFile, 
@@ -91,4 +91,16 @@ static DWORD(WINAPI* OriginalImmGetCandidateListA)(
 	DWORD           deIndex,
 	LPCANDIDATELIST lpCandList,
 	DWORD           dwBufLen
-) = ImmGetCandidateListA;
+	) = ImmGetCandidateListA;
+
+static HFONT(WINAPI* OriginalCreateFontIndirectA)(
+	const LOGFONTA* lplf
+	) = CreateFontIndirectA;
+
+static BOOL(WINAPI* OriginalTextOutA)(
+	HDC    hdc,
+	int    x,
+	int    y,
+	LPCSTR lpString,
+	int    c
+	) = TextOutA;

@@ -23,12 +23,13 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	switch (ul_reason_for_call) {
 	case DLL_PROCESS_ATTACH:
 		std::cout << "DLL_PROCESS_ATTACH\n";
-		//filelog.open("test.log", std::ios::out);
+		//filelog.open("test.log", std::ios::app|std::ios::out);
 
 		LRConfigFileMap filemap;
 		filemap.ReadConfigFileMap(&settings);
 		filemap.FreeConfigFileMap();
 		//settings.hHeap = HeapCreate(0, 0, 0);
+		//filelog << settings.CodePage << std::endl;
 		Original.hHeap = GetProcessHeap();
 
 		DetourRestoreAfterWith();

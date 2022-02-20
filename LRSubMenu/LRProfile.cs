@@ -12,6 +12,7 @@ namespace LRCSharpLibrary
         public string Guid;
         public string Location;
         public uint CodePage;
+        public string Font;
         public bool RunAsAdmin;
         public bool HookIME;
 
@@ -25,6 +26,7 @@ namespace LRCSharpLibrary
             Guid = System.Guid.NewGuid().ToString();
             Location = "ja-JP";
             CodePage = 932;
+            Font = "None";
             RunAsAdmin = false;
             HookIME = false;
         }
@@ -34,6 +36,7 @@ namespace LRCSharpLibrary
             this.Guid = p.Guid;
             this.Location = p.Location;
             this.CodePage = p.CodePage;
+            this.Font = p.Font;
             this.RunAsAdmin = p.RunAsAdmin;
             this.HookIME = p.HookIME;
         }
@@ -41,6 +44,7 @@ namespace LRCSharpLibrary
                          string Guid,
                          string Location,
                          uint CodePage,
+                         string Font,
                          bool RunAsAdmin,
                          bool HookIME)
         {
@@ -48,6 +52,7 @@ namespace LRCSharpLibrary
             this.Guid = Guid;
             this.Location = Location;
             this.CodePage = CodePage;
+            this.Font = Font;
             this.RunAsAdmin = RunAsAdmin;
             this.HookIME = HookIME;
         }

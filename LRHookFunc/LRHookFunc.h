@@ -5,15 +5,15 @@
 #include"../LRCommonLibrary/LRCommonLibrary.h"
 #pragma comment(lib, "LRCommonLibrary.lib")
 
-typedef struct ORIGINAL
+struct ORIGINAL
 {
 	HANDLE hHeap;
 	UINT CodePage;
 };
 
 extern LRProfile settings;
-extern std::wofstream filelog;
 extern ORIGINAL Original;
+extern std::wofstream filelog;
 
 void AttachFunctions();
 void DetachFunctions();
@@ -65,7 +65,14 @@ int WINAPI HookGetWindowTextA(
 	_Out_writes_(nMaxCount) LPSTR lpString,
 	_In_ int nMaxCount);
 
-LONG WINAPI HookImmGetCompositionStringA(
+LONG WINAPI HookImmGetCompositionStringA_MWM(
+	HIMC hIMC,
+	DWORD dwIndex,
+	LPSTR lpBuf,
+	DWORD  dwBufLen
+);
+
+LONG WINAPI HookImmGetCompositionStringA_WM(
 	HIMC hIMC,
 	DWORD dwIndex,
 	LPSTR lpBuf,
@@ -77,6 +84,18 @@ DWORD WINAPI HookImmGetCandidateListA(
 	DWORD           deIndex,
 	LPCANDIDATELIST lpCandList,
 	DWORD           dwBufLen
+);
+
+HFONT WINAPI HookCreateFontIndirectA(
+	LOGFONTA* lplf
+);
+
+BOOL WINAPI HookTextOutA(
+	HDC    hdc,
+	int    x,
+	int    y,
+	LPSTR lpString,
+	int    c
 );
 
 //Minhook version Code

@@ -47,6 +47,7 @@ namespace LRCSharpLibrary
                                                  p.Attribute("Guid").Value,
                                                  p.Element("Location").Value,
                                                  uint.Parse(p.Element("CodePage").Value),
+                                                 p.Element("Font").Value,
                                                  bool.Parse(p.Element("RunAsAdmin").Value),
                                                  bool.Parse(p.Element("HookIME").Value)
                                                 )).ToArray();
@@ -74,6 +75,7 @@ namespace LRCSharpLibrary
                                                     Guid.NewGuid().ToString(),
                                                     "ja-JP",
                                                     932,
+                                                    "None",
                                                     false,
                                                     false
                                           ),
@@ -81,6 +83,7 @@ namespace LRCSharpLibrary
                                                     Guid.NewGuid().ToString(),
                                                     "ja-JP",
                                                     932,
+                                                    "None",
                                                     true,
                                                     true
                                           ),
@@ -88,6 +91,7 @@ namespace LRCSharpLibrary
                                                     Guid.NewGuid().ToString(),
                                                     "zh-Hant-TW",
                                                     950,
+                                                    "None",
                                                     true,
                                                     false
                                           ),
@@ -95,8 +99,9 @@ namespace LRCSharpLibrary
                                                     Guid.NewGuid().ToString(),
                                                     "ko-KR",
                                                     949,
+                                                    "Dotum",
                                                     true,
-                                                    false
+                                                    true
                                           )
                                   };
 
@@ -113,6 +118,7 @@ namespace LRCSharpLibrary
                                           new XAttribute("Guid", p.Guid),
                                           new XElement("Location", p.Location),
                                           new XElement("CodePage",p.CodePage),
+                                          new XElement("Font", p.Font),
                                           new XElement("RunAsAdmin", p.RunAsAdmin),
                                           new XElement("HookIME", p.HookIME)
                                  )
