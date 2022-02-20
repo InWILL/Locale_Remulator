@@ -32,7 +32,6 @@ LRSample/
 *.lib
 
 # Executables
-*.exe
 *.out
 *.app
 
