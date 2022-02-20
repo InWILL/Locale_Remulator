@@ -28,53 +28,54 @@ Download available at <https://github.com/InWILL/Locale_Remulator/releases/lates
 
 ### Install
 
-Run `register.bat` to register right-click menu.
+Run `LRInstaller.exe` to install Locale_Remulator.
 
-If you installed old version in the past, please restart explorer or reboot system after registering new version.
+If you installed old version in the past, please restart explorer or reboot system after installing new version.
 
-如果先前注册过旧版LR，注册新版LR后，请重启资源管理器或者重启系统。
+如果先前安装过旧版LR，安装新版LR后，请重启资源管理器或者重启系统。
 
 ### Uninstall
 
-Run `unregister.bat` to remove right-click menu.
+Run `LRInstaller.exe` to remove Locale_Remulator.
 
-### Usage
+### Usage Method 1
 
 Select a `*.exe` application and right click, there will show a section named "Locale Remulator x64", and choose what config you want.
+
+### Usage Method 2
+
+Run `LREditor.exe` and click `Shortcut` button, choose what config and application you want to run, there will generate a lnk file in the same path. You could use this lnk file to use LR conveniently without right click menu.
 
 ## Built With
 
 * [Detours](https://github.com/microsoft/Detours) - Used to hook ANSI/Unicode functions
 * [SharpShell](https://github.com/dwmkerr/sharpshell) - Used to generate right-click menu
 
-## Deployment
+## Built
 
-choose solution Platform x86 or x64.
+(1) choose platform x86 to generate LRHookx32.dll
 
-Copy files to keep this file path.
+(2) choose platform x64 to build all project.
+
+(3) In `Locale_Remulator\LRInstaller` there will generate `LRInstaller.exe` which is the Installer application.
+
+## Debug
+
+Copy these files to a same folder.
 
 ```
-Locale_Remulator
-│  LREditor.dll
-│  LREditor.exe
-│  LREditor.runtimeconfig.json
-│  LRSubMenus.dll
-│  register.bat
-│  SharpShell.dll
-│  unregister.bat
-│
-├─Release
-│      LRHook.dll
-│      LRProc.exe
-│      LRSubMenus.dll
-│      SharpShell.dll
-│
-└─x64
-    └─Release
-            LRHook.dll
-            LRProc.exe
-            LRSubMenus.dll
-            SharpShell.dll
+    LRConfig.xml
+    LREditor.deps.json
+    LREditor.dll
+    LREditor.exe
+    LREditor.pdb
+    LREditor.runtimeconfig.json
+    LRHookx32.dll
+    LRHookx64.dll
+    LRProc.exe
+    LRSubMenus.dll
+    ServerRegistrationManager.exe
+    SharpShell.dll
 ```
 
 ## Versioning

@@ -180,14 +180,14 @@ namespace LRSubMenus
             MainMenu = new ToolStripMenuItem
             {
                 Text = "Locale Remulator x64",
-                Image = Properties.Resources.file_icon
+                Image = Properties.Resources.file_red
             };
             foreach (var profile in profiles)
             {
                 var SubMenu = new ToolStripMenuItem
                 {
                     Text = profile.Name,
-                    Image = Properties.Resources.file_icon
+                    Image = Properties.Resources.file_blue
                 };
                 SubMenu.DropDownItems.Clear();
                 SubMenu.Click += (sender, args) => CallInject(profile);
@@ -199,7 +199,7 @@ namespace LRSubMenus
             var Menu_Editor = new ToolStripMenuItem
             {
                 Text = "Edit Profile List",
-                Image = Properties.Resources.file_icon
+                Image = Properties.Resources.file_red
             };
             Menu_Editor.DropDownItems.Clear();
             Menu_Editor.Click += (sender, args) => CallLREditor();

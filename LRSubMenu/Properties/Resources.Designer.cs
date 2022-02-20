@@ -63,9 +63,9 @@ namespace LRSubMenus.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap file_icon {
+        internal static System.Drawing.Bitmap file_blue {
             get {
-                object obj = ResourceManager.GetObject("file_icon", resourceCulture);
+                object obj = ResourceManager.GetObject("file_blue", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -73,9 +73,9 @@ namespace LRSubMenus.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Folder_icon {
+        internal static System.Drawing.Bitmap file_red {
             get {
-                object obj = ResourceManager.GetObject("Folder_icon", resourceCulture);
+                object obj = ResourceManager.GetObject("file_red", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
