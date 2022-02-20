@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LREditor"
         mc:Ignorable="d"
-        Title="LREditor" Height="384" Width="303" ResizeMode="CanMinimize">
+        Title="LREditor" Height="384" Width="310" ResizeMode="CanMinimize">
     <Grid Margin="0,0,0,-16">
         <Grid.RowDefinitions>
             <RowDefinition Height="41*"/>
@@ -14,9 +14,9 @@
             <RowDefinition Height="69*"/>
         </Grid.RowDefinitions>
         <ComboBox x:Name="ComboBox_Profile" Margin="10,10,10,0" VerticalAlignment="Top" Height="22" SelectionChanged="ComboBox_Profile_SelectionChanged"/>
-        <Button x:Name="Button_Save" Content="Save" Margin="10,42,0,10" HorizontalAlignment="Left" Width="70" Click="Button_Save_Click"/>
-        <Button x:Name="Button_SaveAs" Content="Save As..." Margin="0,42,0,10" HorizontalAlignment="Center" Width="70" Click="Button_SaveAs_Click"/>
-        <Button x:Name="Button_Delete" Content="Delete" Margin="0,42,10,10" HorizontalAlignment="Right" Width="70" Click="Button_Delete_Click"/>
+        <Button x:Name="Button_Save" Content="Save" Margin="10,42,230,10" Click="Button_Save_Click"/>
+        <Button x:Name="Button_SaveAs" Content="Save As..." Margin="82,42,158,10" Click="Button_SaveAs_Click"/>
+        <Button x:Name="Button_Delete" Content="Delete" Margin="155,42,85,10" Click="Button_Delete_Click"/>
         <GroupBox Header="CodePage Settings" Margin="0,82,0,0" Grid.RowSpan="2">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -45,6 +45,7 @@
                 <CheckBox Content="None" HorizontalAlignment="Left" Margin="10,69,0,0" VerticalAlignment="Top"/>
             </Grid>
         </GroupBox>
+        <Button x:Name="Button_Shortcut" Content="Shortcut" Margin="230,42,10,10" Click="Button_Shortcut_Click"/>
 
     </Grid>
 </Window>

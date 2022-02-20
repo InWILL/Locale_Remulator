@@ -17,6 +17,7 @@ namespace LRCSharpLibrary
 {
     public static class LRConfig
     {
+        public static string CurrentPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         public static string ConfigPath =
             Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                          "LRConfig.xml");

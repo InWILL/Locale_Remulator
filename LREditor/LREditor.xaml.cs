@@ -11,10 +11,12 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.IO;
 using LRCSharpLibrary;
 using System.Globalization;
-using System.Drawing.Text; 
+using System.Drawing.Text;
+using Microsoft.Win32;
+using IWshRuntimeLibrary;
 
 namespace LREditor
 {
@@ -103,6 +105,38 @@ namespace LREditor
             ComboBox_Fonts.SelectedIndex = fontinfo.FindIndex(c => c == p.Font);
             CheckBox_RunAsAdmin.IsChecked = p.RunAsAdmin;
             CheckBox_IME.IsChecked = p.HookIME;
+        }
+
+        private void Button_Shortcut_Click(object sender, RoutedEventArgs e)
+        {
+            if (ComboBox_Profile.SelectedIndex == -1)
+            {
+                return;
+            }
+            OpenFileDialog openFileDlg = new OpenFileDialog();
+            openFileDlg.DefaultExt = ".exe"; // Default file extension
+            openFileDlg.Filter = "Executable Files (.exe)|*.exe"; // Filter files by extension
+            if (openFileDlg.ShowDialog() == true)
+            {
+                string SelectedFileName = openFileDlg.FileName;
+                string dllpath = System.IO.Path.Combine(LRConfig.CurrentPath, "LRHookx64.dll");
+                LRProfile p = (LRProfile)ComboBox_Profile.SelectedItem;
+                WshShell shell = new WshShell();
+                string shortcutAddress = string.Format("{0}.{1}.lnk", SelectedFileName,p.Name);
+                IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(shortcutAddress);
+                shortcut.TargetPath = LRConfig.CurrentPath + "\\LRProc.exe";
+                shortcut.Arguments = "\"" + SelectedFileName + "\" " + p.Guid + " \"" + dllpath + "\"";
+                shortcut.IconLocation = SelectedFileName;
+                shortcut.WorkingDirectory = System.IO.Path.GetDirectoryName(SelectedFileName);
+                shortcut.Save();
+
+                if (p.RunAsAdmin)
+                    using (FileStream stream = new FileStream(shortcutAddress, FileMode.Open, FileAccess.ReadWrite))
+                    {
+                        stream.Seek(21, SeekOrigin.Begin);
+                        stream.WriteByte(0x22);
+                    }
+            }
         }
     }
 }
