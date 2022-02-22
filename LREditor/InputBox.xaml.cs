@@ -19,7 +19,7 @@ namespace LREditor
     /// </summary>
     public partial class InputBox : Window
     {
-        public string? InputResult;
+        public string InputResult;
         public InputBox()
         {
             InitializeComponent();

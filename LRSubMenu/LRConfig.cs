@@ -100,7 +100,7 @@ namespace LRCSharpLibrary
                                                     Guid.NewGuid().ToString(),
                                                     "ko-KR",
                                                     949,
-                                                    "Dotum",
+                                                    "Gulim",
                                                     true,
                                                     true
                                           )

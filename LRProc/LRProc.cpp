@@ -1,8 +1,8 @@
 #include<iostream>
 #include<Windows.h>
 #include<detours.h>
-#include"Resource.h"
 #include<commctrl.h>
+#include"Resource.h"
 
 #include"../LRCommonLibrary/LRCommonLibrary.h"
 #pragma comment(lib, "LRCommonLibrary.lib")
@@ -76,8 +76,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
 		&si, &pi, dllpath, NULL);
     
-    Sleep(60000);
 	WaitForSingleObject(pi.hProcess, INFINITE);
+    Sleep(60000);
 	filemap.FreeConfigFileMap();
 
     /*

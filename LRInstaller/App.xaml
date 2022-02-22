@@ -1,8 +1,8 @@
-﻿<Application x:Class="LREditor.App"
+﻿<Application x:Class="LRInstaller.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:LREditor"
-             StartupUri="LREditor.xaml">
+             xmlns:local="clr-namespace:LRInstaller"
+             StartupUri="LRInstaller.xaml">
     <Application.Resources>
          
     </Application.Resources>

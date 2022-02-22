@@ -228,7 +228,6 @@ namespace LRSubMenus
         private void CallLREditor()
         {
             var proc = new Process();
-            var filepath = SelectedItemPaths.First();
 
             Directory.SetCurrentDirectory(currentpath);
             proc.StartInfo.FileName = "LREditor.exe";
