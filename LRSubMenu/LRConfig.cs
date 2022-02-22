@@ -90,7 +90,7 @@ namespace LRCSharpLibrary
                                           ),
                                       new LRProfile("Run in Taiwan (Admin)",
                                                     Guid.NewGuid().ToString(),
-                                                    "zh-Hant-TW",
+                                                    "zh-TW",
                                                     950,
                                                     "None",
                                                     true,

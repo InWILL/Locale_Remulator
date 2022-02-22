@@ -24,7 +24,6 @@ Download available at <https://github.com/InWILL/Locale_Remulator/releases/lates
 ### Prerequisites
 
 * [.NET Framework 4.8](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48)
-* [.NET Desktop Runtime 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
 ### Install
 
@@ -59,23 +58,22 @@ Run `LREditor.exe` and click `Shortcut` button, choose what config and applicati
 
 (3) In `Locale_Remulator\LRInstaller` there will generate `LRInstaller.exe` which is the Installer application.
 
-## Debug
+## Deployment
 
-Copy these files to a same folder.
+choose solution Platform x86 or x64.
+
+Copy files to keep this file path.
 
 ```
-    LRConfig.xml
-    LREditor.deps.json
-    LREditor.dll
     LREditor.exe
-    LREditor.pdb
-    LREditor.runtimeconfig.json
     LRHookx32.dll
     LRHookx64.dll
+    LRInstaller.exe
     LRProc.exe
     LRSubMenus.dll
     ServerRegistrationManager.exe
     SharpShell.dll
+    System.Drawing.Common.dll
 ```
 
 ## Versioning

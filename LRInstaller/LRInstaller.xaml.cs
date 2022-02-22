@@ -20,15 +20,9 @@ namespace LRInstaller
         public MainWindow()
         {
             InitializeComponent();
-            Button_Install_Current.IsEnabled = false;
-            Button_Uninstall_Current.IsEnabled = false;
-            Button_Uninstall_AllUsers.IsEnabled = true;
-        }
-        private void Button_Install_Current_Click(object sender, RoutedEventArgs e)
-        {
         }
 
-        private void Button_Install_AllUsers_Click(object sender, RoutedEventArgs e)
+        private void Button_Install_Click(object sender, RoutedEventArgs e)
         {
             var proc = new Process();
             proc.StartInfo.FileName = "ServerRegistrationManager.exe";
@@ -37,11 +31,7 @@ namespace LRInstaller
             proc.Start();
         }
 
-        private void Button_Uninstall_Current_Click(object sender, RoutedEventArgs e)
-        {
-        }
-
-        private void Button_Uninstall_AllUsers_Click(object sender, RoutedEventArgs e)
+        private void Button_Uninstall_Click(object sender, RoutedEventArgs e)
         {
             var proc = new Process();
             proc.StartInfo.FileName = "ServerRegistrationManager.exe";
