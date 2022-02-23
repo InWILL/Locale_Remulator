@@ -18,16 +18,24 @@ using namespace System::Runtime::InteropServices;
 //int main(int argc,char* argv[])
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
 {
-	char* filepath = __argv[1];
-	char* dllpath = __argv[3];
-	System::String^ Guid = gcnew System::String(__argv[2]);
+	if (__argc < 3)
+	{
+		MessageBox(NULL, TEXT("Please use LREditor to run the application."), TEXT("LRProc"), NULL);
+		return 0;
+	}
+	char* DllPath = __argv[2];
+	char* CommandLine = __argv[3];
+	char* Font;
+	System::String^ Guid = gcnew System::String(__argv[1]);
 	LRCSharpLibrary::LRProfile^ alpha = LRCSharpLibrary::LRConfig::GetProfile(Guid);
-
+	Font = (char*)(void*)Marshal::StringToHGlobalAnsi(alpha->Font);
+	
 	LRProfile beta;
 	beta.CodePage = alpha->CodePage;
-    strcpy(beta.lfFaceName, (char*)(void*)Marshal::StringToHGlobalAnsi(alpha->Font));
+    strcpy(beta.lfFaceName, Font);
 	beta.HookIME = alpha->HookIME;
-	strcpy(beta.DllPath, dllpath);
+	strcpy(beta.DllPath, DllPath);
+
 	LRConfigFileMap filemap;
 	filemap.WrtieConfigFileMap(&beta);
 	
@@ -38,12 +46,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 	si.cb = sizeof(STARTUPINFO);
     //std::cout << beta.CodePage;
 
-	DetourCreateProcessWithDllExA(NULL, filepath, NULL,
+	DetourCreateProcessWithDllExA(NULL, CommandLine, NULL,
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
-		&si, &pi, dllpath, NULL);
+		&si, &pi, DllPath, NULL);
     
+	Sleep(30000);
 	WaitForSingleObject(pi.hProcess, INFINITE);
-    Sleep(60000);
 	filemap.FreeConfigFileMap();
 	return 0;
 }

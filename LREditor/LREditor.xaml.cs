@@ -110,16 +110,21 @@ namespace LREditor
             openFileDlg.Filter = "Executable Files (.exe)|*.exe"; // Filter files by extension
             if (openFileDlg.ShowDialog() == true)
             {
-                string SelectedFileName = openFileDlg.FileName;
+                string filepath = openFileDlg.FileName;
                 string dllpath = Path.Combine(LRConfig.CurrentPath, "LRHookx64.dll");
                 LRProfile profile = (LRProfile)ComboBox_Profile.SelectedItem;
                 WshShell shell = new WshShell();
-                string shortcutAddress = string.Format("{0}.{1}.lnk", SelectedFileName, profile.Name);
+                string shortcutAddress = string.Format("{0}.{1}.lnk", filepath, profile.Name);
                 IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(shortcutAddress);
+                string CommandLine = filepath;
+                if (TextBox_Arguments.Text != "Enter Arguments here...")
+                {
+                    CommandLine = filepath + " " + TextBox_Arguments.Text;
+                }
                 shortcut.TargetPath = LRConfig.CurrentPath + "\\LRProc.exe";
-                shortcut.Arguments = "\"" + SelectedFileName + "\" " + profile.Guid + " \"" + dllpath + "\"";
-                shortcut.IconLocation = SelectedFileName;
-                shortcut.WorkingDirectory = Path.GetDirectoryName(SelectedFileName);
+                shortcut.Arguments = profile.Guid + " \"" + dllpath + "\" \"" + CommandLine+"\"";
+                shortcut.IconLocation = filepath;
+                shortcut.WorkingDirectory = Path.GetDirectoryName(filepath);
                 shortcut.Save();
 
                 if (profile.RunAsAdmin)
@@ -143,16 +148,36 @@ namespace LREditor
             if (openFileDlg.ShowDialog() == true)
             {
                 string filepath = openFileDlg.FileName;
-                var filedirectory = Path.GetDirectoryName(filepath);
                 string dllpath = Path.Combine(LRConfig.CurrentPath, "LRHookx64.dll");
+                string CommandLine = filepath;
+                if (TextBox_Arguments.Text != "Enter Arguments here...")
+                {
+                    CommandLine = filepath + " " + TextBox_Arguments.Text;
+                }
                 LRProfile profile = (LRProfile)ComboBox_Profile.SelectedItem;
                 var proc = new Process();
                 proc.StartInfo.FileName = LRConfig.CurrentPath + "\\LRProc.exe";
-                proc.StartInfo.Arguments = "\"" + filepath + "\" " + profile.Guid + " \"" + dllpath + "\"";
-                proc.StartInfo.WorkingDirectory = filedirectory;
+                proc.StartInfo.Arguments = profile.Guid + " \"" + dllpath + "\" \"" + CommandLine+"\"";
+                proc.StartInfo.WorkingDirectory = Path.GetDirectoryName(filepath);
                 proc.StartInfo.UseShellExecute = true;
                 if (profile.RunAsAdmin) proc.StartInfo.Verb = "runas";
                 proc.Start();
+            }
+        }
+
+        private void TextBox_Arguments_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (TextBox_Arguments.Text == "Enter Arguments here...")
+            {
+                TextBox_Arguments.Text = "";
+            }
+        }
+
+        private void TextBox_Arguments_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(TextBox_Arguments.Text))
+            {
+                TextBox_Arguments.Text = "Enter Arguments here...";
             }
         }
     }

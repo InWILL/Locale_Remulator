@@ -50,14 +50,6 @@ Run `LREditor.exe` and click `Shortcut` button, choose what config and applicati
 * [Detours](https://github.com/microsoft/Detours) - Used to hook ANSI/Unicode functions
 * [SharpShell](https://github.com/dwmkerr/sharpshell) - Used to generate right-click menu
 
-## Built
-
-(1) choose platform x86 to generate LRHookx32.dll
-
-(2) choose platform x64 to build all project.
-
-(3) In `Locale_Remulator\LRInstaller` there will generate `LRInstaller.exe` which is the Installer application.
-
 ## Deployment
 
 choose solution Platform x86 or x64.

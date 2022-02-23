@@ -8,16 +8,16 @@
         Title="LREditor" Height="384" Width="310" ResizeMode="CanMinimize">
     <Grid Margin="0,0,0,-16">
         <Grid.RowDefinitions>
-            <RowDefinition Height="41*"/>
-            <RowDefinition Height="41*"/>
-            <RowDefinition Height="41*"/>
-            <RowDefinition Height="69*"/>
+            <RowDefinition Height="50*"/>
+            <RowDefinition Height="35*"/>
+            <RowDefinition Height="35*"/>
+            <RowDefinition Height="70*"/>
         </Grid.RowDefinitions>
-        <ComboBox x:Name="ComboBox_Profile" Margin="10,10,85,0" VerticalAlignment="Top" Height="22" SelectionChanged="ComboBox_Profile_SelectionChanged"/>
-        <Button x:Name="Button_Save" Content="Save" Margin="10,42,230,10" Click="Button_Save_Click" Height="22"/>
-        <Button x:Name="Button_SaveAs" Content="Save As..." Margin="82,42,158,10" Click="Button_SaveAs_Click" Height="22"/>
-        <Button x:Name="Button_Delete" Content="Delete" Margin="155,42,85,10" Click="Button_Delete_Click" Height="22"/>
-        <GroupBox Header="CodePage Settings" Margin="0,82,0,0" Grid.RowSpan="2">
+        <ComboBox x:Name="ComboBox_Profile" Margin="10,10,10,0" VerticalAlignment="Top" Height="22" SelectionChanged="ComboBox_Profile_SelectionChanged"/>
+        <Button x:Name="Button_Save" Content="Save" Margin="10,69,230,0" Click="Button_Save_Click" Height="22" VerticalAlignment="Top"/>
+        <Button x:Name="Button_SaveAs" Content="Save As..." Margin="82,69,158,0" Click="Button_SaveAs_Click" Height="22" VerticalAlignment="Top"/>
+        <Button x:Name="Button_Delete" Content="Delete" Margin="155,69,85,0" Click="Button_Delete_Click" Height="22" VerticalAlignment="Top"/>
+        <GroupBox Header="CodePage Settings" Margin="0,1,0,0" Grid.Row="1">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -26,15 +26,13 @@
                 <ComboBox x:Name="ComboBox_CodePage" VerticalAlignment="Center" Height="22" Margin="89,0,10,0"/>
             </Grid>
         </GroupBox>
-        <GroupBox Header="Font Settings" Grid.Row="1" Margin="0,82,0,0" Grid.RowSpan="2">
+        <GroupBox Header="Font Settings" Grid.Row="2" Margin="0,3,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="18*"/>
-                    <ColumnDefinition Width="161*"/>
-                    <ColumnDefinition Width="112*"/>
+                    <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <Label Content="Font" HorizontalAlignment="Left" VerticalAlignment="Center" Height="26" Width="64" Margin="8,0,0,0" Grid.ColumnSpan="2"/>
-                <ComboBox x:Name="ComboBox_Fonts" VerticalAlignment="Center" Height="22" Margin="71,0,10,0" Grid.ColumnSpan="2" Grid.Column="1"/>
+                <Label Content="Font" HorizontalAlignment="Left" VerticalAlignment="Center" Height="26" Width="64" Margin="8,0,0,0"/>
+                <ComboBox x:Name="ComboBox_Fonts" VerticalAlignment="Center" Height="22" Margin="89,0,10,0"/>
             </Grid>
         </GroupBox>
         <GroupBox Header="Advance Settings" Grid.Row="3" Margin="0,2,0,0">
@@ -45,8 +43,9 @@
                 <CheckBox Content="None" HorizontalAlignment="Left" Margin="10,69,0,0" VerticalAlignment="Top"/>
             </Grid>
         </GroupBox>
-        <Button x:Name="Button_Shortcut" Content="Shortcut" Margin="230,42,10,10" Click="Button_Shortcut_Click" Height="22"/>
-        <Button x:Name="Button_Run" Content="Run" Margin="230,10,10,0" Click="Button_Run_Click" Height="22" VerticalAlignment="Top"/>
+        <Button x:Name="Button_Shortcut" Content="Shortcut" Margin="230,69,10,0" Click="Button_Shortcut_Click" Height="22" VerticalAlignment="Top"/>
+        <Button x:Name="Button_Run" Content="Run" Margin="230,37,10,0" Click="Button_Run_Click" Height="22" VerticalAlignment="Top"/>
+        <TextBox x:Name="TextBox_Arguments" Margin="10,37,85,0" TextWrapping="Wrap" Text="Enter Arguments here..." Height="22" VerticalAlignment="Top" GotFocus="TextBox_Arguments_GotFocus" LostFocus="TextBox_Arguments_LostFocus"/>
 
     </Grid>
 </Window>

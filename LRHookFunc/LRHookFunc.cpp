@@ -370,7 +370,7 @@ LONG WINAPI HookImmGetCompositionStringA_WM(
 	LPWSTR wstr = (LPWSTR)HeapAlloc(Original.hHeap, 0, wsize);
 	ImmGetCompositionStringW(hIMC, dwIndex, wstr, wsize);
 	LONG lsize = (wsize) << 1;
-	if (lpBuf) 
+	if (lpBuf)
 	{
 		lsize = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lpBuf, lsize, NULL, NULL);
 		lpBuf[lsize] = '\0'; // make tail ! 
