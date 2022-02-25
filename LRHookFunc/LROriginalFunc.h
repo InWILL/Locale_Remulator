@@ -104,3 +104,12 @@ static BOOL(WINAPI* OriginalTextOutA)(
 	LPCSTR lpString,
 	int    c
 	) = TextOutA;
+
+static HANDLE(WINAPI* OriginalGetClipboardData)(
+	_In_ UINT uFormat
+	) = GetClipboardData;
+
+static HANDLE(WINAPI* OriginalSetClipboardData)(
+	_In_ UINT uFormat,
+	_In_opt_ HANDLE hMem
+	) = SetClipboardData;

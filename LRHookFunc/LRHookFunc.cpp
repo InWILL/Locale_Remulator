@@ -26,6 +26,9 @@ void AttachFunctions() {
 		else
 			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_MWM);
 		DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
+
+		DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
+		DetourAttach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 	}
 
 	//DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
@@ -47,11 +50,17 @@ void DetachFunctions() {
 	DetourDetach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
 	DetourDetach(&(PVOID&)OriginalTextOutA, HookTextOutA);
 
-	if (settings.CodePage == 949)
-		DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
-	else
-		DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_MWM);
-	DetourDetach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
+	if (settings.HookIME)
+	{
+		if (settings.CodePage == 949)
+			DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
+		else
+			DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_MWM);
+		DetourDetach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
+
+		DetourDetach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
+		DetourDetach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
+	}
 
 	//DetourDetach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
 	//DetourDetach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
@@ -367,7 +376,7 @@ LONG WINAPI HookImmGetCompositionStringA_WM(
 )
 {
 	LONG wsize = ImmGetCompositionStringW(hIMC, dwIndex, NULL, 0);
-	LPWSTR wstr = (LPWSTR)HeapAlloc(Original.hHeap, 0, wsize);
+	LPWSTR wstr = (LPWSTR)AllocateZeroedMemory(wsize);
 	ImmGetCompositionStringW(hIMC, dwIndex, wstr, wsize);
 	LONG lsize = (wsize) << 1;
 	if (lpBuf)
@@ -434,4 +443,68 @@ BOOL WINAPI HookTextOutA(
 		return ret;
 	}
 	return OriginalTextOutA(hdc, x, y, lpString, c);
+}
+
+HANDLE WINAPI HookGetClipboardData(
+	UINT uFormat
+)
+{
+	if (uFormat == CF_TEXT)
+	{
+		HANDLE hClipMemory = OriginalGetClipboardData(CF_UNICODETEXT);
+		HANDLE hGlobalMemory = NULL;
+		LPWSTR wstr = (LPWSTR)GlobalLock(hClipMemory);
+		if (wstr)
+		{
+			int wsize = lstrlenW(wstr);
+			int lsize = (wsize + 1) << 1;
+			hGlobalMemory = GlobalAlloc(GHND, lsize);
+			if (hGlobalMemory)
+			{
+				LPSTR lstr = (LPSTR)GlobalLock(hGlobalMemory);
+				if (lstr)
+				{
+					lsize = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
+					lstr[lsize] = '\0';
+				}
+				GlobalUnlock(hGlobalMemory);
+			}
+		}
+		GlobalUnlock(hClipMemory);
+		if (hGlobalMemory)
+			return hGlobalMemory;
+	}
+	return OriginalGetClipboardData(uFormat);
+}
+
+HANDLE WINAPI HookSetClipboardData(
+	UINT uFormat,
+	HANDLE hMem
+)
+{
+	if (uFormat == CF_TEXT)
+	{
+		HANDLE hGlobalMemory = NULL;
+		LPSTR lstr = (LPSTR)GlobalLock(hMem);
+		if (lstr)
+		{
+			int lsize = lstrlenA(lstr);
+			int wsize = (lsize + 1) << 1;
+			hGlobalMemory = GlobalAlloc(GHND, wsize);
+			if (hGlobalMemory)
+			{
+				LPWSTR wstr = (LPWSTR)GlobalLock(hGlobalMemory);
+				if (wstr)
+				{
+					wsize = OriginalMultiByteToWideChar(settings.CodePage, 0, lstr, lsize, wstr, wsize);
+					wstr[wsize] = L'\0';
+				}
+				GlobalUnlock(hGlobalMemory);
+			}
+		}
+		GlobalUnlock(hMem);
+		if (hGlobalMemory)
+			return OriginalSetClipboardData(CF_UNICODETEXT, hGlobalMemory);
+	}
+	return OriginalSetClipboardData(uFormat, hMem);
 }

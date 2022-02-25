@@ -98,6 +98,15 @@ BOOL WINAPI HookTextOutA(
 	int    c
 );
 
+HANDLE WINAPI HookGetClipboardData(
+	UINT uFormat
+);
+
+HANDLE WINAPI HookSetClipboardData(
+	UINT uFormat,
+	HANDLE hMem
+);
+
 //Minhook version Code
 /*inline LONG AttachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
 {
@@ -114,6 +123,10 @@ inline LONG DetachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDL
 	return DetourDetach(&funcptr, lpHookAddress);
 	// return the original funcaddress !
 }*/
+
+inline LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/) {
+	return HeapAlloc(Original.hHeap, HEAP_ZERO_MEMORY, size);
+}
 
 inline VOID FreeStringInternal(LPVOID pBuffer/*ecx*/)
 {
@@ -148,8 +161,4 @@ inline LPSTR WideCharToMultiByteInternal(LPCWSTR wstr, UINT CodePage = CP_ACP)
 		lstr[n] = '\0'; // make tail ! 
 	}
 	return lstr;
-}
-
-inline LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/) {
-	return HeapAlloc(Original.hHeap, HEAP_ZERO_MEMORY, size);
 }
