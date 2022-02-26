@@ -3,7 +3,8 @@
 //WNDPROC originalProc;
 ORIGINAL Original = { NULL };
 
-void AttachFunctions() {
+void AttachFunctions() 
+{
 	//HookDllFunc((LPCSTR)(DWORD_PTR)CreateWindowExA, (LPVOID)(DWORD_PTR)HookCreateWindowExA, NULL);
 	//DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
@@ -21,10 +22,10 @@ void AttachFunctions() {
 	Original.CodePage = OriginalGetACP();
 	if (settings.HookIME)
 	{
-		if (settings.CodePage == 949)
-			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
+		if (Original.CodePage==936&&(settings.CodePage==932||settings.CodePage == 950))
+			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA);
 		else
-			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_MWM);
+			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
 		DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
 
 		DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
@@ -36,7 +37,8 @@ void AttachFunctions() {
 	//DetourAttach(&(PVOID&)OriginalDefDlgProcA, HookDefDlgProcA);
 }
 
-void DetachFunctions() {
+void DetachFunctions() 
+{
 	//DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourDetach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourDetach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
@@ -52,10 +54,10 @@ void DetachFunctions() {
 
 	if (settings.HookIME)
 	{
-		if (settings.CodePage == 949)
-			DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
+		if (Original.CodePage == 936 && (settings.CodePage == 932 || settings.CodePage == 950))
+			DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA);
 		else
-			DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_MWM);
+			DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
 		DetourDetach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
 
 		DetourDetach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
@@ -344,7 +346,7 @@ int WINAPI HookGetWindowTextA(_In_ HWND hWnd, _Out_writes_(nMaxCount) LPSTR lpSt
 	return ret;
 }
 
-LONG WINAPI HookImmGetCompositionStringA_MWM(
+LONG WINAPI HookImmGetCompositionStringA(
 	HIMC hIMC, 
 	DWORD dwIndex,
 	LPSTR lpBuf,
@@ -378,7 +380,7 @@ LONG WINAPI HookImmGetCompositionStringA_WM(
 	LONG wsize = ImmGetCompositionStringW(hIMC, dwIndex, NULL, 0);
 	LPWSTR wstr = (LPWSTR)AllocateZeroedMemory(wsize);
 	ImmGetCompositionStringW(hIMC, dwIndex, wstr, wsize);
-	LONG lsize = (wsize) << 1;
+	LONG lsize = (wsize + 1) << 1;
 	if (lpBuf)
 	{
 		lsize = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lpBuf, lsize, NULL, NULL);

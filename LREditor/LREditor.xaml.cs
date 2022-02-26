@@ -122,7 +122,7 @@ namespace LREditor
                     CommandLine = filepath + " " + TextBox_Arguments.Text;
                 }
                 shortcut.TargetPath = LRConfig.CurrentPath + "\\LRProc.exe";
-                shortcut.Arguments = profile.Guid + " \"" + dllpath + "\" \"" + CommandLine+"\"";
+                shortcut.Arguments = profile.Guid + " \"" + dllpath + "\" " + CommandLine;
                 shortcut.IconLocation = filepath;
                 shortcut.WorkingDirectory = Path.GetDirectoryName(filepath);
                 shortcut.Save();
@@ -157,7 +157,7 @@ namespace LREditor
                 LRProfile profile = (LRProfile)ComboBox_Profile.SelectedItem;
                 var proc = new Process();
                 proc.StartInfo.FileName = LRConfig.CurrentPath + "\\LRProc.exe";
-                proc.StartInfo.Arguments = profile.Guid + " \"" + dllpath + "\" \"" + CommandLine+"\"";
+                proc.StartInfo.Arguments = profile.Guid + " \"" + dllpath + "\" " + CommandLine;
                 proc.StartInfo.WorkingDirectory = Path.GetDirectoryName(filepath);
                 proc.StartInfo.UseShellExecute = true;
                 if (profile.RunAsAdmin) proc.StartInfo.Verb = "runas";

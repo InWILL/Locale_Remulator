@@ -39,7 +39,7 @@
                 <Button x:Name="Button_LREditor" Content="Edit global profile list" VerticalAlignment="Center" Height="20" Margin="10,0,10,0" Click="Button_LREditor_Click"/>
             </Grid>
         </GroupBox>
-        <TextBlock TextWrapping="Wrap" Margin="10,10,10,10"><Run Text="Welcome to Locale__Remulator!"/><LineBreak/><Run Text="If you want to use LR without installation"/><Run Language="zh-cn" Text=" (i.e., portable application), y"/><Run Text="ou can run LREditor to create shortcut. "/><LineBreak/><Run Text="Please follow the steps below to install LR:"/><LineBreak/><Run Text="   1. Install Locale__Remulator for yourself or for all users on this PC (requires admin rights)."/><LineBreak/><Run Text="   2. Run LREditor to customise the profile list;"/><LineBreak/><Run Text="   3. Right-click on any application and you will see the Locale__Remulator items. Enjoy!"/></TextBlock>
+        <TextBlock TextWrapping="Wrap" Margin="10,10,10,10"><Run Text="Welcome to Locale_Remulator!"/><LineBreak/><Run Text="If you want to use LR without installation"/><Run Text=" (i.e., portable application), y"/><Run Text="ou can run LREditor to create shortcut. "/><LineBreak/><Run Text="Please follow the steps below to install LR:"/><LineBreak/><Run Text="   1. Install Locale_Remulator on this PC (requires admin rights)."/><LineBreak/><Run Text="   2. Run LREditor to customise the profile list;"/><LineBreak/><Run Text="   3. Right-click on any application and you will see the Locale_Remulator items. Enjoy!"/></TextBlock>
 
     </Grid>
 </Window>

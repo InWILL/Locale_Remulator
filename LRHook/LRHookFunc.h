@@ -65,7 +65,7 @@ int WINAPI HookGetWindowTextA(
 	_Out_writes_(nMaxCount) LPSTR lpString,
 	_In_ int nMaxCount);
 
-LONG WINAPI HookImmGetCompositionStringA_MWM(
+LONG WINAPI HookImmGetCompositionStringA(
 	HIMC hIMC,
 	DWORD dwIndex,
 	LPSTR lpBuf,

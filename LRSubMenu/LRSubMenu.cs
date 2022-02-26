@@ -219,7 +219,7 @@ namespace LRSubMenus
             var filepath = SelectedItemPaths.First();
             var filedirectory = Path.GetDirectoryName(filepath);
             proc.StartInfo.FileName = currentpath+"\\LRProc.exe";
-            proc.StartInfo.Arguments = profile.Guid + " \"" + dllpath + "\" \"" + filepath + "\"";
+            proc.StartInfo.Arguments = profile.Guid + " \"" + dllpath + "\" " + filepath;
             proc.StartInfo.WorkingDirectory = filedirectory;
             if (profile.RunAsAdmin) proc.StartInfo.Verb = "runas";
             //MessageBox.Show(currentpath);

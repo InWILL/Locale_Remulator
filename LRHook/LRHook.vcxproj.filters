@@ -18,8 +18,19 @@
     <ClCompile Include="LRHook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LRHookFunc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="LRHookFunc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LROriginalFunc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,6 +1,8 @@
 #include<iostream>
 #include<Windows.h>
 #include<detours.h>
+#include<cstdio>
+#include<cstring>
 
 #include"../LRCommonLibrary/LRCommonLibrary.h"
 #pragma comment(lib, "LRCommonLibrary.lib")
@@ -24,7 +26,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 		return 0;
 	}
 	char* DllPath = __argv[2];
-	char* CommandLine = __argv[3];
+	char* CommandLine = strstr(lpCmdLine, __argv[3]);
 	char* Font;
 	System::String^ Guid = gcnew System::String(__argv[1]);
 	LRCSharpLibrary::LRProfile^ alpha = LRCSharpLibrary::LRConfig::GetProfile(Guid);

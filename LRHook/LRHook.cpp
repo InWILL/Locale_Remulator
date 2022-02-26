@@ -1,12 +1,10 @@
 #include<Windows.h>
 #include<detours.h>
 
+#include "LRHookFunc.h"
+
 #include"../LRCommonLibrary/LRCommonLibrary.h"
 #pragma comment(lib, "LRCommonLibrary.lib")
-
-#include "../LRHookFunc/LRHookFunc.h"
-#pragma comment(lib, "LRHookFunc.lib")
-
 
 
 //typedef int (WINAPI* MESSAGEBOXA)(HWND, LPCSTR, LPCSTR, UINT);
