@@ -5,8 +5,8 @@ ORIGINAL Original = { NULL };
 
 void AttachFunctions() 
 {
-	//HookDllFunc((LPCSTR)(DWORD_PTR)CreateWindowExA, (LPVOID)(DWORD_PTR)HookCreateWindowExA, NULL);
-	//DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
+	//DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
+	DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourAttach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
 	DetourAttach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
@@ -39,7 +39,7 @@ void AttachFunctions()
 
 void DetachFunctions() 
 {
-	//DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
+	DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourDetach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourDetach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
 	DetourDetach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
@@ -383,7 +383,7 @@ LONG WINAPI HookImmGetCompositionStringA_WM(
 	LONG lsize = (wsize + 1) << 1;
 	if (lpBuf)
 	{
-		lsize = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lpBuf, lsize, NULL, NULL);
+		lsize = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lpBuf, lsize, Original.lpDefaultChar, &Original.lpUsedDefaultChar);
 		lpBuf[lsize] = '\0'; // make tail ! 
 	}
 	FreeStringInternal(wstr);
@@ -510,3 +510,4 @@ HANDLE WINAPI HookSetClipboardData(
 	}
 	return OriginalSetClipboardData(uFormat, hMem);
 }
+

@@ -27,6 +27,20 @@ static int (WINAPI* OriginalWideCharToMultiByte)(
 static UINT(WINAPI* OriginalGetACP)(void) = GetACP;
 static UINT(WINAPI* OriginalGetOEMCP)(void) = GetOEMCP;
 
+static HWND(WINAPI* OriginalCreateWindowExA)(
+	_In_ DWORD dwExStyle,
+	_In_opt_ LPCSTR lpClassName,
+	_In_opt_ LPCSTR lpWindowName,
+	_In_ DWORD dwStyle,
+	_In_ int X,
+	_In_ int Y,
+	_In_ int nWidth,
+	_In_ int nHeight,
+	_In_opt_ HWND hWndParent,
+	_In_opt_ HMENU hMenu,
+	_In_opt_ HINSTANCE hInstance,
+	_In_opt_ LPVOID lpParam) = CreateWindowExA;
+
 static LRESULT(WINAPI* OriginalSendMessageA)(
 	_In_ HWND hWnd,
 	_In_ UINT Msg,

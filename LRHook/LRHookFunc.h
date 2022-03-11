@@ -9,6 +9,8 @@ struct ORIGINAL
 {
 	HANDLE hHeap;
 	UINT CodePage;
+	const char* lpDefaultChar = "";
+	BOOL lpUsedDefaultChar = TRUE;
 };
 
 extern LRProfile settings;
