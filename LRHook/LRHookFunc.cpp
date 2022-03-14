@@ -18,6 +18,8 @@ void AttachFunctions()
 	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	DetourAttach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
 	DetourAttach(&(PVOID&)OriginalTextOutA, HookTextOutA);
+	DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
+	DetourAttach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 	
 	Original.CodePage = OriginalGetACP();
 	if (settings.HookIME)
@@ -28,8 +30,6 @@ void AttachFunctions()
 			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
 		DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
 
-		DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
-		DetourAttach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 	}
 
 	//DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
@@ -51,6 +51,8 @@ void DetachFunctions()
 	//DetourDetach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	DetourDetach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
 	DetourDetach(&(PVOID&)OriginalTextOutA, HookTextOutA);
+	DetourDetach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
+	DetourDetach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 
 	if (settings.HookIME)
 	{
@@ -60,8 +62,6 @@ void DetachFunctions()
 			DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
 		DetourDetach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
 
-		DetourDetach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
-		DetourDetach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 	}
 
 	//DetourDetach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
