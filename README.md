@@ -54,7 +54,7 @@ Run `LREditor.exe` and click `Shortcut` button, choose what config and applicati
 
 choose solution Platform x86 or x64.
 
-Copy these file to in a same directory.
+Copy these files in the same directory.
 
 ```
     LREditor.exe
