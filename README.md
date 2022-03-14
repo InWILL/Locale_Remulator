@@ -72,12 +72,6 @@ Copy these file to in a same directory.
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/InWILL/Locale_Remulator/tags). 
 
-## Contributing
-
-If you want to help translating Locale Remulator, you could help to tranlate readme, I have created some blank readme files.
-
-After you translated the above into your language, please inform me by creating a pull request.
-
 ## Contributors
 
 * **InWILL** - *Initial work* - [InWILL](https://github.com/InWILL)
