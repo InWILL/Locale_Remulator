@@ -52,8 +52,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
 		&si, &pi, DllPath, NULL);
     
-	WaitForSingleObject(pi.hProcess, INFINITE);
 	Sleep(30000);
+	WaitForSingleObject(pi.hProcess, INFINITE);
+	
 	filemap.FreeConfigFileMap();
 	return 0;
 }

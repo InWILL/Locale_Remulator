@@ -3,6 +3,8 @@
 [![license](https://img.shields.io/github/license/InWILL/Locale_Remulator.svg)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 [![GitHub all releases](https://img.shields.io/github/downloads/InWILL/Locale_Remulator/total)](https://github.com/InWILL/Locale_Remulator/releases/latest)
 
+### English | [简体中文](README.zh_CN.md) | [繁體中文](README.zh_TW.md) | [日本語](README.ja_JP.md) | [한국어](README.ko_KR.md)
+
 类似于Locale Emulator，但是没有64位，所以基于Detours重新实现了一个，外围部分参照了LE的代码。
 
 最主要的原因是日服MapleStory要实装64位了。
@@ -54,7 +56,7 @@ Run `LREditor.exe` and click `Shortcut` button, choose what config and applicati
 
 choose solution Platform x86 or x64.
 
-Copy files to keep this file path.
+Copy these file to in a same directory.
 
 ```
     LREditor.exe
@@ -72,9 +74,16 @@ Copy files to keep this file path.
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/InWILL/Locale_Remulator/tags). 
 
-## Authors
+## Contributing
+
+If you want to help translating Locale Remulator, you could help to tranlate readme, I have created some blank readme files.
+
+After you translated the above into your language, please inform me by creating a pull request.
+
+## Contributors
 
 * **InWILL** - *Initial work* - [InWILL](https://github.com/InWILL)
+* **lintx** - [lintx](https://github.com/lintx)
 
 See also the list of [contributors](https://github.com/InWILL/Locale_Remulator/graphs/contributors) who participated in this project.
 
