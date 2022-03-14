@@ -32,7 +32,7 @@ int WINAPI HookMultiByteToWideChar(UINT CodePage, DWORD dwFlags,
 int WINAPI HookWideCharToMultiByte(UINT CodePage, DWORD dwFlags,
 	LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar);
 UINT WINAPI HookWinExec(
-	_In_ LPCSTR lpCmdLine,
+	_In_ LPSTR lpCmdLine,
 	_In_ UINT uCmdShow);
 BOOL WINAPI HookCreateProcessA(
 	_In_opt_ LPCSTR lpApplicationName,
@@ -44,14 +44,39 @@ BOOL WINAPI HookCreateProcessA(
 	_In_opt_ LPVOID lpEnvironment,
 	_In_opt_ LPCSTR lpCurrentDirectory,
 	_In_ LPSTARTUPINFOA lpStartupInfo,
-	_Out_ LPPROCESS_INFORMATION lpProcessInformation);
-HINSTANCE HookShellExecuteA(
+	_Out_ LPPROCESS_INFORMATION lpProcessInformation
+);
+
+BOOL WINAPI HookCreateProcessW(
+	_In_opt_ LPCWSTR lpApplicationName,
+	_Inout_opt_ LPWSTR lpCommandLine,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpProcessAttributes,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	_In_ BOOL bInheritHandles,
+	_In_ DWORD dwCreationFlags,
+	_In_opt_ LPVOID lpEnvironment,
+	_In_opt_ LPCWSTR lpCurrentDirectory,
+	_In_ LPSTARTUPINFOW lpStartupInfo,
+	_Out_ LPPROCESS_INFORMATION lpProcessInformation
+);
+
+HINSTANCE WINAPI HookShellExecuteA(
 	_In_opt_ HWND hwnd,
-	_In_opt_ LPCSTR lpOperation,
-	_In_ LPCSTR lpFile,
-	_In_opt_ LPCSTR lpParameters,
-	_In_opt_ LPCSTR lpDirectory,
+	_In_opt_ LPSTR lpOperation,
+	_In_ LPSTR lpFile,
+	_In_opt_ LPSTR lpParameters,
+	_In_opt_ LPSTR lpDirectory,
 	_In_ INT nShowCmd);
+
+HINSTANCE WINAPI HookShellExecuteW(
+	_In_opt_ HWND hwnd,
+	_In_opt_ LPWSTR lpOperation,
+	_In_ LPWSTR lpFile,
+	_In_opt_ LPWSTR lpParameters,
+	_In_opt_ LPWSTR lpDirectory,
+	_In_ INT nShowCmd
+);
+
 int WINAPI HookMessageBoxA(
 	_In_opt_ HWND hWnd,
 	_In_opt_ LPCSTR lpText,

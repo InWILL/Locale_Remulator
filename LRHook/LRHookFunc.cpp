@@ -6,7 +6,7 @@ ORIGINAL Original = { NULL };
 void AttachFunctions() 
 {
 	//DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
-	DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
+	//DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourAttach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
 	DetourAttach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
@@ -14,10 +14,16 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 	DetourAttach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
+	DetourAttach(&(PVOID&)OriginalCreateProcessW, HookCreateProcessW);
+	DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
+	DetourAttach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
+
 	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	DetourAttach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
 	DetourAttach(&(PVOID&)OriginalTextOutA, HookTextOutA);
+	DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
+	DetourAttach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 	
 	Original.CodePage = OriginalGetACP();
 	if (settings.HookIME)
@@ -27,19 +33,15 @@ void AttachFunctions()
 		else
 			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
 		DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
-
-		DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
-		DetourAttach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 	}
 
-	//DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
 	//DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
 	//DetourAttach(&(PVOID&)OriginalDefDlgProcA, HookDefDlgProcA);
 }
 
 void DetachFunctions() 
 {
-	DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
+	//DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourDetach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourDetach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
 	DetourDetach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
@@ -47,10 +49,16 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 	DetourDetach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourDetach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
+	DetourDetach(&(PVOID&)OriginalCreateProcessW, HookCreateProcessW);
+	DetourDetach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
+	DetourDetach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
+
 	DetourDetach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourDetach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	DetourDetach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
 	DetourDetach(&(PVOID&)OriginalTextOutA, HookTextOutA);
+	DetourDetach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
+	DetourDetach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 
 	if (settings.HookIME)
 	{
@@ -59,12 +67,8 @@ void DetachFunctions()
 		else
 			DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
 		DetourDetach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
-
-		DetourDetach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
-		DetourDetach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 	}
 
-	//DetourDetach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
 	//DetourDetach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
 	//DetourDetach(&(PVOID&)OriginalDefDlgProcA, HookDefDlgProcA);
 }
@@ -230,13 +234,11 @@ int WINAPI HookWideCharToMultiByte(UINT CodePage, DWORD dwFlags,
 }
 
 UINT WINAPI HookWinExec(
-	_In_ LPCSTR lpCmdLine,
+	_In_ LPSTR lpCmdLine,
 	_In_ UINT uCmdShow
 )
 {
-	LPSTR lpCommandLine = (LPSTR)LocalAlloc(0, strlen(lpCmdLine) + 1);
-	sprintf(lpCommandLine, "%s", lpCmdLine);
-
+	//MessageBoxA(NULL, lpCmdLine, "WinExec", NULL);
 	LRConfigFileMap filemap;
 	filemap.WrtieConfigFileMap(&settings);
 
@@ -245,16 +247,15 @@ UINT WINAPI HookWinExec(
 	ZeroMemory(&si, sizeof(STARTUPINFOA));
 	ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
 	si.cb = sizeof(STARTUPINFOA);
-	/*return HookCreateProcessA(NULL, lpCommandLine, NULL, NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
-		&si, &pi);*/
-	bool ret = DetourCreateProcessWithDllExA(NULL, lpCommandLine, NULL,
+	
+	bool ret = DetourCreateProcessWithDllExA(NULL, lpCmdLine, NULL,
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
-		&si, &pi, settings.DllPath, NULL);
+		&si, &pi, settings.DllPath, OriginalCreateProcessA);
+
 	filemap.FreeConfigFileMap();
 	if (ret == TRUE)
 		return 0x21;
 	else return 0;
-	//return OriginalWinExec(lpCmdLine, uCmdShow);
 }
 
 BOOL WINAPI HookCreateProcessA(
@@ -286,23 +287,90 @@ BOOL WINAPI HookCreateProcessA(
 		OriginalCreateProcessA);
 }
 
-HINSTANCE HookShellExecuteA(
+BOOL WINAPI HookCreateProcessW(
+	_In_opt_ LPCWSTR lpApplicationName,
+	_Inout_opt_ LPWSTR lpCommandLine,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpProcessAttributes,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	_In_ BOOL bInheritHandles,
+	_In_ DWORD dwCreationFlags,
+	_In_opt_ LPVOID lpEnvironment,
+	_In_opt_ LPCWSTR lpCurrentDirectory,
+	_In_ LPSTARTUPINFOW lpStartupInfo,
+	_Out_ LPPROCESS_INFORMATION lpProcessInformation
+)
+{
+	return DetourCreateProcessWithDllExW(
+		lpApplicationName,
+		lpCommandLine,
+		lpProcessAttributes,
+		lpThreadAttributes,
+		bInheritHandles,
+		dwCreationFlags,
+		lpEnvironment,
+		lpCurrentDirectory,
+		lpStartupInfo,
+		lpProcessInformation,
+		settings.DllPath,
+		OriginalCreateProcessW);
+}
+
+HINSTANCE WINAPI HookShellExecuteA(
 	_In_opt_ HWND hwnd,
-	_In_opt_ LPCSTR lpOperation,
-	_In_ LPCSTR lpFile,
-	_In_opt_ LPCSTR lpParameters,
-	_In_opt_ LPCSTR lpDirectory,
+	_In_opt_ LPSTR lpOperation,
+	_In_ LPSTR lpFile,
+	_In_opt_ LPSTR lpParameters,
+	_In_opt_ LPSTR lpDirectory,
 	_In_ INT nShowCmd
 )
 {
 	//MessageBox(NULL, TEXT("ShellExecuteA"), TEXT("ShellExecuteA"), NULL);
-	return OriginalShellExecuteA(
-		hwnd,
-		lpOperation,
-		lpFile,
-		lpParameters,
-		lpDirectory,
-		nShowCmd);
+
+	LRConfigFileMap filemap;
+	filemap.WrtieConfigFileMap(&settings);
+
+	STARTUPINFOA si;
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&si, sizeof(STARTUPINFOA));
+	ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
+	si.cb = sizeof(STARTUPINFOA);
+
+	bool ret = DetourCreateProcessWithDllExA(lpFile, lpParameters, NULL,
+		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, lpDirectory,
+		&si, &pi, settings.DllPath, OriginalCreateProcessA);
+
+	filemap.FreeConfigFileMap();
+
+	return (HINSTANCE)pi.hProcess;
+}
+
+HINSTANCE WINAPI HookShellExecuteW(
+	_In_opt_ HWND hwnd,
+	_In_opt_ LPWSTR lpOperation,
+	_In_ LPWSTR lpFile,
+	_In_opt_ LPWSTR lpParameters,
+	_In_opt_ LPWSTR lpDirectory,
+	_In_ INT nShowCmd
+)
+{
+	//MessageBoxW(NULL, TEXT("ShellExecuteW"), TEXT("ShellExecuteW"), NULL);
+
+	LRConfigFileMap filemap;
+	filemap.WrtieConfigFileMap(&settings);
+
+	STARTUPINFOW si;
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&si, sizeof(STARTUPINFOW));
+	ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
+	si.cb = sizeof(STARTUPINFOW);
+
+	bool ret = DetourCreateProcessWithDllExW(lpFile, lpParameters, NULL,
+		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, lpDirectory,
+		&si, &pi, settings.DllPath, OriginalCreateProcessW);
+
+	filemap.FreeConfigFileMap();
+
+	return (HINSTANCE)pi.hProcess;
 }
 
 BOOL WINAPI HookSetWindowTextA(

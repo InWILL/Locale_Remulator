@@ -66,7 +66,20 @@ static BOOL(WINAPI* OriginalCreateProcessA)(
 	_Out_ LPPROCESS_INFORMATION lpProcessInformation
 	) = CreateProcessA;
 
-static HINSTANCE(WINAPI *OriginalShellExecuteA)(
+static BOOL(WINAPI* OriginalCreateProcessW)(
+	_In_opt_ LPCWSTR lpApplicationName,
+	_Inout_opt_ LPWSTR lpCommandLine,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpProcessAttributes,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	_In_ BOOL bInheritHandles,
+	_In_ DWORD dwCreationFlags,
+	_In_opt_ LPVOID lpEnvironment,
+	_In_opt_ LPCWSTR lpCurrentDirectory,
+	_In_ LPSTARTUPINFOW lpStartupInfo,
+	_Out_ LPPROCESS_INFORMATION lpProcessInformation
+	) = CreateProcessW;
+
+static HINSTANCE(WINAPI* OriginalShellExecuteA)(
 	_In_opt_ HWND hwnd, 
 	_In_opt_ LPCSTR lpOperation, 
 	_In_ LPCSTR lpFile, 
@@ -74,6 +87,15 @@ static HINSTANCE(WINAPI *OriginalShellExecuteA)(
 	_In_opt_ LPCSTR lpDirectory, 
 	_In_ INT nShowCmd
 	)= ShellExecuteA;
+
+static HINSTANCE(WINAPI* OriginalShellExecuteW)(
+	_In_opt_ HWND hwnd,
+	_In_opt_ LPCWSTR lpOperation,
+	_In_ LPCWSTR lpFile,
+	_In_opt_ LPCWSTR lpParameters,
+	_In_opt_ LPCWSTR lpDirectory,
+	_In_ INT nShowCmd
+	) = ShellExecuteW;
 
 static int(WINAPI* OriginalMessageBoxA)(
 	_In_opt_ HWND hWnd,
