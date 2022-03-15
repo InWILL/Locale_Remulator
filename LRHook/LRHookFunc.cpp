@@ -6,6 +6,7 @@ ORIGINAL Original = { NULL };
 void AttachFunctions() 
 {
 	//DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
+	//DetourAttach(&(PVOID&)OriginalCreateWindowExW, HookCreateWindowExW);
 	//DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourAttach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
@@ -95,25 +96,53 @@ int WINAPI HookMessageBoxA(
 
 HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
-	int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
+	int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-	//NTLEA_TLS_DATA* p = GetTlsValueInternal();
-	//DWORD PrevCallType = p->CurrentCallType; p->CurrentCallType = CT_CREATE_WINDOW;
-	// 1. prepare the thread hook for the next step windowproc hook, then createwindow and hook it!
-	LPCWSTR lpWindowNameW = (lpWindowName) ? MultiByteToWideCharInternal(lpWindowName) : NULL;
-	LPCWSTR lpClassNameW = ((DWORD_PTR)lpClassName & 0xFFFF0000) ? MultiByteToWideCharInternal(lpClassName) : NULL;
-	//InstallCbtHook(p);
-	// 2. createwindow unicode, each window msghandler is unrelated : http://hi.baidu.com/tiancao222/item/d2f0dc370617dff3e6bb7a61
-	HWND hwnd = CreateWindowExW(dwExStyle, (lpClassNameW ? lpClassNameW : (LPCWSTR)lpClassName), lpWindowNameW, dwStyle,
-		x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-	//	ntprintfA(128, 1, "%p, %p - %p, %p\n", lpClassName, lpWindowName, lpClassNameW, lpWindowNameW);
-		// 3. unprepare the thread hook
-	//UninstallCbtHook(p);
-	if (lpWindowNameW) FreeStringInternal((LPVOID)lpWindowNameW);
-	if (lpClassNameW) FreeStringInternal((LPVOID)lpClassNameW);
-	// 4. cleanup resource 
-	//p->CurrentCallType = PrevCallType;
-	return hwnd;
+	//MessageBoxA(NULL, lpWindowName, NULL, NULL);
+	return OriginalCreateWindowExA(
+		dwExStyle,
+		lpClassName,
+		lpWindowName,
+		dwStyle,
+		X,
+		Y,
+		nWidth,
+		nHeight,
+		hWndParent,
+		hMenu,
+		hInstance,
+		lpParam
+	);
+}
+
+HWND WINAPI HookCreateWindowExW(
+	_In_ DWORD dwExStyle,
+	_In_opt_ LPCWSTR lpClassName,
+	_In_opt_ LPCWSTR lpWindowName,
+	_In_ DWORD dwStyle,
+	_In_ int X,
+	_In_ int Y,
+	_In_ int nWidth,
+	_In_ int nHeight,
+	_In_opt_ HWND hWndParent,
+	_In_opt_ HMENU hMenu,
+	_In_opt_ HINSTANCE hInstance,
+	_In_opt_ LPVOID lpParam)
+{
+	return OriginalCreateWindowExW(
+		dwExStyle,
+		lpClassName,
+		lpWindowName,
+		dwStyle,
+		X,
+		Y,
+		nWidth,
+		nHeight,
+		hWndParent,
+		hMenu,
+		hInstance,
+		lpParam
+	);
 }
 
 UINT WINAPI HookGetACP(void)
@@ -250,7 +279,7 @@ UINT WINAPI HookWinExec(
 	
 	bool ret = DetourCreateProcessWithDllExA(NULL, lpCmdLine, NULL,
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
-		&si, &pi, settings.DllPath, OriginalCreateProcessA);
+		&si, &pi, Original.DllPath, OriginalCreateProcessA);
 
 	filemap.FreeConfigFileMap();
 	if (ret == TRUE)
@@ -271,7 +300,7 @@ BOOL WINAPI HookCreateProcessA(
 	_Out_ LPPROCESS_INFORMATION lpProcessInformation
 )
 {
-	//MessageBoxA(NULL, lpApplicationName, lpCommandLine, NULL);
+	//MessageBoxA(NULL, settings.DllPath, NULL, NULL);
 	return DetourCreateProcessWithDllExA(
 		lpApplicationName,
 		lpCommandLine,
@@ -283,7 +312,7 @@ BOOL WINAPI HookCreateProcessA(
 		lpCurrentDirectory,
 		lpStartupInfo,
 		lpProcessInformation, 
-		settings.DllPath, 
+		Original.DllPath,
 		OriginalCreateProcessA);
 }
 
@@ -311,7 +340,7 @@ BOOL WINAPI HookCreateProcessW(
 		lpCurrentDirectory,
 		lpStartupInfo,
 		lpProcessInformation,
-		settings.DllPath,
+		Original.DllPath,
 		OriginalCreateProcessW);
 }
 
@@ -337,7 +366,7 @@ HINSTANCE WINAPI HookShellExecuteA(
 
 	bool ret = DetourCreateProcessWithDllExA(lpFile, lpParameters, NULL,
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, lpDirectory,
-		&si, &pi, settings.DllPath, OriginalCreateProcessA);
+		&si, &pi, Original.DllPath, OriginalCreateProcessA);
 
 	filemap.FreeConfigFileMap();
 
@@ -366,7 +395,7 @@ HINSTANCE WINAPI HookShellExecuteW(
 
 	bool ret = DetourCreateProcessWithDllExW(lpFile, lpParameters, NULL,
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, lpDirectory,
-		&si, &pi, settings.DllPath, OriginalCreateProcessW);
+		&si, &pi, Original.DllPath, OriginalCreateProcessW);
 
 	filemap.FreeConfigFileMap();
 
@@ -491,6 +520,7 @@ HFONT WINAPI HookCreateFontIndirectA(
 	LOGFONTA* lplf
 )
 {
+	//MessageBoxA(NULL, lplf->lfFaceName, "HookCreateFontIndirectA", NULL);
 	//lplf->lfCharSet = JOHAB_CHARSET;
 	if (strcmp(settings.lfFaceName, "None") != 0)
 		strcpy(lplf->lfFaceName, settings.lfFaceName);
@@ -578,4 +608,3 @@ HANDLE WINAPI HookSetClipboardData(
 	}
 	return OriginalSetClipboardData(uFormat, hMem);
 }
-

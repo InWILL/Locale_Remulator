@@ -36,7 +36,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 	beta.CodePage = alpha->CodePage;
     strcpy(beta.lfFaceName, Font);
 	beta.HookIME = alpha->HookIME;
-	strcpy(beta.DllPath, DllPath);
 
 	LRConfigFileMap filemap;
 	filemap.WrtieConfigFileMap(&beta);

@@ -41,6 +41,21 @@ static HWND(WINAPI* OriginalCreateWindowExA)(
 	_In_opt_ HINSTANCE hInstance,
 	_In_opt_ LPVOID lpParam) = CreateWindowExA;
 
+static HWND(WINAPI* OriginalCreateWindowExW)(
+	_In_ DWORD dwExStyle,
+	_In_opt_ LPCWSTR lpClassName,
+	_In_opt_ LPCWSTR lpWindowName,
+	_In_ DWORD dwStyle,
+	_In_ int X,
+	_In_ int Y,
+	_In_ int nWidth,
+	_In_ int nHeight,
+	_In_opt_ HWND hWndParent,
+	_In_opt_ HMENU hMenu,
+	_In_opt_ HINSTANCE hInstance,
+	_In_opt_ LPVOID lpParam
+	) = CreateWindowExW;
+
 static LRESULT(WINAPI* OriginalSendMessageA)(
 	_In_ HWND hWnd,
 	_In_ UINT Msg,
