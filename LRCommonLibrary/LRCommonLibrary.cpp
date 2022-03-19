@@ -4,6 +4,10 @@
 //https://docs.microsoft.com/en-us/windows/win32/memory/creating-named-shared-memory
 int LRConfigFileMap::WrtieConfigFileMap(LRProfile *profile)
 {
+	SetEnvironmentVariableW(L"LRCodePage", (LPCWSTR)&profile->CodePage);
+	SetEnvironmentVariableW(L"LRHookIME", (LPCWSTR)&profile->HookIME);
+	SetEnvironmentVariableA("LRFaceName", (LPCSTR)&profile->lfFaceName);
+	/*
 	hMapFile = CreateFileMapping(
 		INVALID_HANDLE_VALUE,    // use paging file
 		NULL,                    // default security
@@ -34,12 +38,16 @@ int LRConfigFileMap::WrtieConfigFileMap(LRProfile *profile)
 	}
 
 	CopyMemory((PVOID)pBuf, profile, BUF_SIZE);
-	
+	*/
 	return 0;
 }
 
 int LRConfigFileMap::ReadConfigFileMap(LRProfile* profile)
 {
+	GetEnvironmentVariableW(L"LRCodePage", (LPWSTR)&profile->CodePage, sizeof(UINT));
+	GetEnvironmentVariableW(L"LRHookIME", (LPWSTR)&profile->HookIME,sizeof(int));
+	GetEnvironmentVariableA("LRFaceName", (LPSTR)&profile->lfFaceName,sizeof(profile->lfFaceName));
+	/*
 	hMapFile = OpenFileMapping(
 		FILE_MAP_READ,   // read/write access
 		FALSE,                 // do not inherit the name
@@ -66,6 +74,7 @@ int LRConfigFileMap::ReadConfigFileMap(LRProfile* profile)
 		return 1;
 	}
 	CopyMemory(profile, pBuf, BUF_SIZE);
+	*/
 	return 0;
 }
 

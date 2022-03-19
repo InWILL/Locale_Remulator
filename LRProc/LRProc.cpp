@@ -34,8 +34,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 	
 	LRProfile beta;
 	beta.CodePage = alpha->CodePage;
-    strcpy(beta.lfFaceName, Font);
 	beta.HookIME = alpha->HookIME;
+    strcpy(beta.lfFaceName, Font);
 
 	LRConfigFileMap filemap;
 	filemap.WrtieConfigFileMap(&beta);
@@ -51,9 +51,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
 		&si, &pi, DllPath, NULL);
     
-	Sleep(30000);
-	WaitForSingleObject(pi.hProcess, INFINITE);
+	//Sleep(30000);
+	//WaitForSingleObject(pi.hProcess, INFINITE);
 	
-	filemap.FreeConfigFileMap();
+	//filemap.FreeConfigFileMap();
 	return 0;
 }

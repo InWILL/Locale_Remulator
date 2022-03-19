@@ -268,8 +268,8 @@ UINT WINAPI HookWinExec(
 )
 {
 	//MessageBoxA(NULL, lpCmdLine, "WinExec", NULL);
-	LRConfigFileMap filemap;
-	filemap.WrtieConfigFileMap(&settings);
+	//LRConfigFileMap filemap;
+	//filemap.WrtieConfigFileMap(&settings);
 
 	STARTUPINFOA si;
 	PROCESS_INFORMATION pi;
@@ -281,7 +281,7 @@ UINT WINAPI HookWinExec(
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
 		&si, &pi, Original.DllPath, OriginalCreateProcessA);
 
-	filemap.FreeConfigFileMap();
+	//filemap.FreeConfigFileMap();
 	if (ret == TRUE)
 		return 0x21;
 	else return 0;
@@ -355,8 +355,8 @@ HINSTANCE WINAPI HookShellExecuteA(
 {
 	//MessageBox(NULL, TEXT("ShellExecuteA"), TEXT("ShellExecuteA"), NULL);
 
-	LRConfigFileMap filemap;
-	filemap.WrtieConfigFileMap(&settings);
+	//LRConfigFileMap filemap;
+	//filemap.WrtieConfigFileMap(&settings);
 
 	STARTUPINFOA si;
 	PROCESS_INFORMATION pi;
@@ -368,7 +368,7 @@ HINSTANCE WINAPI HookShellExecuteA(
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, lpDirectory,
 		&si, &pi, Original.DllPath, OriginalCreateProcessA);
 
-	filemap.FreeConfigFileMap();
+	//filemap.FreeConfigFileMap();
 
 	return (HINSTANCE)pi.hProcess;
 }
@@ -384,8 +384,8 @@ HINSTANCE WINAPI HookShellExecuteW(
 {
 	//MessageBoxW(NULL, TEXT("ShellExecuteW"), TEXT("ShellExecuteW"), NULL);
 
-	LRConfigFileMap filemap;
-	filemap.WrtieConfigFileMap(&settings);
+	//LRConfigFileMap filemap;
+	//filemap.WrtieConfigFileMap(&settings);
 
 	STARTUPINFOW si;
 	PROCESS_INFORMATION pi;
@@ -397,7 +397,7 @@ HINSTANCE WINAPI HookShellExecuteW(
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, lpDirectory,
 		&si, &pi, Original.DllPath, OriginalCreateProcessW);
 
-	filemap.FreeConfigFileMap();
+	//filemap.FreeConfigFileMap();
 
 	return (HINSTANCE)pi.hProcess;
 }
