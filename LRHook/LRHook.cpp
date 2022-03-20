@@ -25,7 +25,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 
 		LRConfigFileMap filemap;
 		filemap.ReadConfigFileMap(&settings);
-		filemap.FreeConfigFileMap();
+		//filemap.FreeConfigFileMap();
 		GetModuleFileNameA(hModule, Original.DllPath, MAX_PATH);
 		//settings.hHeap = HeapCreate(0, 0, 0);
 		//filelog << settings.CodePage << std::endl;

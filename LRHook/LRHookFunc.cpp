@@ -5,9 +5,8 @@ ORIGINAL Original = { NULL };
 
 void AttachFunctions() 
 {
-	//DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
-	//DetourAttach(&(PVOID&)OriginalCreateWindowExW, HookCreateWindowExW);
-	//DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
+	DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
+	DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourAttach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
 	DetourAttach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
@@ -18,7 +17,7 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalCreateProcessW, HookCreateProcessW);
 	DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
 	DetourAttach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
-
+	
 	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	DetourAttach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
@@ -42,7 +41,8 @@ void AttachFunctions()
 
 void DetachFunctions() 
 {
-	//DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
+	DetourDetach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
+	DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourDetach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourDetach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
 	DetourDetach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
@@ -98,11 +98,12 @@ HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
 	int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-	//MessageBoxA(NULL, lpWindowName, NULL, NULL);
-	return OriginalCreateWindowExA(
+	LPCWSTR wstrlpClassName = lpClassName ? MultiByteToWideCharInternal(lpClassName) : NULL;
+	LPCWSTR wstrlpWindowName = lpWindowName ? MultiByteToWideCharInternal(lpWindowName) : NULL;
+	HWND ret = CreateWindowExW(
 		dwExStyle,
-		lpClassName,
-		lpWindowName,
+		wstrlpClassName,
+		wstrlpWindowName,
 		dwStyle,
 		X,
 		Y,
@@ -113,36 +114,15 @@ HWND WINAPI HookCreateWindowExA(
 		hInstance,
 		lpParam
 	);
-}
-
-HWND WINAPI HookCreateWindowExW(
-	_In_ DWORD dwExStyle,
-	_In_opt_ LPCWSTR lpClassName,
-	_In_opt_ LPCWSTR lpWindowName,
-	_In_ DWORD dwStyle,
-	_In_ int X,
-	_In_ int Y,
-	_In_ int nWidth,
-	_In_ int nHeight,
-	_In_opt_ HWND hWndParent,
-	_In_opt_ HMENU hMenu,
-	_In_opt_ HINSTANCE hInstance,
-	_In_opt_ LPVOID lpParam)
-{
-	return OriginalCreateWindowExW(
-		dwExStyle,
-		lpClassName,
-		lpWindowName,
-		dwStyle,
-		X,
-		Y,
-		nWidth,
-		nHeight,
-		hWndParent,
-		hMenu,
-		hInstance,
-		lpParam
-	);
+	if (wstrlpClassName)
+	{
+		FreeStringInternal((LPVOID)wstrlpClassName);
+	}
+	if (wstrlpWindowName)
+	{
+		FreeStringInternal((LPVOID)wstrlpWindowName);
+	}
+	return ret;
 }
 
 UINT WINAPI HookGetACP(void)
@@ -210,6 +190,18 @@ static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WP
 	//ntprintfA(256, 1, "%s: proc-%p hwnd=%p, msg=%04x, wParam=%d, lParam=%d\n", __FUNCTION__, lpProcAddress, hWnd, uMsg, wParam, lParam);
 	//}
 	switch (uMsg) {
+	case EM_REPLACESEL: // LN320
+	case WM_SETTEXT: // LN320
+	case WM_SETTINGCHANGE: // LN320
+	case WM_DEVMODECHANGE: // LN320
+	{
+		LPCWSTR lParamW = lParam ? MultiByteToWideCharInternal((LPCSTR)lParam) : NULL;
+		//	ntprintfA(1024, 1, "3. A(%s) -> W(%S)", (LPCSTR)lParam, lParamW);
+		LRESULT hr = CallWindowSendMessage(lpProcAddress, hWnd, uMsg, wParam, (LPARAM)lParamW, Param1, Param2, Param3, FunctionType);
+		// LN301
+		if (lParamW) FreeStringInternal((LPVOID)lParamW);
+		return hr;
+	}	break;
 	case LB_FINDSTRINGEXACT: // LN305
 	case LB_ADDSTRING: // LN305
 	case LB_INSERTSTRING: // LN305
@@ -231,7 +223,7 @@ static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WP
 			LPCWSTR lParamW = lParam ? MultiByteToWideCharInternal((LPCSTR)lParam) : NULL;
 			// LN899
 			LRESULT hr = CallWindowSendMessage(lpProcAddress, hWnd, uMsg, wParam, (LPARAM)lParamW, Param1, Param2, Param3, FunctionType);
-			if (lParamW/*ebx*/) FreeStringInternal((LPVOID)lParamW);
+			if (lParamW) FreeStringInternal((LPVOID)lParamW);
 			return hr;
 		}
 	}	break;
@@ -411,7 +403,10 @@ BOOL WINAPI HookSetWindowTextA(
 	if (lpString) {
 		wstr = MultiByteToWideCharInternal(lpString);
 	}
+	LONG_PTR originalWndProc = GetWindowLongPtrW(hWnd, GWLP_WNDPROC);
+	SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)DefWindowProcW);
 	BOOL ret = SetWindowTextW(hWnd, wstr);
+	SetWindowLongPtrW(hWnd, GWLP_WNDPROC, originalWndProc);
 	if (wstr) {
 		FreeStringInternal((LPVOID)wstr);
 	}
