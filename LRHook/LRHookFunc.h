@@ -23,6 +23,8 @@ void DetachFunctions();
 UINT WINAPI HookGetACP(void);
 UINT WINAPI HookGetOEMCP(void);
 
+LRESULT CALLBACK CBTProc(int nCode, WPARAM wParam, LPARAM lParam);
+
 HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
 	int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
@@ -83,11 +85,13 @@ int WINAPI HookMessageBoxA(
 	_In_opt_ HWND hWnd,
 	_In_opt_ LPCSTR lpText,
 	_In_opt_ LPCSTR lpCaption,
-	_In_ UINT uType);
+	_In_ UINT uType
+);
 
 BOOL WINAPI HookSetWindowTextA(
 	_In_ HWND hWnd,
-	_In_opt_ LPCSTR lpString);
+	_In_opt_ LPCSTR lpString
+);
 
 int WINAPI HookGetWindowTextA(
 	_In_ HWND hWnd,

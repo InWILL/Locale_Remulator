@@ -5,6 +5,7 @@ ORIGINAL Original = { NULL };
 
 void AttachFunctions() 
 {
+	//SetWindowsHookExW(WH_CBT, CBTProc, NULL, GetCurrentThreadId());
 	DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
 	DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
@@ -74,31 +75,36 @@ void DetachFunctions()
 	//DetourDetach(&(PVOID&)OriginalDefDlgProcA, HookDefDlgProcA);
 }
 
-int WINAPI HookMessageBoxA(
-	_In_opt_ HWND hWnd,
-	_In_opt_ LPCSTR lpText,
-	_In_opt_ LPCSTR lpCaption,
-	_In_ UINT uType)
+LRESULT CALLBACK CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	LPCWSTR wlpText = MultiByteToWideCharInternal(lpText);
-	LPCWSTR wlpCaption = MultiByteToWideCharInternal(lpCaption);
-	int ret = MessageBoxW(hWnd, wlpText, wlpCaption, uType);
-	if (wlpText)
+	if (nCode == HCBT_CREATEWND)
 	{
-		FreeStringInternal((LPVOID)wlpText);
+		HWND hWnd = (HWND)wParam;
+		LPCBT_CREATEWNDW CreateWnd = (LPCBT_CREATEWNDW)lParam;
 	}
-	if (wlpCaption)
-	{
-		FreeStringInternal((LPVOID)wlpCaption);
-	}
-	return ret;
+	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
 HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
 	int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-	LPCWSTR wstrlpClassName = lpClassName ? MultiByteToWideCharInternal(lpClassName) : NULL;
+	if (dwExStyle == 257|| hWndParent==NULL)
+		return OriginalCreateWindowExA(
+			dwExStyle,
+			lpClassName,
+			lpWindowName,
+			dwStyle,
+			X,
+			Y,
+			nWidth,
+			nHeight,
+			hWndParent,
+			hMenu,
+			hInstance,
+			lpParam
+		);
+	LPCWSTR wstrlpClassName = lpClassName ? MultiByteToWideCharInternal(lpClassName, Original.CodePage) : NULL;
 	LPCWSTR wstrlpWindowName = lpWindowName ? MultiByteToWideCharInternal(lpWindowName) : NULL;
 	HWND ret = CreateWindowExW(
 		dwExStyle,
@@ -121,6 +127,26 @@ HWND WINAPI HookCreateWindowExA(
 	if (wstrlpWindowName)
 	{
 		FreeStringInternal((LPVOID)wstrlpWindowName);
+	}
+	return ret;
+}
+
+int WINAPI HookMessageBoxA(
+	_In_opt_ HWND hWnd,
+	_In_opt_ LPCSTR lpText,
+	_In_opt_ LPCSTR lpCaption,
+	_In_ UINT uType)
+{
+	LPCWSTR wlpText = MultiByteToWideCharInternal(lpText);
+	LPCWSTR wlpCaption = MultiByteToWideCharInternal(lpCaption);
+	int ret = MessageBoxW(hWnd, wlpText, wlpCaption, uType);
+	if (wlpText)
+	{
+		FreeStringInternal((LPVOID)wlpText);
+	}
+	if (wlpCaption)
+	{
+		FreeStringInternal((LPVOID)wlpCaption);
 	}
 	return ret;
 }
@@ -399,10 +425,7 @@ BOOL WINAPI HookSetWindowTextA(
 	_In_opt_ LPCSTR lpString
 )
 {
-	LPCWSTR wstr = NULL;
-	if (lpString) {
-		wstr = MultiByteToWideCharInternal(lpString);
-	}
+	LPCWSTR wstr = lpString ? MultiByteToWideCharInternal(lpString) : NULL;
 	LONG_PTR originalWndProc = GetWindowLongPtrW(hWnd, GWLP_WNDPROC);
 	SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)DefWindowProcW);
 	BOOL ret = SetWindowTextW(hWnd, wstr);
