@@ -3,7 +3,7 @@
 [![license](https://img.shields.io/github/license/InWILL/Locale_Remulator.svg)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 [![GitHub all releases](https://img.shields.io/github/downloads/InWILL/Locale_Remulator/total)](https://github.com/InWILL/Locale_Remulator/releases/latest)
 
-### English | [简体中文](./../zh_CN/README.md)
+### English | [简体中文](#english--%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-1)
 
 System Region and Language Simulator.
 
@@ -78,7 +78,21 @@ See also the list of [contributors](https://github.com/InWILL/Locale_Remulator/g
 
 This project is licensed under the LGPL-3.0 License - see the [LICENSE](LICENSE) file for details.
 
-### [English](./../zh_CN/README.md) | 简体中文
+## Q&A
+
+### LRHookx64.dll The specified module could not be found
+
+Please install [Microsoft Visual C++ Redistributable](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170).
+
+### VCRUNTIME140_1.dll was not found
+
+Please install [Microsoft Visual C++ Redistributable](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170).
+
+### The Application was Unable to Start Correctly (0xc000007b)
+
+Please update Locale_Remulator to 1.4.3-beta.2+
+
+### [English](#english--%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87) | 简体中文
 
 系统区域和语言模拟器。
 
@@ -105,7 +119,7 @@ This project is licensed under the LGPL-3.0 License - see the [LICENSE](LICENSE)
 
 ### 卸载
 
-运行 `LRInstaller.exe` 以删除 Locale_Remulator。
+运行 `LRInstaller.exe` 以卸载 Locale_Remulator。
 
 ### 使用方法一
 
@@ -145,3 +159,17 @@ This project is licensed under the LGPL-3.0 License - see the [LICENSE](LICENSE)
 ## 使用许可
 
 该项目在 LGPL-3.0 许可下获得许可 - 请参阅 [LICENSE](LICENSE) 文件了解详细信息
+
+## 常见问题
+
+### LRHookx64.dll 找不到指定模块
+
+请安装 [Microsoft Visual C++ Redistributable](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170)。
+
+### 因为计算机中丢失VCRUNTIME140_1.dll
+
+请安装 [Microsoft Visual C++ Redistributable](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist?view=msvc-170)。
+
+### 应用程序无法正常启动(0xc000007b)
+
+请升级到Locale_Remulator.1.4.3-beta.2以上。
