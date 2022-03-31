@@ -16,8 +16,8 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
 	DetourAttach(&(PVOID&)OriginalCreateProcessW, HookCreateProcessW);
-	DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
-	DetourAttach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
+	//DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
+	//DetourAttach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
 	
 	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
@@ -29,11 +29,16 @@ void AttachFunctions()
 	Original.CodePage = OriginalGetACP();
 	if (settings.HookIME)
 	{
-		if (Original.CodePage==936&&(settings.CodePage==932||settings.CodePage == 950))
+		if (Original.CodePage == 936 && (settings.CodePage == 932 || settings.CodePage == 950))
+		{
 			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA);
+			DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
+		}
 		else
+		{
 			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
-		DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
+			//DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA_WM);
+		}
 	}
 
 	//DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
@@ -52,8 +57,8 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourDetach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
 	DetourDetach(&(PVOID&)OriginalCreateProcessW, HookCreateProcessW);
-	DetourDetach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
-	DetourDetach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
+	//DetourDetach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
+	//DetourDetach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
 
 	DetourDetach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourDetach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
@@ -65,10 +70,15 @@ void DetachFunctions()
 	if (settings.HookIME)
 	{
 		if (Original.CodePage == 936 && (settings.CodePage == 932 || settings.CodePage == 950))
+		{
 			DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA);
+			DetourDetach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
+		}
 		else
+		{
 			DetourDetach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
-		DetourDetach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
+			DetourDetach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA_WM);
+		}
 	}
 
 	//DetourDetach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
@@ -89,7 +99,7 @@ HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
 	int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-	if (dwExStyle == 257|| hWndParent==NULL)
+	if (dwExStyle == 257 || hWndParent == NULL)
 		return OriginalCreateWindowExA(
 			dwExStyle,
 			lpClassName,
@@ -318,7 +328,7 @@ BOOL WINAPI HookCreateProcessA(
 	_Out_ LPPROCESS_INFORMATION lpProcessInformation
 )
 {
-	//MessageBoxA(NULL, settings.DllPath, NULL, NULL);
+	//MessageBoxA(NULL, lpApplicationName, NULL, NULL);
 	return DetourCreateProcessWithDllExA(
 		lpApplicationName,
 		lpCommandLine,
@@ -347,6 +357,7 @@ BOOL WINAPI HookCreateProcessW(
 	_Out_ LPPROCESS_INFORMATION lpProcessInformation
 )
 {
+	//MessageBoxW(NULL, lpApplicationName, NULL, NULL);
 	return DetourCreateProcessWithDllExW(
 		lpApplicationName,
 		lpCommandLine,
@@ -371,7 +382,7 @@ HINSTANCE WINAPI HookShellExecuteA(
 	_In_ INT nShowCmd
 )
 {
-	//MessageBox(NULL, TEXT("ShellExecuteA"), TEXT("ShellExecuteA"), NULL);
+	//MessageBoxA(NULL, lpFile, "ShellExecuteA", NULL);
 
 	//LRConfigFileMap filemap;
 	//filemap.WrtieConfigFileMap(&settings);
@@ -530,6 +541,33 @@ DWORD WINAPI HookImmGetCandidateListA(
 			}
 		}
 	}
+	return ret;
+}
+
+DWORD WINAPI HookImmGetCandidateListA_WM(
+	HIMC            hIMC,
+	DWORD           deIndex,
+	LPCANDIDATELIST lpCandList,
+	DWORD           dwBufLen
+)
+{
+	DWORD ret = ImmGetCandidateListW(hIMC, deIndex, NULL, 0);
+	if (!lpCandList) return (ret + 1) << 1;
+	LPCANDIDATELIST lpCandListW = (LPCANDIDATELIST)AllocateZeroedMemory(ret);
+	ret = ImmGetCandidateListW(hIMC, deIndex, lpCandListW, ret);
+	for (int i = 0; i < lpCandList->dwCount; i++)
+	{
+		LPWSTR wstr = (LPWSTR)lpCandListW + lpCandListW->dwOffset[i];
+		LPSTR lstr = (LPSTR)lpCandList + lpCandList->dwOffset[i];
+		if (wstr)
+		{
+			int wsize = lstrlenW(wstr);
+			int lsize = (wsize + 1) << 1;
+			lsize = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
+			lstr[lsize] = '\0';
+		}
+	}
+	FreeStringInternal(lpCandListW);
 	return ret;
 }
 

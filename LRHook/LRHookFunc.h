@@ -119,6 +119,13 @@ DWORD WINAPI HookImmGetCandidateListA(
 	DWORD           dwBufLen
 );
 
+DWORD WINAPI HookImmGetCandidateListA_WM(
+	HIMC            hIMC,
+	DWORD           deIndex,
+	LPCANDIDATELIST lpCandList,
+	DWORD           dwBufLen
+);
+
 HFONT WINAPI HookCreateFontIndirectA(
 	LOGFONTA* lplf
 );
