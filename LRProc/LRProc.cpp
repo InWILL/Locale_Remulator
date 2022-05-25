@@ -25,10 +25,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 		MessageBox(NULL, TEXT("Please use LREditor to run the application."), TEXT("LRProc"), NULL);
 		return 0;
 	}
-	char* DllPath = __argv[2];
+	char* DllPath = __argv[1];
+	lpCmdLine = strstr(lpCmdLine, __argv[2]);
 	char* CommandLine = strstr(lpCmdLine, __argv[3]);
 	char* Font;
-	System::String^ Guid = gcnew System::String(__argv[1]);
+	System::String^ Guid = gcnew System::String(__argv[2]);
 	LRCSharpLibrary::LRProfile^ alpha = LRCSharpLibrary::LRConfig::GetProfile(Guid);
 	Font = (char*)(void*)Marshal::StringToHGlobalAnsi(alpha->Font);
 	

@@ -328,7 +328,7 @@ BOOL WINAPI HookCreateProcessA(
 	_Out_ LPPROCESS_INFORMATION lpProcessInformation
 )
 {
-	//MessageBoxA(NULL, lpApplicationName, NULL, NULL);
+	//MessageBoxA(NULL, lpApplicationName, "HookCreateProcessA", NULL);
 	return DetourCreateProcessWithDllExA(
 		lpApplicationName,
 		lpCommandLine,
@@ -357,7 +357,7 @@ BOOL WINAPI HookCreateProcessW(
 	_Out_ LPPROCESS_INFORMATION lpProcessInformation
 )
 {
-	//MessageBoxW(NULL, lpApplicationName, NULL, NULL);
+	//MessageBoxW(NULL, lpApplicationName, TEXT("HookCreateProcessW"), NULL);
 	return DetourCreateProcessWithDllExW(
 		lpApplicationName,
 		lpCommandLine,
@@ -437,10 +437,10 @@ BOOL WINAPI HookSetWindowTextA(
 )
 {
 	LPCWSTR wstr = lpString ? MultiByteToWideCharInternal(lpString) : NULL;
-	LONG_PTR originalWndProc = GetWindowLongPtrW(hWnd, GWLP_WNDPROC);
-	SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)DefWindowProcW);
+	//LONG_PTR originalWndProc = GetWindowLongPtrW(hWnd, GWLP_WNDPROC);
+	//SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)DefWindowProcW);
 	BOOL ret = SetWindowTextW(hWnd, wstr);
-	SetWindowLongPtrW(hWnd, GWLP_WNDPROC, originalWndProc);
+	//SetWindowLongPtrW(hWnd, GWLP_WNDPROC, originalWndProc);
 	if (wstr) {
 		FreeStringInternal((LPVOID)wstr);
 	}
@@ -551,23 +551,26 @@ DWORD WINAPI HookImmGetCandidateListA_WM(
 	DWORD           dwBufLen
 )
 {
-	DWORD ret = ImmGetCandidateListW(hIMC, deIndex, NULL, 0);
-	if (!lpCandList) return (ret + 1) << 1;
-	LPCANDIDATELIST lpCandListW = (LPCANDIDATELIST)AllocateZeroedMemory(ret);
-	ret = ImmGetCandidateListW(hIMC, deIndex, lpCandListW, ret);
-	for (int i = 0; i < lpCandList->dwCount; i++)
+	DWORD ret = OriginalImmGetCandidateListA(hIMC, deIndex, lpCandList, dwBufLen);
+	if (lpCandList)
 	{
-		LPWSTR wstr = (LPWSTR)lpCandListW + lpCandListW->dwOffset[i];
-		LPSTR lstr = (LPSTR)lpCandList + lpCandList->dwOffset[i];
-		if (wstr)
+		DWORD dwBufLenW = ImmGetCandidateListW(hIMC, deIndex, NULL, NULL);
+		LPCANDIDATELIST lpCandListW = (LPCANDIDATELIST)AllocateZeroedMemory(dwBufLenW);
+		ImmGetCandidateListW(hIMC, deIndex, lpCandListW, dwBufLenW);
+		for (int i = 0; i < lpCandList->dwCount; i++)
 		{
-			int wsize = lstrlenW(wstr);
-			int lsize = (wsize + 1) << 1;
-			lsize = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
-			lstr[lsize] = '\0';
+			LPSTR lstr = (LPSTR)lpCandList + lpCandList->dwOffset[i];
+			LPWSTR wstr = (LPWSTR)lpCandListW + lpCandListW->dwOffset[i];
+			if (lstr)
+			{
+				int lsize = lstrlenA(lstr);
+				int wsize = wcslen(wstr);
+				OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
+				//filelog << lstr << "###" << lsize << "###" << wstr << "###" <<wsize << std::endl;
+			}
 		}
+		FreeStringInternal(lpCandListW);
 	}
-	FreeStringInternal(lpCandListW);
 	return ret;
 }
 

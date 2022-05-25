@@ -20,6 +20,7 @@ namespace LREditor
         private readonly List<LRProfile> profiles = new List<LRProfile>();
         private readonly List<CultureInfo> cultureinfos = new List<CultureInfo>();
         private readonly List<string> fontinfo = new List<string>();
+        private readonly string dllpath = Path.Combine(LRConfig.CurrentPath, "LRHookx64.dll");
         public MainWindow()
         {
             InitializeComponent();
@@ -111,7 +112,6 @@ namespace LREditor
             if (openFileDlg.ShowDialog() == true)
             {
                 string filepath = openFileDlg.FileName;
-                string dllpath = Path.Combine(LRConfig.CurrentPath, "LRHookx64.dll");
                 LRProfile profile = (LRProfile)ComboBox_Profile.SelectedItem;
                 WshShell shell = new WshShell();
                 string shortcutAddress = string.Format("{0}.{1}.lnk", filepath, profile.Name);
@@ -122,17 +122,29 @@ namespace LREditor
                     CommandLine = filepath + " " + TextBox_Arguments.Text;
                 }
                 shortcut.TargetPath = LRConfig.CurrentPath + "\\LRProc.exe";
-                shortcut.Arguments = profile.Guid + " \"" + dllpath + "\" " + CommandLine;
+                shortcut.Arguments = "\"" + dllpath + "\" " + profile.Guid + " " + CommandLine;
                 shortcut.IconLocation = filepath;
                 shortcut.WorkingDirectory = Path.GetDirectoryName(filepath);
-                shortcut.Save();
-
-                if (profile.RunAsAdmin)
-                    using (FileStream stream = new FileStream(shortcutAddress, FileMode.Open, FileAccess.ReadWrite))
-                    {
-                        stream.Seek(21, SeekOrigin.Begin);
-                        stream.WriteByte(0x22);
-                    }
+                try
+                {
+                    shortcut.Save();
+                    if (profile.RunAsAdmin)
+                        using (FileStream stream = new FileStream(shortcutAddress, FileMode.Open, FileAccess.ReadWrite))
+                        {
+                            stream.Seek(21, SeekOrigin.Begin);
+                            stream.WriteByte(0x22);
+                        }
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    var proc = new Process();
+                    proc.StartInfo.FileName = LRConfig.CurrentPath + "\\LREditor.exe";
+                    proc.StartInfo.Arguments = "\"" + filepath + "\" " + profile.Guid + " \"" + shortcut.Arguments + "\"";
+                    proc.StartInfo.WorkingDirectory = Path.GetDirectoryName(filepath);
+                    proc.StartInfo.UseShellExecute = true;
+                    proc.StartInfo.Verb = "runas";
+                    proc.Start();
+                }
             }
         }
 
@@ -148,7 +160,6 @@ namespace LREditor
             if (openFileDlg.ShowDialog() == true)
             {
                 string filepath = openFileDlg.FileName;
-                string dllpath = Path.Combine(LRConfig.CurrentPath, "LRHookx64.dll");
                 string CommandLine = filepath;
                 if (TextBox_Arguments.Text != "Enter Arguments here...")
                 {
@@ -157,7 +168,7 @@ namespace LREditor
                 LRProfile profile = (LRProfile)ComboBox_Profile.SelectedItem;
                 var proc = new Process();
                 proc.StartInfo.FileName = LRConfig.CurrentPath + "\\LRProc.exe";
-                proc.StartInfo.Arguments = profile.Guid + " \"" + dllpath + "\" " + CommandLine;
+                proc.StartInfo.Arguments = "\"" + dllpath + "\" " + profile.Guid + " " + CommandLine;
                 proc.StartInfo.WorkingDirectory = Path.GetDirectoryName(filepath);
                 proc.StartInfo.UseShellExecute = true;
                 if (profile.RunAsAdmin) proc.StartInfo.Verb = "runas";
