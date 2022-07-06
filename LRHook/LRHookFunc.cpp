@@ -20,7 +20,8 @@ void AttachFunctions()
 	//DetourAttach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
 	
 	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
-	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
+	DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
+	DetourAttach(&(PVOID&)OriginalDirectSoundEnumerateA, HookDirectSoundEnumerateA);
 	DetourAttach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
 	DetourAttach(&(PVOID&)OriginalTextOutA, HookTextOutA);
 	DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
@@ -61,7 +62,8 @@ void DetachFunctions()
 	//DetourDetach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
 
 	DetourDetach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
-	//DetourDetach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
+	DetourDetach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
+	DetourDetach(&(PVOID&)OriginalDirectSoundEnumerateA, HookDirectSoundEnumerateA);
 	DetourDetach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
 	DetourDetach(&(PVOID&)OriginalTextOutA, HookTextOutA);
 	DetourDetach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
@@ -99,7 +101,7 @@ HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
 	int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-	if (dwExStyle == 257 || hWndParent == NULL)
+	if (dwExStyle == 257 || hWndParent == NULL || dwExStyle == 65536)
 		return OriginalCreateWindowExA(
 			dwExStyle,
 			lpClassName,
@@ -580,7 +582,7 @@ HFONT WINAPI HookCreateFontIndirectA(
 )
 {
 	//MessageBoxA(NULL, lplf->lfFaceName, "HookCreateFontIndirectA", NULL);
-	//lplf->lfCharSet = JOHAB_CHARSET;
+	//lplf->lfCharSet = CHINESEBIG5_CHARSET;
 	if (strcmp(settings.lfFaceName, "None") != 0)
 		strcpy(lplf->lfFaceName, settings.lfFaceName);
 	return OriginalCreateFontIndirectA(lplf);
@@ -666,4 +668,12 @@ HANDLE WINAPI HookSetClipboardData(
 			return OriginalSetClipboardData(CF_UNICODETEXT, hGlobalMemory);
 	}
 	return OriginalSetClipboardData(uFormat, hMem);
+}
+
+HRESULT WINAPI HookDirectSoundEnumerateA(
+	_In_ LPDSENUMCALLBACKA pDSEnumCallback,
+	_In_opt_ LPVOID pContext
+)
+{
+	return DirectSoundEnumerateW((LPDSENUMCALLBACKW)pDSEnumCallback,pContext);
 }

@@ -147,6 +147,11 @@ HANDLE WINAPI HookSetClipboardData(
 	HANDLE hMem
 );
 
+HRESULT WINAPI HookDirectSoundEnumerateA(
+	_In_ LPDSENUMCALLBACKA pDSEnumCallback,
+	_In_opt_ LPVOID pContext
+);
+
 //Minhook version Code
 /*inline LONG AttachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
 {

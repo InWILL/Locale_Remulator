@@ -20,9 +20,26 @@ using namespace System::Runtime::InteropServices;
 //int main(int argc,char* argv[])
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
 {
+	LRCSharpLibrary::LRConfig::CheckConfigFile();
 	if (__argc < 3)
 	{
-		MessageBox(NULL, TEXT("Please use LREditor to run the application."), TEXT("LRProc"), NULL);
+		MessageBox(
+			NULL,
+			TEXT(R"(
+Welcome to Locale Remulator x64 command line tool.
+
+Usage: LRProc.exe LRHookx64.dll GUID Path Args
+
+GUID	Guid of the target profile (in LRConfig.xml).
+Path	Full path of the target application.
+Args	Additional arguments will be passed to the application.
+
+You can also run LREditor to use this applicaction.
+				)"
+			),
+			TEXT("Locale Remulator x64"),
+			NULL
+		);
 		return 0;
 	}
 	char* DllPath = __argv[1];

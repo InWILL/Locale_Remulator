@@ -1,7 +1,9 @@
 #pragma once
 #include<Windows.h>
 #include<imm.h>
+#include<DSound.h>
 #pragma comment(lib, "Imm32.lib")
+#pragma comment(lib, "Dsound.lib")
 
 static int (WINAPI* OriginalMultiByteToWideChar)(
 	UINT CodePage, 
@@ -150,3 +152,8 @@ static HANDLE(WINAPI* OriginalSetClipboardData)(
 	_In_ UINT uFormat,
 	_In_opt_ HANDLE hMem
 	) = SetClipboardData;
+
+static HRESULT(WINAPI* OriginalDirectSoundEnumerateA)(
+	_In_ LPDSENUMCALLBACKA pDSEnumCallback,
+	_In_opt_ LPVOID pContext
+	) = DirectSoundEnumerateA;

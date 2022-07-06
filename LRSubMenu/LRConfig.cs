@@ -68,6 +68,11 @@ namespace LRCSharpLibrary
             if (!File.Exists(path))
                 BuildDefaultConfigFile();
         }
+        public static void CheckConfigFile()
+        {
+            if (!File.Exists(ConfigPath))
+                BuildDefaultConfigFile();
+        }
         private static void BuildDefaultConfigFile()
         {
             var defaultProfiles = new[]
