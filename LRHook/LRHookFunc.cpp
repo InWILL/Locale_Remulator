@@ -451,27 +451,12 @@ BOOL WINAPI HookSetWindowTextA(
 
 int WINAPI HookGetWindowTextA(_In_ HWND hWnd, _Out_writes_(nMaxCount) LPSTR lpString, _In_ int nMaxCount)
 {
-	int len = (int)SendMessageW(hWnd, WM_GETTEXTLENGTH, 0, 0) + 1;
-	LPWSTR lpStringW = (LPWSTR)AllocateZeroedMemory(len * sizeof(wchar_t));
-
-	int ret = GetWindowTextW(hWnd, lpStringW, len);
-	if (ret > 0) {
-		int size = WideCharToMultiByte(CP_ACP, 0, lpStringW, -1, lpString, nMaxCount, NULL, NULL);
-		if (size > 0) ret = size - 1;
-		else {
-			if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
-				lpString[nMaxCount - 1] = '\0'; ret = nMaxCount - 1;
-			}
-			else {
-				lpString[0] = '\0'; ret = 0;
-			}
-		}
-	}
-	else {
-		lpString[0] = '\0'; ret = 0;
-	}
+	int wlen = GetWindowTextLengthW(hWnd) + 1;
+	LPWSTR lpStringW = (LPWSTR)AllocateZeroedMemory(wlen * sizeof(wchar_t));
+	int wsize = GetWindowTextW(hWnd, lpStringW, wlen);
+	int lsize = wsize ? WideCharToMultiByte(CP_ACP, 0, lpStringW, wsize, lpString, nMaxCount, NULL, NULL) : 0;
 	FreeStringInternal(lpStringW);
-	return ret;
+	return lsize;
 }
 
 LONG WINAPI HookImmGetCompositionStringA(
