@@ -10,6 +10,11 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourAttach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
+	DetourAttach(&(PVOID&)OriginalGetCPInfo, HookGetCPInfo);
+	DetourAttach(&(PVOID&)OriginalCharPrevExA, HookCharPrevExA);
+	DetourAttach(&(PVOID&)OriginalCharNextExA, HookCharNextExA);
+	DetourAttach(&(PVOID&)OriginalIsDBCSLeadByteEx, HookIsDBCSLeadByteEx);
+	//AttachDllFunc("GdiGetCodePage", (LPVOID)(DWORD_PTR)HookGdiGetCodePage, "gdi32.dll");
 	DetourAttach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
 	DetourAttach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
@@ -52,6 +57,10 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourDetach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourDetach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
+	DetourDetach(&(PVOID&)OriginalGetCPInfo, HookGetCPInfo);
+	DetourDetach(&(PVOID&)OriginalCharPrevExA, HookCharPrevExA);
+	DetourDetach(&(PVOID&)OriginalCharNextExA, HookCharNextExA);
+	DetourDetach(&(PVOID&)OriginalIsDBCSLeadByteEx, HookIsDBCSLeadByteEx);
 	DetourDetach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
 	DetourDetach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
@@ -93,6 +102,8 @@ LRESULT CALLBACK CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
 	{
 		HWND hWnd = (HWND)wParam;
 		LPCBT_CREATEWNDW CreateWnd = (LPCBT_CREATEWNDW)lParam;
+		//if(CreateWnd->lpcs->lpszName)
+		//	filelog << CreateWnd->lpcs->lpszName << std::endl;
 	}
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
@@ -168,6 +179,20 @@ UINT WINAPI HookGetACP(void)
 	return settings.CodePage;
 }
 UINT WINAPI HookGetOEMCP(void)
+{
+	return settings.CodePage;
+}
+
+BOOL WINAPI HookGetCPInfo(
+	UINT       CodePage,
+	LPCPINFO  lpCPInfo
+)
+{
+	CodePage = settings.CodePage;
+	return OriginalGetCPInfo(CodePage, lpCPInfo);
+}
+
+UINT WINAPI HookGdiGetCodePage(HDC hdc)
 {
 	return settings.CodePage;
 }
@@ -581,7 +606,7 @@ BOOL WINAPI HookTextOutA(
 	int    c
 )
 {
-	LPWSTR wstr = MultiByteToWideCharInternal(lpString, settings.CodePage);
+	LPWSTR wstr = MultiByteToWideCharInternal(lpString);
 	if (wstr)
 	{
 		bool ret = TextOutW(hdc, x, y, wstr, 1);
@@ -661,4 +686,34 @@ HRESULT WINAPI HookDirectSoundEnumerateA(
 )
 {
 	return DirectSoundEnumerateW((LPDSENUMCALLBACKW)pDSEnumCallback,pContext);
+}
+
+LPSTR WINAPI HookCharPrevExA(
+	_In_ WORD CodePage,
+	_In_ LPCSTR lpStart,
+	_In_ LPCSTR lpCurrentChar,
+	_In_ DWORD dwFlags
+)
+{
+	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
+	return OriginalCharPrevExA(CodePage, lpStart, lpCurrentChar, dwFlags);
+}
+
+LPSTR WINAPI HookCharNextExA(
+	_In_ WORD CodePage,
+	_In_ LPCSTR lpCurrentChar,
+	_In_ DWORD dwFlags
+)
+{
+	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
+	return OriginalCharNextExA(CodePage, lpCurrentChar, dwFlags);
+}
+
+BOOL WINAPI HookIsDBCSLeadByteEx(
+	_In_ UINT  CodePage,
+	_In_ BYTE  TestChar
+)
+{
+	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
+	return OriginalIsDBCSLeadByteEx(CodePage, TestChar);
 }

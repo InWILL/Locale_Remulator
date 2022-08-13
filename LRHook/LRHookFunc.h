@@ -22,6 +22,11 @@ void AttachFunctions();
 void DetachFunctions();
 UINT WINAPI HookGetACP(void);
 UINT WINAPI HookGetOEMCP(void);
+BOOL WINAPI HookGetCPInfo(
+	UINT       CodePage,
+	LPCPINFO  lpCPInfo
+);
+UINT WINAPI HookGdiGetCodePage(HDC hdc);
 
 LRESULT CALLBACK CBTProc(int nCode, WPARAM wParam, LPARAM lParam);
 
@@ -152,17 +157,37 @@ HRESULT WINAPI HookDirectSoundEnumerateA(
 	_In_opt_ LPVOID pContext
 );
 
+LPSTR WINAPI HookCharPrevExA(
+	_In_ WORD CodePage,
+	_In_ LPCSTR lpStart,
+	_In_ LPCSTR lpCurrentChar,
+	_In_ DWORD dwFlags
+);
+
+LPSTR WINAPI HookCharNextExA(
+	_In_ WORD CodePage,
+	_In_ LPCSTR lpCurrentChar,
+	_In_ DWORD dwFlags
+);
+
+BOOL WINAPI HookIsDBCSLeadByteEx(
+	_In_ UINT  CodePage,
+	_In_ BYTE  TestChar
+);
+
 //Minhook version Code
-/*inline LONG AttachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
+/*inline LONG AttachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, LPCSTR DllName)
 {
+	HMODULE hDLL = LoadLibraryA(DllName);
 	LPVOID funcptr = hDLL ? (LPVOID)(DWORD_PTR)GetProcAddress(hDLL, lpszFuncName) : (LPVOID)lpszFuncName;
 	LPVOID outputptr;
 	return DetourAttach(&funcptr, lpHookAddress);
 	// return the original funcaddress !
 }
 
-inline LONG DetachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, HMODULE hDLL)
+inline LONG DetachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, LPCSTR DllName)
 {
+	HMODULE hDLL = LoadLibraryA(DllName);
 	LPVOID funcptr = hDLL ? (LPVOID)(DWORD_PTR)GetProcAddress(hDLL, lpszFuncName) : (LPVOID)lpszFuncName;
 	LPVOID outputptr;
 	return DetourDetach(&funcptr, lpHookAddress);

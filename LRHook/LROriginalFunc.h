@@ -28,6 +28,10 @@ static int (WINAPI* OriginalWideCharToMultiByte)(
 
 static UINT(WINAPI* OriginalGetACP)(void) = GetACP;
 static UINT(WINAPI* OriginalGetOEMCP)(void) = GetOEMCP;
+static BOOL(WINAPI* OriginalGetCPInfo)(
+	UINT       CodePage,
+	LPCPINFO  lpCPInfo
+	) = GetCPInfo;
 
 static HWND(WINAPI* OriginalCreateWindowExA)(
 	_In_ DWORD dwExStyle,
@@ -157,3 +161,21 @@ static HRESULT(WINAPI* OriginalDirectSoundEnumerateA)(
 	_In_ LPDSENUMCALLBACKA pDSEnumCallback,
 	_In_opt_ LPVOID pContext
 	) = DirectSoundEnumerateA;
+
+static LPSTR(WINAPI* OriginalCharPrevExA)(
+	_In_ WORD CodePage,
+	_In_ LPCSTR lpStart,
+	_In_ LPCSTR lpCurrentChar,
+	_In_ DWORD dwFlags
+	) = CharPrevExA;
+
+static LPSTR(WINAPI* OriginalCharNextExA)(
+	_In_ WORD CodePage,
+	_In_ LPCSTR lpCurrentChar,
+	_In_ DWORD dwFlags
+	) = CharNextExA;
+
+static BOOL(WINAPI* OriginalIsDBCSLeadByteEx)(
+	_In_ UINT  CodePage,
+	_In_ BYTE  TestChar
+	) = IsDBCSLeadByteEx;
