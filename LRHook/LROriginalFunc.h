@@ -4,6 +4,7 @@
 #include<DSound.h>
 #pragma comment(lib, "Imm32.lib")
 #pragma comment(lib, "Dsound.lib")
+#pragma comment(lib, "Version.lib")
 
 static int (WINAPI* OriginalMultiByteToWideChar)(
 	UINT CodePage, 
@@ -13,7 +14,6 @@ static int (WINAPI* OriginalMultiByteToWideChar)(
 	LPWSTR lpWideCharStr, 
 	int cchWideChar
 	) = MultiByteToWideChar;
-
 
 static int (WINAPI* OriginalWideCharToMultiByte)(
 	UINT CodePage,
@@ -179,3 +179,18 @@ static BOOL(WINAPI* OriginalIsDBCSLeadByteEx)(
 	_In_ UINT  CodePage,
 	_In_ BYTE  TestChar
 	) = IsDBCSLeadByteEx;
+
+static HWND(WINAPI* OriginalCreateDialogIndirectParamA)(
+	_In_opt_ HINSTANCE hInstance,
+	_In_ LPCDLGTEMPLATEA lpTemplate,
+	_In_opt_ HWND hWndParent,
+	_In_opt_ DLGPROC lpDialogFunc,
+	_In_ LPARAM dwInitParam
+	) = CreateDialogIndirectParamA;
+
+static BOOL(WINAPI* OriginalVerQueryValueA)(
+	LPCVOID pBlock,
+	LPCSTR lpSubBlock,
+	LPVOID* lplpBuffer,
+	PUINT puLen
+) = VerQueryValueA;

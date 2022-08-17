@@ -175,6 +175,21 @@ BOOL WINAPI HookIsDBCSLeadByteEx(
 	_In_ BYTE  TestChar
 );
 
+HWND WINAPI HookCreateDialogIndirectParamA(
+	_In_opt_ HINSTANCE hInstance,
+	_In_ LPCDLGTEMPLATEA lpTemplate,
+	_In_opt_ HWND hWndParent,
+	_In_opt_ DLGPROC lpDialogFunc,
+	_In_ LPARAM dwInitParam
+);
+
+BOOL WINAPI HookVerQueryValueA(
+	LPCVOID pBlock,
+	LPCSTR lpSubBlock,
+	LPVOID* lplpBuffer,
+	PUINT puLen
+);
+
 //Minhook version Code
 /*inline LONG AttachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, LPCSTR DllName)
 {

@@ -3,9 +3,13 @@
 //WNDPROC originalProc;
 ORIGINAL Original = { NULL };
 
+//LONG OriginalNtUserCreateWindowEx = NULL;
+
 void AttachFunctions() 
 {
 	//SetWindowsHookExW(WH_CBT, CBTProc, NULL, GetCurrentThreadId());
+	//SetWindowsHookExA(WH_CALLWNDPROC, OnWndProc, NULL, GetCurrentThreadId());
+	//OriginalNtUserCreateWindowEx = AttachDllFunc("NtUserCreateWindowEx", HookNtUserCreateWindowEx, "user32.dll");
 	DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
 	DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
@@ -31,6 +35,9 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalTextOutA, HookTextOutA);
 	DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
 	DetourAttach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
+
+	DetourAttach(&(PVOID&)OriginalCreateDialogIndirectParamA, HookCreateDialogIndirectParamA);
+	//DetourAttach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
 	
 	Original.CodePage = OriginalGetACP();
 	if (settings.HookIME)
@@ -78,6 +85,8 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
 	DetourDetach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 
+	DetourDetach(&(PVOID&)OriginalCreateDialogIndirectParamA, HookCreateDialogIndirectParamA);
+
 	if (settings.HookIME)
 	{
 		if (Original.CodePage == 936 && (settings.CodePage == 932 || settings.CodePage == 950))
@@ -102,10 +111,22 @@ LRESULT CALLBACK CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
 	{
 		HWND hWnd = (HWND)wParam;
 		LPCBT_CREATEWNDW CreateWnd = (LPCBT_CREATEWNDW)lParam;
-		//if(CreateWnd->lpcs->lpszName)
-		//	filelog << CreateWnd->lpcs->lpszName << std::endl;
+		LPWSTR wstr = (LPWSTR)CreateWnd->lpcs->lpszName;
 	}
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
+
+LRESULT CALLBACK OnWndProc(int code, WPARAM wParam, LPARAM lParam)
+{
+	CWPSTRUCT* pCwp = reinterpret_cast<CWPSTRUCT*>(lParam);
+	switch (pCwp->message)
+	{
+	case WM_CREATE:
+		CREATESTRUCT* pCreateStruct = (CREATESTRUCT*)pCwp->lParam;
+		LPSTR wstr = (LPSTR)pCreateStruct->lpszName;
+		break;
+	}
+	return CallNextHookEx(NULL, code, wParam, lParam);
 }
 
 HWND WINAPI HookCreateWindowExA(
@@ -716,4 +737,38 @@ BOOL WINAPI HookIsDBCSLeadByteEx(
 {
 	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
 	return OriginalIsDBCSLeadByteEx(CodePage, TestChar);
+}
+
+HWND WINAPI HookCreateDialogIndirectParamA(
+	_In_opt_ HINSTANCE hInstance,
+	_In_ LPCDLGTEMPLATEA lpTemplate,
+	_In_opt_ HWND hWndParent,
+	_In_opt_ DLGPROC lpDialogFunc,
+	_In_ LPARAM dwInitParam
+)
+{
+	return CreateDialogIndirectParamW(hInstance, lpTemplate, hWndParent, lpDialogFunc, dwInitParam);
+}
+
+BOOL WINAPI HookVerQueryValueA(
+	LPCVOID pBlock,
+	LPCSTR lpSubBlock,
+	LPVOID* lplpBuffer,
+	PUINT puLen
+)
+{
+	if (lstrlenA(lpSubBlock) > 2 && lpSubBlock[0] == '\\' && lpSubBlock[1] == 'S')
+	{
+		//--Comments------------InternalName--------ProductName----
+		//	CompanyName			LegalCopyright		ProductVersion
+		//	FileDescription		LegalTrademarks		PrivateBuild
+		//	FileVersion			OriginalFilename	SpecialBuild
+			// comment : 
+		BOOL ret = OriginalVerQueryValueA(pBlock, lpSubBlock, lplpBuffer, puLen);
+		LPSTR lpBufferA = (LPSTR)*lplpBuffer;
+		LPWSTR lpBufferW = MultiByteToWideCharInternal(lpBufferA,Original.CodePage);
+		int sizeW = lstrlenW(lpBufferW);
+		WideCharToMultiByte(settings.CodePage, 0, lpBufferW, sizeW, lpBufferA, *puLen, NULL, NULL);
+	}
+	return OriginalVerQueryValueA(pBlock, lpSubBlock, lplpBuffer, puLen);
 }
