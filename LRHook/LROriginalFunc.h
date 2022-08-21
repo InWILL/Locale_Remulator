@@ -150,6 +150,15 @@ static BOOL(WINAPI* OriginalTextOutA)(
 	int    c
 	) = TextOutA;
 
+static int(WINAPI* OriginalDrawTextExA)(
+	_In_ HDC hdc,
+	LPSTR lpchText,
+	_In_ int cchText,
+	_Inout_ LPRECT lprc,
+	_In_ UINT format,
+	_In_opt_ LPDRAWTEXTPARAMS lpdtp
+	) = DrawTextExA;
+
 static HANDLE(WINAPI* OriginalGetClipboardData)(
 	_In_ UINT uFormat
 	) = GetClipboardData;

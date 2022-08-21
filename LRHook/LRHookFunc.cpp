@@ -1,27 +1,24 @@
 #include"LRHookFunc.h"
 
-//WNDPROC originalProc;
 ORIGINAL Original = { NULL };
 
-//LONG OriginalNtUserCreateWindowEx = NULL;
+//OriginalNtUserCreateWindowEx = AttachDllFunc("NtUserCreateWindowEx", HookNtUserCreateWindowEx, "user32.dll");
 
 void AttachFunctions() 
 {
-	//SetWindowsHookExW(WH_CBT, CBTProc, NULL, GetCurrentThreadId());
-	//SetWindowsHookExA(WH_CALLWNDPROC, OnWndProc, NULL, GetCurrentThreadId());
-	//OriginalNtUserCreateWindowEx = AttachDllFunc("NtUserCreateWindowEx", HookNtUserCreateWindowEx, "user32.dll");
-	DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
-	DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourAttach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
 	DetourAttach(&(PVOID&)OriginalGetCPInfo, HookGetCPInfo);
+	DetourAttach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
+	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
+
+	DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
+	DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourAttach(&(PVOID&)OriginalCharPrevExA, HookCharPrevExA);
 	DetourAttach(&(PVOID&)OriginalCharNextExA, HookCharNextExA);
 	DetourAttach(&(PVOID&)OriginalIsDBCSLeadByteEx, HookIsDBCSLeadByteEx);
-	//AttachDllFunc("GdiGetCodePage", (LPVOID)(DWORD_PTR)HookGdiGetCodePage, "gdi32.dll");
 	DetourAttach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
-	DetourAttach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
-	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
+	
 	DetourAttach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
 	DetourAttach(&(PVOID&)OriginalCreateProcessW, HookCreateProcessW);
@@ -29,10 +26,11 @@ void AttachFunctions()
 	//DetourAttach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
 	
 	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
-	DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
+	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	DetourAttach(&(PVOID&)OriginalDirectSoundEnumerateA, HookDirectSoundEnumerateA);
 	DetourAttach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
 	DetourAttach(&(PVOID&)OriginalTextOutA, HookTextOutA);
+	DetourAttach(&(PVOID&)OriginalDrawTextExA, HookDrawTextExA);
 	DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
 	DetourAttach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 
@@ -61,24 +59,23 @@ void AttachFunctions()
 			//DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA_WM);
 		}
 	}
-
-	//DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
-	//DetourAttach(&(PVOID&)OriginalDefDlgProcA, HookDefDlgProcA);
 }
 
 void DetachFunctions() 
 {
-	DetourDetach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
-	DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourDetach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourDetach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
 	DetourDetach(&(PVOID&)OriginalGetCPInfo, HookGetCPInfo);
+	DetourDetach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
+	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
+
+	DetourDetach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
+	DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourDetach(&(PVOID&)OriginalCharPrevExA, HookCharPrevExA);
 	DetourDetach(&(PVOID&)OriginalCharNextExA, HookCharNextExA);
 	DetourDetach(&(PVOID&)OriginalIsDBCSLeadByteEx, HookIsDBCSLeadByteEx);
 	DetourDetach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
-	DetourDetach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
-	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
+	
 	DetourDetach(&(PVOID&)OriginalWinExec, HookWinExec);
 	DetourDetach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
 	DetourDetach(&(PVOID&)OriginalCreateProcessW, HookCreateProcessW);
@@ -90,10 +87,15 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalDirectSoundEnumerateA, HookDirectSoundEnumerateA);
 	DetourDetach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
 	DetourDetach(&(PVOID&)OriginalTextOutA, HookTextOutA);
+	DetourDetach(&(PVOID&)OriginalDrawTextExA, HookDrawTextExA);
 	DetourDetach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
 	DetourDetach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 
+	DetourDetach(&(PVOID&)OriginalDialogBoxParamA, HookDialogBoxParamA);
 	DetourDetach(&(PVOID&)OriginalCreateDialogIndirectParamA, HookCreateDialogIndirectParamA);
+	DetourDetach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
+	DetourDetach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
+	DetourDetach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
 
 	if (settings.HookIME)
 	{
@@ -108,33 +110,6 @@ void DetachFunctions()
 			DetourDetach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA_WM);
 		}
 	}
-
-	//DetourDetach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
-	//DetourDetach(&(PVOID&)OriginalDefDlgProcA, HookDefDlgProcA);
-}
-
-LRESULT CALLBACK CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
-{
-	if (nCode == HCBT_CREATEWND)
-	{
-		HWND hWnd = (HWND)wParam;
-		LPCBT_CREATEWNDW CreateWnd = (LPCBT_CREATEWNDW)lParam;
-		LPWSTR wstr = (LPWSTR)CreateWnd->lpcs->lpszName;
-	}
-	return CallNextHookEx(NULL, nCode, wParam, lParam);
-}
-
-LRESULT CALLBACK OnWndProc(int code, WPARAM wParam, LPARAM lParam)
-{
-	CWPSTRUCT* pCwp = reinterpret_cast<CWPSTRUCT*>(lParam);
-	switch (pCwp->message)
-	{
-	case WM_CREATE:
-		CREATESTRUCT* pCreateStruct = (CREATESTRUCT*)pCwp->lParam;
-		LPSTR wstr = (LPSTR)pCreateStruct->lpszName;
-		break;
-	}
-	return CallNextHookEx(NULL, code, wParam, lParam);
 }
 
 HWND WINAPI HookCreateWindowExA(
@@ -204,11 +179,6 @@ BOOL WINAPI HookGetCPInfo(
 {
 	CodePage = settings.CodePage;
 	return OriginalGetCPInfo(CodePage, lpCPInfo);
-}
-
-UINT WINAPI HookGdiGetCodePage(HDC hdc)
-{
-	return settings.CodePage;
 }
 
 static int CheckWindowStyle(HWND hWnd, DWORD type/*ebx*/) {
@@ -628,6 +598,32 @@ BOOL WINAPI HookTextOutA(
 		return ret;
 	}
 	return OriginalTextOutA(hdc, x, y, lpString, c);
+}
+
+int WINAPI HookDrawTextExA(
+	_In_ HDC hdc,
+	LPSTR lpchText,
+	_In_ int cchText,
+	_Inout_ LPRECT lprc,
+	_In_ UINT format,
+	_In_opt_ LPDRAWTEXTPARAMS lpdtp
+)
+{
+	LPWSTR wstr = MultiByteToWideCharInternal(lpchText);
+	if (wstr)
+	{
+		int ret = DrawTextExW(hdc, wstr, 1, lprc, format, lpdtp);
+		FreeStringInternal(wstr);
+		return ret;
+	}
+	return OriginalDrawTextExA(
+		hdc,
+		lpchText,
+		cchText,
+		lprc,
+		format,
+		lpdtp
+	);
 }
 
 HANDLE WINAPI HookGetClipboardData(

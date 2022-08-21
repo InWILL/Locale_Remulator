@@ -26,9 +26,6 @@ BOOL WINAPI HookGetCPInfo(
 	UINT       CodePage,
 	LPCPINFO  lpCPInfo
 );
-UINT WINAPI HookGdiGetCodePage(HDC hdc);
-
-LRESULT CALLBACK CBTProc(int nCode, WPARAM wParam, LPARAM lParam);
 
 HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
@@ -141,6 +138,15 @@ BOOL WINAPI HookTextOutA(
 	int    y,
 	LPSTR lpString,
 	int    c
+);
+
+int WINAPI HookDrawTextExA(
+	_In_ HDC hdc,
+	LPSTR lpchText,
+	_In_ int cchText,
+	_Inout_ LPRECT lprc,
+	_In_ UINT format,
+	_In_opt_ LPDRAWTEXTPARAMS lpdtp
 );
 
 HANDLE WINAPI HookGetClipboardData(
