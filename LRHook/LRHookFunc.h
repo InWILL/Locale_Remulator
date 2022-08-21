@@ -175,6 +175,14 @@ BOOL WINAPI HookIsDBCSLeadByteEx(
 	_In_ BYTE  TestChar
 );
 
+INT_PTR WINAPI HookDialogBoxParamA(
+	_In_opt_ HINSTANCE hInstance,
+	_In_ LPCSTR lpTemplateName,
+	_In_opt_ HWND hWndParent,
+	_In_opt_ DLGPROC lpDialogFunc,
+	_In_ LPARAM dwInitParam
+);
+
 HWND WINAPI HookCreateDialogIndirectParamA(
 	_In_opt_ HINSTANCE hInstance,
 	_In_ LPCDLGTEMPLATEA lpTemplate,
@@ -188,6 +196,46 @@ BOOL WINAPI HookVerQueryValueA(
 	LPCSTR lpSubBlock,
 	LPVOID* lplpBuffer,
 	PUINT puLen
+);
+
+DWORD WINAPI HookGetModuleFileNameA(
+	HMODULE hModule,
+	LPSTR lpFilename,
+	DWORD nSize
+);
+
+HMODULE WINAPI HookLoadLibraryExA(
+	_In_ LPCSTR lpLibFileName,
+	_Reserved_ HANDLE hFile,
+	_In_ DWORD dwFlags
+);
+
+DWORD WINAPI HookGetFileVersionInfoSizeA(
+	_In_ LPCSTR lpwstrFilename, 
+	_Out_ LPDWORD lpdwHandle
+);
+
+BOOL WINAPI HookGetFileVersionInfoA(
+	_In_                LPCSTR lptstrFilename, /* Filename of version stamped file */
+	_Reserved_          DWORD dwHandle,          /* Information from GetFileVersionSize */
+	_In_                DWORD dwLen,             /* Length of buffer for info */
+	_Out_writes_bytes_(dwLen) LPVOID lpData            /* Buffer to place the data structure */
+);
+
+BOOL WINAPI HookPathRenameExtensionA(
+	LPSTR pszPath, 
+	LPCSTR pszExt
+);
+
+ATOM WINAPI HookRegisterClassExA(
+	_In_ CONST WNDCLASSEXA* lpWndClass
+);
+
+LRESULT CALLBACK HookDefWindowProcA(
+	_In_ HWND hWnd,
+	_In_ UINT Msg,
+	_In_ WPARAM wParam,
+	_In_ LPARAM lParam
 );
 
 //Minhook version Code

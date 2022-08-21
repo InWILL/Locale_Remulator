@@ -2,9 +2,11 @@
 #include<Windows.h>
 #include<imm.h>
 #include<DSound.h>
+#include<shlwapi.h>
 #pragma comment(lib, "Imm32.lib")
 #pragma comment(lib, "Dsound.lib")
 #pragma comment(lib, "Version.lib")
+#pragma comment(lib, "Shlwapi.lib")
 
 static int (WINAPI* OriginalMultiByteToWideChar)(
 	UINT CodePage, 
@@ -180,6 +182,14 @@ static BOOL(WINAPI* OriginalIsDBCSLeadByteEx)(
 	_In_ BYTE  TestChar
 	) = IsDBCSLeadByteEx;
 
+static INT_PTR(WINAPI* OriginalDialogBoxParamA)(
+	_In_opt_ HINSTANCE hInstance,
+	_In_ LPCSTR lpTemplateName,
+	_In_opt_ HWND hWndParent,
+	_In_opt_ DLGPROC lpDialogFunc,
+	_In_ LPARAM dwInitParam
+	) = DialogBoxParamA;
+
 static HWND(WINAPI* OriginalCreateDialogIndirectParamA)(
 	_In_opt_ HINSTANCE hInstance,
 	_In_ LPCDLGTEMPLATEA lpTemplate,
@@ -194,3 +204,43 @@ static BOOL(WINAPI* OriginalVerQueryValueA)(
 	LPVOID* lplpBuffer,
 	PUINT puLen
 ) = VerQueryValueA;
+
+static DWORD(WINAPI* OriginalGetModuleFileNameA)(
+	HMODULE hModule,
+	LPSTR lpFilename,
+	DWORD nSize
+	) = GetModuleFileNameA;
+
+static HMODULE(WINAPI* OriginalLoadLibraryExA)(
+	_In_ LPCSTR lpLibFileName,
+	_Reserved_ HANDLE hFile,
+	_In_ DWORD dwFlags
+	) = LoadLibraryExA;
+
+static DWORD(WINAPI* OriginalGetFileVersionInfoSizeA)(
+	_In_ LPCSTR lpwstrFilename,
+	_Out_ LPDWORD lpdwHandle
+	) = GetFileVersionInfoSizeA;
+
+static BOOL(WINAPI* OriginalGetFileVersionInfoA)(
+	_In_                LPCSTR lptstrFilename, /* Filename of version stamped file */
+	_Reserved_          DWORD dwHandle,          /* Information from GetFileVersionSize */
+	_In_                DWORD dwLen,             /* Length of buffer for info */
+	_Out_writes_bytes_(dwLen) LPVOID lpData            /* Buffer to place the data structure */
+	) = GetFileVersionInfoA;
+
+static BOOL(WINAPI* OriginalPathRenameExtensionA)(
+	LPSTR pszPath,
+	LPCSTR pszExt
+	) = PathRenameExtensionA;
+
+static ATOM(WINAPI* OriginalRegisterClassExA)(
+	_In_ CONST WNDCLASSEXA* lpWndClass
+	) = RegisterClassExA;
+
+static LRESULT(WINAPI* OriginalDefWindowProcA)(
+	_In_ HWND hWnd,
+	_In_ UINT Msg,
+	_In_ WPARAM wParam,
+	_In_ LPARAM lParam
+	) = DefWindowProcA;

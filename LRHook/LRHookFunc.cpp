@@ -36,8 +36,16 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
 	DetourAttach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 
+	DetourAttach(&(PVOID&)OriginalDialogBoxParamA, HookDialogBoxParamA);
 	DetourAttach(&(PVOID&)OriginalCreateDialogIndirectParamA, HookCreateDialogIndirectParamA);
-	//DetourAttach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
+	DetourAttach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
+	/*DetourAttach(&(PVOID&)OriginalGetModuleFileNameA, HookGetModuleFileNameA);
+	DetourAttach(&(PVOID&)OriginalLoadLibraryExA, HookLoadLibraryExA);
+	DetourAttach(&(PVOID&)OriginalGetFileVersionInfoSizeA, HookGetFileVersionInfoSizeA);
+	DetourAttach(&(PVOID&)OriginalGetFileVersionInfoA, HookGetFileVersionInfoA);
+	DetourAttach(&(PVOID&)OriginalPathRenameExtensionA, HookPathRenameExtensionA);*/
+	DetourAttach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
+	DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
 	
 	Original.CodePage = OriginalGetACP();
 	if (settings.HookIME)
@@ -133,22 +141,7 @@ HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
 	int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-	if (dwExStyle == 257 || hWndParent == NULL || dwExStyle == 65536)
-		return OriginalCreateWindowExA(
-			dwExStyle,
-			lpClassName,
-			lpWindowName,
-			dwStyle,
-			X,
-			Y,
-			nWidth,
-			nHeight,
-			hWndParent,
-			hMenu,
-			hInstance,
-			lpParam
-		);
-	LPCWSTR wstrlpClassName = lpClassName ? MultiByteToWideCharInternal(lpClassName, Original.CodePage) : NULL;
+	LPCWSTR wstrlpClassName = lpClassName ? MultiByteToWideCharInternal(lpClassName) : NULL;
 	LPCWSTR wstrlpWindowName = lpWindowName ? MultiByteToWideCharInternal(lpWindowName) : NULL;
 	HWND ret = CreateWindowExW(
 		dwExStyle,
@@ -739,6 +732,17 @@ BOOL WINAPI HookIsDBCSLeadByteEx(
 	return OriginalIsDBCSLeadByteEx(CodePage, TestChar);
 }
 
+INT_PTR WINAPI HookDialogBoxParamA(
+	_In_opt_ HINSTANCE hInstance,
+	_In_ LPCSTR lpTemplateName,
+	_In_opt_ HWND hWndParent,
+	_In_opt_ DLGPROC lpDialogFunc,
+	_In_ LPARAM dwInitParam
+)
+{
+	return DialogBoxParamW(hInstance, (LPCWSTR)lpTemplateName, hWndParent, lpDialogFunc, dwInitParam);
+}
+
 HWND WINAPI HookCreateDialogIndirectParamA(
 	_In_opt_ HINSTANCE hInstance,
 	_In_ LPCDLGTEMPLATEA lpTemplate,
@@ -757,18 +761,132 @@ BOOL WINAPI HookVerQueryValueA(
 	PUINT puLen
 )
 {
+	/*
+	if (lstrcmpA(lpSubBlock, "\\VarFileInfo\\Translation") == 0)
+	{
+		// if query location info, we change that value : 
+		BOOL ret = OriginalVerQueryValueA(pBlock, lpSubBlock, lplpBuffer, puLen);
+		if (ret && *puLen >= sizeof(DWORD))
+		{
+			LPWORD lpTranslate = (LPWORD)(*lplpBuffer);
+			filelog << lpTranslate[0] << " " << lpTranslate[1] << std::endl;
+			lpTranslate[0] = (WORD)1041;
+			lpTranslate[1] = (WORD)1200; // change the first default one !
+			return ret;
+		}
+	}*/
 	if (lstrlenA(lpSubBlock) > 2 && lpSubBlock[0] == '\\' && lpSubBlock[1] == 'S')
 	{
-		//--Comments------------InternalName--------ProductName----
-		//	CompanyName			LegalCopyright		ProductVersion
-		//	FileDescription		LegalTrademarks		PrivateBuild
-		//	FileVersion			OriginalFilename	SpecialBuild
-			// comment : 
-		BOOL ret = OriginalVerQueryValueA(pBlock, lpSubBlock, lplpBuffer, puLen);
-		LPSTR lpBufferA = (LPSTR)*lplpBuffer;
-		LPWSTR lpBufferW = MultiByteToWideCharInternal(lpBufferA,Original.CodePage);
-		int sizeW = lstrlenW(lpBufferW);
-		WideCharToMultiByte(settings.CodePage, 0, lpBufferW, sizeW, lpBufferA, *puLen, NULL, NULL);
+		LPWSTR lpSubBlockW = MultiByteToWideCharInternal(lpSubBlock);
+		LPWSTR lpBufferW;
+		BOOL ret = VerQueryValueW(pBlock, lpSubBlockW, (LPVOID*)&lpBufferW, puLen);
+		LPSTR lpBufferA = WideCharToMultiByteInternal(lpBufferW);
+		*lplpBuffer = lpBufferA;
+		*puLen = lstrlenA(lpBufferA);
+		FreeStringInternal(lpSubBlockW);
+		return ret;
 	}
 	return OriginalVerQueryValueA(pBlock, lpSubBlock, lplpBuffer, puLen);
+}
+
+DWORD WINAPI HookGetModuleFileNameA(
+	HMODULE hModule,
+	LPSTR lpFilename,
+	DWORD nSize
+)
+{
+	LPWSTR lpFilenameW = (LPWSTR)AllocateZeroedMemory(MAX_PATH);
+	DWORD ret = GetModuleFileNameW(hModule, lpFilenameW, nSize);
+	OriginalWideCharToMultiByte(settings.CodePage, 0, lpFilenameW, MAX_PATH, lpFilename, MAX_PATH, NULL, NULL);
+	FreeStringInternal(lpFilenameW);
+	return ret;
+}
+
+HMODULE WINAPI HookLoadLibraryExA(
+	_In_ LPCSTR lpLibFileName,
+	_Reserved_ HANDLE hFile,
+	_In_ DWORD dwFlags
+)
+{
+	LPWSTR lpLibFileNameW = MultiByteToWideCharInternal(lpLibFileName);
+	HMODULE ret = LoadLibraryExW(lpLibFileNameW, hFile, dwFlags);
+	FreeStringInternal(lpLibFileNameW);
+	return ret;
+}
+
+DWORD WINAPI HookGetFileVersionInfoSizeA(
+	_In_ LPCSTR lpwstrFilename,
+	_Out_ LPDWORD lpdwHandle
+)
+{
+	LPWSTR lpwstrFilenameW = MultiByteToWideCharInternal(lpwstrFilename);
+	DWORD ret = GetFileVersionInfoSizeW(lpwstrFilenameW, lpdwHandle);
+	FreeStringInternal(lpwstrFilenameW);
+	return ret;
+}
+
+BOOL WINAPI HookGetFileVersionInfoA(
+	_In_                LPCSTR lptstrFilename, /* Filename of version stamped file */
+	_Reserved_          DWORD dwHandle,          /* Information from GetFileVersionSize */
+	_In_                DWORD dwLen,             /* Length of buffer for info */
+	_Out_writes_bytes_(dwLen) LPVOID lpData            /* Buffer to place the data structure */
+)
+{
+	LPWSTR lptstrFilenameW = MultiByteToWideCharInternal(lptstrFilename);
+	BOOL ret = GetFileVersionInfoW(lptstrFilenameW, dwHandle, dwLen, lpData);
+	MessageBoxW(NULL, lptstrFilenameW, NULL, NULL);
+	FreeStringInternal(lptstrFilenameW);
+	return ret;
+}
+
+BOOL WINAPI HookPathRenameExtensionA(
+	LPSTR pszPath,
+	LPCSTR pszExt
+)
+{
+	//MessageBoxA(NULL, pszPath, NULL, NULL);
+	return OriginalPathRenameExtensionA(pszPath, pszExt);
+}
+
+ATOM WINAPI HookRegisterClassExA(
+	_In_ CONST WNDCLASSEXA* lpWndClass
+)
+{
+	WNDCLASSEXW* lpWndClassW = new(WNDCLASSEXW);
+	lpWndClassW->cbSize = lpWndClass->cbSize;
+	lpWndClassW->style = lpWndClass->style;
+	lpWndClassW->lpfnWndProc = lpWndClass->lpfnWndProc;
+	lpWndClassW->cbClsExtra = lpWndClass->cbClsExtra;
+	lpWndClassW->cbWndExtra = lpWndClass->cbWndExtra;
+	lpWndClassW->hInstance = lpWndClass->hInstance;
+	lpWndClassW->hIcon = lpWndClass->hIcon;
+	lpWndClassW->hCursor = lpWndClass->hCursor;
+	lpWndClassW->hbrBackground = lpWndClass->hbrBackground;
+	lpWndClassW->lpszMenuName = MultiByteToWideCharInternal(lpWndClass->lpszMenuName);
+	lpWndClassW->lpszClassName = MultiByteToWideCharInternal(lpWndClass->lpszClassName);
+	lpWndClassW->hIconSm = lpWndClass->hIconSm;
+	return RegisterClassExW(lpWndClassW);
+}
+
+inline LRESULT CallProcAddress(LPVOID lpProcAddress, HWND hWnd, HWND hMDIClient,
+	BOOL bMDIClientEnabled, INT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	typedef LRESULT(WINAPI* fnWNDProcAddress)(HWND, int, WPARAM, LPARAM);
+	typedef LRESULT(WINAPI* fnMDIProcAddress)(HWND, HWND, int, WPARAM, LPARAM);
+	// MDI or not ??? 
+	return (bMDIClientEnabled) ? ((fnMDIProcAddress)(DWORD_PTR)lpProcAddress)(hWnd, hMDIClient, uMsg, wParam, lParam)
+		: ((fnWNDProcAddress)(DWORD_PTR)lpProcAddress)(hWnd, uMsg, wParam, lParam);
+}
+
+LRESULT CALLBACK HookDefWindowProcA(
+	_In_ HWND hWnd,
+	_In_ UINT Msg,
+	_In_ WPARAM wParam,
+	_In_ LPARAM lParam
+)
+{
+	if(IsWindowUnicode(hWnd))
+		return DefWindowProcW(hWnd, Msg, wParam, lParam);
+	else
+		return OriginalDefWindowProcA(hWnd, Msg, wParam, lParam);
 }
