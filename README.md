@@ -92,6 +92,10 @@ Please install [Microsoft Visual C++ Redistributable](https://docs.microsoft.com
 
 Please update Locale_Remulator to 1.4.3-beta.2+
 
+## Donate
+
+![收款码405x250](https://user-images.githubusercontent.com/13805009/185916994-6a17d723-27f6-4eec-8571-ad869ad99cf0.png)
+
 ### [English](#english--%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87) | 简体中文
 
 系统区域和语言模拟器。
@@ -173,3 +177,7 @@ Please update Locale_Remulator to 1.4.3-beta.2+
 ### 应用程序无法正常启动(0xc000007b)
 
 请升级到Locale_Remulator.1.4.3-beta.2以上。
+
+## 捐赠
+
+![收款码405x250](https://user-images.githubusercontent.com/13805009/185916994-6a17d723-27f6-4eec-8571-ad869ad99cf0.png)
