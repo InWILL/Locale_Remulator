@@ -28,6 +28,7 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	DetourAttach(&(PVOID&)OriginalDirectSoundEnumerateA, HookDirectSoundEnumerateA);
+	DetourAttach(&(PVOID&)OriginalCreateFontA, HookCreateFontA);
 	DetourAttach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
 	DetourAttach(&(PVOID&)OriginalTextOutA, HookTextOutA);
 	DetourAttach(&(PVOID&)OriginalDrawTextExA, HookDrawTextExA);
@@ -570,6 +571,44 @@ DWORD WINAPI HookImmGetCandidateListA_WM(
 	return ret;
 }
 
+HFONT WINAPI HookCreateFontA(
+	_In_ int cHeight,
+	_In_ int cWidth,
+	_In_ int cEscapement,
+	_In_ int cOrientation,
+	_In_ int cWeight,
+	_In_ DWORD bItalic,
+	_In_ DWORD bUnderline,
+	_In_ DWORD bStrikeOut,
+	_In_ DWORD iCharSet,
+	_In_ DWORD iOutPrecision,
+	_In_ DWORD iClipPrecision,
+	_In_ DWORD iQuality,
+	_In_ DWORD iPitchAndFamily,
+	_In_opt_ LPCSTR pszFaceName
+)
+{
+	LPWSTR pszFaceNameW = MultiByteToWideCharInternal(pszFaceName);
+	HFONT ret = CreateFontW(
+		cHeight,
+		cWidth,
+		cEscapement,
+		cOrientation,
+		cWeight,
+		bItalic,
+		bUnderline,
+		bStrikeOut,
+		iCharSet,
+		iOutPrecision,
+		iClipPrecision,
+		iQuality,
+		iPitchAndFamily,
+		pszFaceNameW
+	);
+	FreeStringInternal(pszFaceNameW);
+	return ret;
+}
+
 //set font characters set
 HFONT WINAPI HookCreateFontIndirectA(
 	LOGFONTA* lplf
@@ -577,9 +616,13 @@ HFONT WINAPI HookCreateFontIndirectA(
 {
 	//MessageBoxA(NULL, lplf->lfFaceName, "HookCreateFontIndirectA", NULL);
 	//lplf->lfCharSet = CHINESEBIG5_CHARSET;
-	if (strcmp(settings.lfFaceName, "None") != 0)
+	/*if (strcmp(settings.lfFaceName, "None") != 0)
 		strcpy(lplf->lfFaceName, settings.lfFaceName);
-	return OriginalCreateFontIndirectA(lplf);
+	return OriginalCreateFontIndirectA(lplf);*/
+	LOGFONTW logfont = { sizeof(LOGFONTW), };
+	memcpy(&logfont, lplf, sizeof(LOGFONTW));
+	MultiByteToWideChar(settings.CodePage, 0, lplf->lfFaceName, -1, logfont.lfFaceName, LF_FACESIZE);
+	return CreateFontIndirectW(&logfont);
 }
 
 BOOL WINAPI HookTextOutA(
@@ -612,7 +655,8 @@ int WINAPI HookDrawTextExA(
 	LPWSTR wstr = MultiByteToWideCharInternal(lpchText);
 	if (wstr)
 	{
-		int ret = DrawTextExW(hdc, wstr, 1, lprc, format, lpdtp);
+		int wsize = lstrlenW(wstr);
+		int ret = DrawTextExW(hdc, wstr, wsize, lprc, format, lpdtp);
 		FreeStringInternal(wstr);
 		return ret;
 	}

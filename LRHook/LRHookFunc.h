@@ -128,6 +128,23 @@ DWORD WINAPI HookImmGetCandidateListA_WM(
 	DWORD           dwBufLen
 );
 
+HFONT WINAPI HookCreateFontA(
+	_In_ int cHeight,
+	_In_ int cWidth,
+	_In_ int cEscapement,
+	_In_ int cOrientation,
+	_In_ int cWeight,
+	_In_ DWORD bItalic,
+	_In_ DWORD bUnderline,
+	_In_ DWORD bStrikeOut,
+	_In_ DWORD iCharSet,
+	_In_ DWORD iOutPrecision,
+	_In_ DWORD iClipPrecision,
+	_In_ DWORD iQuality,
+	_In_ DWORD iPitchAndFamily,
+	_In_opt_ LPCSTR pszFaceName
+);
+
 HFONT WINAPI HookCreateFontIndirectA(
 	LOGFONTA* lplf
 );
