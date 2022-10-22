@@ -155,9 +155,38 @@ static HFONT(WINAPI* OriginalCreateFontA)(
 	_In_opt_ LPCSTR pszFaceName
 	) = CreateFontA;
 
+static HFONT(WINAPI* OriginalCreateFontW)(
+	_In_ int cHeight,
+	_In_ int cWidth,
+	_In_ int cEscapement,
+	_In_ int cOrientation,
+	_In_ int cWeight,
+	_In_ DWORD bItalic,
+	_In_ DWORD bUnderline,
+	_In_ DWORD bStrikeOut,
+	_In_ DWORD iCharSet,
+	_In_ DWORD iOutPrecision,
+	_In_ DWORD iClipPrecision,
+	_In_ DWORD iQuality,
+	_In_ DWORD iPitchAndFamily,
+	_In_opt_ LPCWSTR pszFaceName
+	) = CreateFontW;
+
 static HFONT(WINAPI* OriginalCreateFontIndirectA)(
 	const LOGFONTA* lplf
 	) = CreateFontIndirectA;
+
+static HFONT(WINAPI* OriginalCreateFontIndirectW)(
+	_In_ CONST LOGFONTW* lplf
+	) = CreateFontIndirectW;
+
+static HFONT(WINAPI* OriginalCreateFontIndirectExA)(
+	_In_ CONST ENUMLOGFONTEXDVA*
+	) = CreateFontIndirectExA;
+
+static HFONT(WINAPI* OriginalCreateFontIndirectExW)(
+	_In_ CONST ENUMLOGFONTEXDVW*
+	) = CreateFontIndirectExW;
 
 static BOOL(WINAPI* OriginalTextOutA)(
 	HDC    hdc,

@@ -29,7 +29,11 @@ void AttachFunctions()
 	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	DetourAttach(&(PVOID&)OriginalDirectSoundEnumerateA, HookDirectSoundEnumerateA);
 	DetourAttach(&(PVOID&)OriginalCreateFontA, HookCreateFontA);
+	DetourAttach(&(PVOID&)OriginalCreateFontW, HookCreateFontW);
 	DetourAttach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
+	DetourAttach(&(PVOID&)OriginalCreateFontIndirectW, HookCreateFontIndirectW);
+	DetourAttach(&(PVOID&)OriginalCreateFontIndirectExA, HookCreateFontIndirectExA);
+	DetourAttach(&(PVOID&)OriginalCreateFontIndirectExW, HookCreateFontIndirectExW);
 	DetourAttach(&(PVOID&)OriginalTextOutA, HookTextOutA);
 	DetourAttach(&(PVOID&)OriginalDrawTextExA, HookDrawTextExA);
 	DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
@@ -53,7 +57,7 @@ void AttachFunctions()
 		{
 			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA);
 			DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
-		}
+		} 
 		else
 		{
 			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
@@ -249,6 +253,62 @@ static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WP
 		// LN301
 		if (lParamW) FreeStringInternal((LPVOID)lParamW);
 		return hr;
+	}	break;
+	case WM_IME_CHAR: // LN309
+	case WM_CHAR: // LN309
+	{
+		if ((wchar_t)wParam > 0x7F) { // is multibyte ... 
+			// here we exchange the order : 
+			//	char t = *((char*)&wParam + 0);
+			//	*((char*)&wParam + 0) = *((char*)&wParam + 1);
+			//	*((char*)&wParam + 1) = t;
+			wParam = ((wParam & 0xFF) << 8) | ((wParam & 0xFF00) >> 8);
+			MultiByteToWideChar(CP_ACP, 0, (LPCSTR)&wParam, -1, CharBuffer, 2);
+			//	*((wchar_t*)&wParam) = CharBuffer[0];
+			wParam = CharBuffer[0];
+		}
+	}	break;
+	case WM_GETTEXTLENGTH: // LN327
+	{
+		LRESULT len = CallWindowSendMessage(lpProcAddress, hWnd, WM_GETTEXTLENGTH, 0, 0, Param1, Param2, Param3, FunctionType);
+		if (len > 0) {
+			LPWSTR lParamW = (LPWSTR)AllocateZeroedMemory((len + 1) * sizeof(wchar_t));
+			CallWindowSendMessage(lpProcAddress, hWnd, WM_GETTEXT, (len + 1) * sizeof(wchar_t), (LPARAM)lParamW,
+				Param1, Param2, Param3, FunctionType);
+			len = WideCharToMultiByte(CP_ACP, 0, lParamW, -1, NULL, 0, NULL, NULL) - 1; // required
+			// LN793
+			if (lParamW) FreeStringInternal(lParamW);
+		}
+		return len;
+	}	break;
+	case WM_GETTEXT: // LN310
+	{
+		if (IsBadWritePtr((LPVOID)lParam, 1)) {
+			return (0);
+		}
+		else {
+			// L311
+			int len = (int)CallWindowSendMessage(lpProcAddress, hWnd, WM_GETTEXTLENGTH, 0, 0, Param1, Param2, Param3, FunctionType);
+			// no needs check len == 0 ?? 
+			LPWSTR lParamW = (LPWSTR)AllocateZeroedMemory((len + 1) * sizeof(wchar_t));
+			len = (int)CallWindowSendMessage(lpProcAddress, hWnd, uMsg, wParam, (LPARAM)lParamW, Param1, Param2, Param3, FunctionType);
+			len = WideCharToMultiByte(CP_ACP, 0, lParamW, -1, (LPSTR)lParam, len, NULL, NULL) - 1;
+			if (len > 0) {
+				// LN793
+				if (lParamW) FreeStringInternal(lParamW);
+			}
+			else {
+				// L316
+				if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+					*((LPSTR)lParam + wParam - 1) = '\0';
+				}
+				else {
+					// L317
+					*((LPSTR)lParam) = '\0';
+				}
+			}
+			return len;
+		}
 	}	break;
 	case LB_FINDSTRINGEXACT: // LN305
 	case LB_ADDSTRING: // LN305
@@ -609,6 +669,42 @@ HFONT WINAPI HookCreateFontA(
 	return ret;
 }
 
+HFONT WINAPI HookCreateFontW(
+	_In_ int cHeight,
+	_In_ int cWidth,
+	_In_ int cEscapement,
+	_In_ int cOrientation,
+	_In_ int cWeight,
+	_In_ DWORD bItalic,
+	_In_ DWORD bUnderline,
+	_In_ DWORD bStrikeOut,
+	_In_ DWORD iCharSet,
+	_In_ DWORD iOutPrecision,
+	_In_ DWORD iClipPrecision,
+	_In_ DWORD iQuality,
+	_In_ DWORD iPitchAndFamily,
+	_In_opt_ LPCWSTR pszFaceName
+)
+{
+	//iCharSet = HANGUL_CHARSET;
+	return OriginalCreateFontW(
+		cHeight,
+		cWidth,
+		cEscapement,
+		cOrientation,
+		cWeight,
+		bItalic,
+		bUnderline,
+		bStrikeOut,
+		iCharSet,
+		iOutPrecision,
+		iClipPrecision,
+		iQuality,
+		iPitchAndFamily,
+		pszFaceName
+	);
+}
+
 //set font characters set
 HFONT WINAPI HookCreateFontIndirectA(
 	LOGFONTA* lplf
@@ -623,6 +719,32 @@ HFONT WINAPI HookCreateFontIndirectA(
 	memcpy(&logfont, lplf, sizeof(LOGFONTW));
 	MultiByteToWideChar(settings.CodePage, 0, lplf->lfFaceName, -1, logfont.lfFaceName, LF_FACESIZE);
 	return CreateFontIndirectW(&logfont);
+}
+
+HFONT WINAPI HookCreateFontIndirectW(
+	LOGFONTW* lplf
+)
+{
+	//lplf->lfCharSet = HANGUL_CHARSET;
+	return OriginalCreateFontIndirectW(lplf);
+}
+
+HFONT WINAPI HookCreateFontIndirectExA(
+	ENUMLOGFONTEXDVA* lplf
+)
+{
+	ENUMLOGFONTEXDVW lplfW = { sizeof(ENUMLOGFONTEXDVW), };
+	memcpy(&lplfW, lplf, sizeof(ENUMLOGFONTEXDVW));
+	MultiByteToWideChar(settings.CodePage, 0, lplf->elfEnumLogfontEx.elfLogFont.lfFaceName, -1, lplfW.elfEnumLogfontEx.elfLogFont.lfFaceName, LF_FACESIZE);
+	return OriginalCreateFontIndirectExW(&lplfW);
+}
+
+HFONT WINAPI HookCreateFontIndirectExW(
+	ENUMLOGFONTEXDVW* lplf
+)
+{
+	//lplf->elfEnumLogfontEx.elfLogFont.lfCharSet = HANGUL_CHARSET;
+	return OriginalCreateFontIndirectExW(lplf);
 }
 
 BOOL WINAPI HookTextOutA(
