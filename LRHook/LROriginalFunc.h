@@ -299,3 +299,11 @@ static LRESULT(WINAPI* OriginalDefWindowProcA)(
 	_In_ WPARAM wParam,
 	_In_ LPARAM lParam
 	) = DefWindowProcA;
+
+static LCID(WINAPI* OriginalGetThreadLocale)() = GetThreadLocale;
+static LANGID(WINAPI* OriginalGetSystemDefaultUILanguage)() = GetSystemDefaultUILanguage;
+static LANGID(WINAPI* OriginalGetUserDefaultUILanguage)() = GetUserDefaultUILanguage;
+static LCID(WINAPI* OriginalGetSystemDefaultLCID)() = GetSystemDefaultLCID;
+static LCID(WINAPI* OriginalGetUserDefaultLCID)() = GetUserDefaultLCID;
+static LANGID(WINAPI* OriginalGetSystemDefaultLangID)() = GetSystemDefaultLangID;
+static LANGID(WINAPI* OriginalGetUserDefaultLangID)() = GetUserDefaultLangID;

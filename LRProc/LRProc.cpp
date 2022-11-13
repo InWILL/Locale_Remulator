@@ -52,7 +52,9 @@ You can also run LREditor to use this applicaction.
 	
 	LRProfile beta;
 	beta.CodePage = alpha->CodePage;
+	beta.LCID = alpha->LCID;
 	beta.HookIME = alpha->HookIME;
+	beta.HookLCID = alpha->HookLCID;
     strcpy(beta.lfFaceName, Font);
 
 	LRConfigFileMap filemap;

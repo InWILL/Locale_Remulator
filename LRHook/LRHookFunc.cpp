@@ -49,6 +49,17 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalPathRenameExtensionA, HookPathRenameExtensionA);*/
 	DetourAttach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
 	DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
+
+	if (settings.HookLCID)
+	{
+		DetourAttach(&(PVOID&)OriginalGetThreadLocale, HookGetThreadLocale);
+		DetourAttach(&(PVOID&)OriginalGetSystemDefaultUILanguage, HookGetSystemDefaultUILanguage);
+		DetourAttach(&(PVOID&)OriginalGetUserDefaultUILanguage, HookGetUserDefaultUILanguage);
+		DetourAttach(&(PVOID&)OriginalGetSystemDefaultLCID, HookGetSystemDefaultLCID);
+		DetourAttach(&(PVOID&)OriginalGetUserDefaultLCID, HookGetUserDefaultLCID);
+		DetourAttach(&(PVOID&)OriginalGetSystemDefaultLangID, HookGetSystemDefaultLangID);
+		DetourAttach(&(PVOID&)OriginalGetUserDefaultLangID, HookGetUserDefaultLangID);
+	}
 	
 	Original.CodePage = OriginalGetACP();
 	if (settings.HookIME)

@@ -13,7 +13,9 @@ const TCHAR szConfigFileMap[] = TEXT("LRConfigFileMap");
 struct LRProfile
 {
 	UINT CodePage;
+	UINT LCID;
 	int HookIME;
+	int HookLCID;
 	char lfFaceName[LF_FACESIZE] = "None";
 };
 

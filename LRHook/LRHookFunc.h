@@ -290,6 +290,19 @@ LRESULT CALLBACK HookDefWindowProcA(
 	_In_ LPARAM lParam
 );
 
+static LCID WINAPI HookGetLocaleID(void)
+{
+	return settings.LCID;
+}
+
+static LCID WINAPI HookGetThreadLocale(void) { return HookGetLocaleID(); }
+static LANGID WINAPI HookGetSystemDefaultUILanguage(void) { return (LANGID)HookGetLocaleID(); }
+static LANGID WINAPI HookGetUserDefaultUILanguage(void) { return (LANGID)HookGetLocaleID(); }
+static LCID WINAPI HookGetSystemDefaultLCID(void) { return HookGetLocaleID(); }
+static LCID WINAPI HookGetUserDefaultLCID(void) { return HookGetLocaleID(); }
+static LANGID WINAPI HookGetSystemDefaultLangID(void) { return (LANGID)HookGetLocaleID(); }
+static LANGID WINAPI HookGetUserDefaultLangID(void) { return (LANGID)HookGetLocaleID(); }
+
 //Minhook version Code
 /*inline LONG AttachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, LPCSTR DllName)
 {

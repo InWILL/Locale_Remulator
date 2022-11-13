@@ -48,9 +48,11 @@ namespace LRCSharpLibrary
                                                  p.Attribute("Guid").Value,
                                                  p.Element("Location").Value,
                                                  uint.Parse(p.Element("CodePage").Value),
+                                                 uint.Parse(p.Element("LCID").Value),
                                                  p.Element("Font").Value,
                                                  bool.Parse(p.Element("RunAsAdmin").Value),
-                                                 bool.Parse(p.Element("HookIME").Value)
+                                                 bool.Parse(p.Element("HookIME").Value),
+                                                 bool.Parse(p.Element("HookLCID").Value)
                                                 )).ToArray();
                 return profiles;
             }
@@ -81,15 +83,19 @@ namespace LRCSharpLibrary
                                                     Guid.NewGuid().ToString(),
                                                     "ja-JP",
                                                     932,
+                                                    0x0411,
                                                     "None",
                                                     false,
-                                                    false
+                                                    false,
+                                                    true
                                           ),
                                       new LRProfile("Run in Japanese (Admin)",
                                                     Guid.NewGuid().ToString(),
                                                     "ja-JP",
                                                     932,
+                                                    0x0411,
                                                     "None",
+                                                    true,
                                                     true,
                                                     true
                                           ),
@@ -97,7 +103,9 @@ namespace LRCSharpLibrary
                                                     Guid.NewGuid().ToString(),
                                                     "zh-TW",
                                                     950,
+                                                    0x0404,
                                                     "None",
+                                                    true,
                                                     true,
                                                     true
                                           ),
@@ -105,7 +113,9 @@ namespace LRCSharpLibrary
                                                     Guid.NewGuid().ToString(),
                                                     "ko-KR",
                                                     949,
+                                                    0x0412,
                                                     "Gulim",
+                                                    true,
                                                     true,
                                                     true
                                           )
@@ -124,9 +134,11 @@ namespace LRCSharpLibrary
                                           new XAttribute("Guid", p.Guid),
                                           new XElement("Location", p.Location),
                                           new XElement("CodePage",p.CodePage),
+                                          new XElement("LCID", p.LCID),
                                           new XElement("Font", p.Font),
                                           new XElement("RunAsAdmin", p.RunAsAdmin),
-                                          new XElement("HookIME", p.HookIME)
+                                          new XElement("HookIME", p.HookIME),
+                                          new XElement("HookLCID", p.HookLCID)
                                  )
                     );
             }

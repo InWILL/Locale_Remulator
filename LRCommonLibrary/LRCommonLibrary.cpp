@@ -5,7 +5,9 @@
 int LRConfigFileMap::WrtieConfigFileMap(LRProfile *profile)
 {
 	SetEnvironmentVariableW(L"LRCodePage", (LPCWSTR)&profile->CodePage);
+	SetEnvironmentVariableW(L"LRLCID", (LPCWSTR)&profile->LCID);
 	SetEnvironmentVariableW(L"LRHookIME", (LPCWSTR)&profile->HookIME);
+	SetEnvironmentVariableW(L"LRHookLCID", (LPCWSTR)&profile->HookLCID);
 	SetEnvironmentVariableA("LRFaceName", (LPCSTR)&profile->lfFaceName);
 	/*
 	hMapFile = CreateFileMapping(
@@ -45,7 +47,9 @@ int LRConfigFileMap::WrtieConfigFileMap(LRProfile *profile)
 int LRConfigFileMap::ReadConfigFileMap(LRProfile* profile)
 {
 	GetEnvironmentVariableW(L"LRCodePage", (LPWSTR)&profile->CodePage, sizeof(UINT));
+	GetEnvironmentVariableW(L"LRLCID", (LPWSTR)&profile->LCID, sizeof(UINT));
 	GetEnvironmentVariableW(L"LRHookIME", (LPWSTR)&profile->HookIME,sizeof(int));
+	GetEnvironmentVariableW(L"LRHookLCID", (LPWSTR)&profile->HookLCID, sizeof(int));
 	GetEnvironmentVariableA("LRFaceName", (LPSTR)&profile->lfFaceName,sizeof(profile->lfFaceName));
 	/*
 	hMapFile = OpenFileMapping(

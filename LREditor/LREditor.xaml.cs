@@ -42,9 +42,11 @@ namespace LREditor
             var p = profiles[ComboBox_Profile.SelectedIndex];
             p.Location = cultureinfos[ComboBox_CodePage.SelectedIndex].Name;
             p.CodePage = (uint)cultureinfos[ComboBox_CodePage.SelectedIndex].TextInfo.ANSICodePage;
+            p.LCID = (uint)cultureinfos[ComboBox_CodePage.SelectedIndex].TextInfo.LCID;
             p.Font = fontinfo[ComboBox_Fonts.SelectedIndex];
             p.RunAsAdmin = CheckBox_RunAsAdmin.IsChecked ?? false;
             p.HookIME = CheckBox_IME.IsChecked ?? false;
+            p.HookLCID = CheckBox_LCID.IsChecked ?? false;
             profiles[ComboBox_Profile.SelectedIndex] = p;
             LRConfig.WriteConfig(profiles.ToArray());
         }
@@ -65,9 +67,11 @@ namespace LREditor
                 p.Guid = Guid.NewGuid().ToString();
                 p.Location = cultureinfos[ComboBox_CodePage.SelectedIndex].Name;
                 p.CodePage = (uint)cultureinfos[ComboBox_CodePage.SelectedIndex].TextInfo.ANSICodePage;
+                p.LCID = (uint)cultureinfos[ComboBox_CodePage.SelectedIndex].TextInfo.LCID;
                 p.Font = fontinfo[ComboBox_Fonts.SelectedIndex];
                 p.RunAsAdmin = CheckBox_RunAsAdmin.IsChecked ?? false;
                 p.HookIME = CheckBox_IME.IsChecked ?? false;
+                p.HookLCID = CheckBox_LCID.IsChecked ?? false;
                 profiles.Add(p);
                 LRConfig.WriteConfig(profiles.ToArray());
                 ComboBox_Profile.Items.Refresh();
@@ -98,6 +102,7 @@ namespace LREditor
             ComboBox_Fonts.SelectedIndex = fontinfo.FindIndex(c => c == p.Font);
             CheckBox_RunAsAdmin.IsChecked = p.RunAsAdmin;
             CheckBox_IME.IsChecked = p.HookIME;
+            CheckBox_LCID.IsChecked = p.HookLCID;
         }
 
         private void Button_Shortcut_Click(object sender, RoutedEventArgs e)
