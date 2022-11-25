@@ -279,6 +279,10 @@ BOOL WINAPI HookPathRenameExtensionA(
 	LPCSTR pszExt
 );
 
+ATOM WINAPI HookRegisterClassA(
+	_In_ CONST WNDCLASSA* lpWndClass
+);
+
 ATOM WINAPI HookRegisterClassExA(
 	_In_ CONST WNDCLASSEXA* lpWndClass
 );

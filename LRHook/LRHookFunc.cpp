@@ -13,7 +13,11 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 
 	DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
+	DetourAttach(&(PVOID&)OriginalRegisterClassA, HookRegisterClassA);
+	DetourAttach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
+	DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
 	DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
+
 	DetourAttach(&(PVOID&)OriginalCharPrevExA, HookCharPrevExA);
 	DetourAttach(&(PVOID&)OriginalCharNextExA, HookCharNextExA);
 	DetourAttach(&(PVOID&)OriginalIsDBCSLeadByteEx, HookIsDBCSLeadByteEx);
@@ -47,8 +51,6 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalGetFileVersionInfoSizeA, HookGetFileVersionInfoSizeA);
 	DetourAttach(&(PVOID&)OriginalGetFileVersionInfoA, HookGetFileVersionInfoA);
 	DetourAttach(&(PVOID&)OriginalPathRenameExtensionA, HookPathRenameExtensionA);*/
-	DetourAttach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
-	DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
 
 	if (settings.HookLCID)
 	{
@@ -86,6 +88,9 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 
 	DetourDetach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
+	DetourDetach(&(PVOID&)OriginalRegisterClassA, HookRegisterClassA);
+	DetourDetach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
+	DetourDetach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
 	DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourDetach(&(PVOID&)OriginalCharPrevExA, HookCharPrevExA);
 	DetourDetach(&(PVOID&)OriginalCharNextExA, HookCharNextExA);
@@ -110,8 +115,6 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalDialogBoxParamA, HookDialogBoxParamA);
 	DetourDetach(&(PVOID&)OriginalCreateDialogIndirectParamA, HookCreateDialogIndirectParamA);
 	DetourDetach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
-	DetourDetach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
-	DetourDetach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
 
 	if (settings.HookIME)
 	{
@@ -1019,6 +1022,24 @@ BOOL WINAPI HookPathRenameExtensionA(
 {
 	//MessageBoxA(NULL, pszPath, NULL, NULL);
 	return OriginalPathRenameExtensionA(pszPath, pszExt);
+}
+
+ATOM WINAPI HookRegisterClassA(
+	_In_ CONST WNDCLASSA* lpWndClass
+)
+{
+	WNDCLASSW* lpWndClassW = new(WNDCLASSW);
+	lpWndClassW->style = lpWndClass->style;
+	lpWndClassW->lpfnWndProc = lpWndClass->lpfnWndProc;
+	lpWndClassW->cbClsExtra = lpWndClass->cbClsExtra;
+	lpWndClassW->cbWndExtra = lpWndClass->cbWndExtra;
+	lpWndClassW->hInstance = lpWndClass->hInstance;
+	lpWndClassW->hIcon = lpWndClass->hIcon;
+	lpWndClassW->hCursor = lpWndClass->hCursor;
+	lpWndClassW->hbrBackground = lpWndClass->hbrBackground;
+	lpWndClassW->lpszMenuName = MultiByteToWideCharInternal(lpWndClass->lpszMenuName);
+	lpWndClassW->lpszClassName = MultiByteToWideCharInternal(lpWndClass->lpszClassName);
+	return RegisterClassW(lpWndClassW);
 }
 
 ATOM WINAPI HookRegisterClassExA(

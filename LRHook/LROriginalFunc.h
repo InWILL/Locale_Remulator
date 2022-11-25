@@ -289,6 +289,10 @@ static BOOL(WINAPI* OriginalPathRenameExtensionA)(
 	LPCSTR pszExt
 	) = PathRenameExtensionA;
 
+static ATOM(WINAPI* OriginalRegisterClassA)(
+	_In_ CONST WNDCLASSA* lpWndClass
+	) = RegisterClassA;
+
 static ATOM(WINAPI* OriginalRegisterClassExA)(
 	_In_ CONST WNDCLASSEXA* lpWndClass
 	) = RegisterClassExA;
