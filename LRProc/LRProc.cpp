@@ -3,6 +3,7 @@
 #include<detours.h>
 #include<cstdio>
 #include<cstring>
+#include<vcclr.h>
 
 #include"../LRCommonLibrary/LRCommonLibrary.h"
 #pragma comment(lib, "LRCommonLibrary.lib")
@@ -16,11 +17,12 @@ using namespace System::Runtime::InteropServices;
 #using <../LRSubMenu/bin/Release/LRSubMenus.dll>
 #endif
 
-//extern "C" __declspec(dllexport) int LRInject(char* filepath, char* dllpath, UINT CodePage)
-//int main(int argc,char* argv[])
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
+const int GuidLength = 37;
+
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdShow)
 {
 	LRCSharpLibrary::LRConfig::CheckConfigFile();
+
 	if (__argc < 3)
 	{
 		MessageBox(
@@ -28,7 +30,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 			TEXT(R"(
 Welcome to Locale Remulator x64 command line tool.
 
-Usage: LRProc.exe LRHookx64.dll GUID Path Args
+Usage: LRProc.exe GUID Path Args
 
 GUID	Guid of the target profile (in LRConfig.xml).
 Path	Full path of the target application.
@@ -42,38 +44,36 @@ You can also run LREditor to use this applicaction.
 		);
 		return 0;
 	}
-	char* DllPath = __argv[1];
-	lpCmdLine = strstr(lpCmdLine, __argv[2]);
-	char* CommandLine = strstr(lpCmdLine, __argv[3]);
-	char* Font;
-	System::String^ Guid = gcnew System::String(__argv[2]);
+
+	System::String^ Guid = gcnew System::String(__wargv[1]);
+	System::String^ CurrentPath = LRCSharpLibrary::LRConfig::CurrentPath;
+	System::String^ DllPath = System::IO::Path::Combine(CurrentPath, "LRHookx64.dll");
+
+	LPSTR dllpath = (LPSTR)(void*)Marshal::StringToHGlobalAnsi(DllPath);
+
+	lpCmdLine = wcsstr(lpCmdLine, __wargv[1]);
+	LPWSTR CommandLine = lpCmdLine + GuidLength;
+
 	LRCSharpLibrary::LRProfile^ alpha = LRCSharpLibrary::LRConfig::GetProfile(Guid);
-	Font = (char*)(void*)Marshal::StringToHGlobalAnsi(alpha->Font);
-	
+
 	LRProfile beta;
 	beta.CodePage = alpha->CodePage;
 	beta.LCID = alpha->LCID;
 	beta.HookIME = alpha->HookIME;
 	beta.HookLCID = alpha->HookLCID;
-    strcpy(beta.lfFaceName, Font);
 
 	LRConfigFileMap filemap;
 	filemap.WrtieConfigFileMap(&beta);
-	
-	STARTUPINFOA si;
+
+	STARTUPINFOW si;
 	PROCESS_INFORMATION pi;
 	ZeroMemory(&si, sizeof(STARTUPINFO));
 	ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
 	si.cb = sizeof(STARTUPINFO);
-    //std::cout << beta.CodePage;
+	//std::cout << beta.CodePage;
 
-	DetourCreateProcessWithDllExA(NULL, CommandLine, NULL,
+	DetourCreateProcessWithDllExW(NULL, CommandLine, NULL,
 		NULL, FALSE, CREATE_DEFAULT_ERROR_MODE, NULL, NULL,
-		&si, &pi, DllPath, NULL);
-    
-	//Sleep(30000);
-	//WaitForSingleObject(pi.hProcess, INFINITE);
-	
-	//filemap.FreeConfigFileMap();
+		&si, &pi, dllpath, NULL);
 	return 0;
 }

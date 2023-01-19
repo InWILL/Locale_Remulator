@@ -20,12 +20,13 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	}
 	switch (ul_reason_for_call) {
 	case DLL_PROCESS_ATTACH:
-		std::cout << "DLL_PROCESS_ATTACH\n";
+		#ifdef _DEBUG
+			std::cout << "DLL_PROCESS_ATTACH\n";
+		#endif
 		//filelog.open("test.log", std::ios::out);
 
 		LRConfigFileMap filemap;
 		filemap.ReadConfigFileMap(&settings);
-		//filemap.FreeConfigFileMap();
 		GetModuleFileNameA(hModule, Original.DllPath, MAX_PATH);
 		//settings.hHeap = HeapCreate(0, 0, 0);
 		//filelog << settings.CodePage << std::endl;
@@ -40,13 +41,19 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 		DetourTransactionCommit();
 		break;
 	case DLL_THREAD_ATTACH:
-		std::cout << "DLL_THREAD_ATTACH\n";
+		#ifdef _DEBUG
+			std::cout << "DLL_THREAD_ATTACH\n";
+		#endif
 		break;
 	case DLL_THREAD_DETACH:
-		std::cout << "DLL_THREAD_DETACH\n";
+		#ifdef _DEBUG
+			std::cout << "DLL_THREAD_DETACH\n";
+		#endif
 		break;
 	case DLL_PROCESS_DETACH:
-		std::cout << "DLL_PROCESS_DETACH\n";
+		#ifdef _DEBUG
+			std::cout << "DLL_PROCESS_DETACH\n";
+		#endif
 		
 		//filelog.close();
 

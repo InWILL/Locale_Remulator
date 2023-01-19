@@ -124,14 +124,15 @@ namespace LREditor
                 string CommandLine = filepath;
                 if (TextBox_Arguments.Text != "Enter Arguments here...")
                 {
-                    CommandLine = filepath + " " + TextBox_Arguments.Text;
+                    CommandLine = "\"" + filepath + "\" " + TextBox_Arguments.Text;
                 }
                 shortcut.TargetPath = LRConfig.CurrentPath + "\\LRProc.exe";
-                shortcut.Arguments = "\"" + dllpath + "\" " + profile.Guid + " " + CommandLine;
+                shortcut.Arguments = profile.Guid + " " + CommandLine;
                 shortcut.IconLocation = filepath;
                 shortcut.WorkingDirectory = Path.GetDirectoryName(filepath);
                 try
                 {
+                    // Add administrator authorized
                     shortcut.Save();
                     if (profile.RunAsAdmin)
                         using (FileStream stream = new FileStream(shortcutAddress, FileMode.Open, FileAccess.ReadWrite))
@@ -168,12 +169,12 @@ namespace LREditor
                 string CommandLine = filepath;
                 if (TextBox_Arguments.Text != "Enter Arguments here...")
                 {
-                    CommandLine = filepath + " " + TextBox_Arguments.Text;
+                    CommandLine = "\"" + filepath + "\" " + TextBox_Arguments.Text;
                 }
                 LRProfile profile = (LRProfile)ComboBox_Profile.SelectedItem;
                 var proc = new Process();
                 proc.StartInfo.FileName = LRConfig.CurrentPath + "\\LRProc.exe";
-                proc.StartInfo.Arguments = "\"" + dllpath + "\" " + profile.Guid + " " + CommandLine;
+                proc.StartInfo.Arguments = profile.Guid + " " + CommandLine;
                 proc.StartInfo.WorkingDirectory = Path.GetDirectoryName(filepath);
                 proc.StartInfo.UseShellExecute = true;
                 if (profile.RunAsAdmin) proc.StartInfo.Verb = "runas";
