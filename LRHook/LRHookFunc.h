@@ -27,6 +27,19 @@ BOOL WINAPI HookGetCPInfo(
 	LPCPINFO  lpCPInfo
 );
 
+static LCID WINAPI HookGetLocaleID(void)
+{
+	return settings.LCID;
+}
+
+static LCID WINAPI HookGetThreadLocale(void) { return HookGetLocaleID(); }
+static LANGID WINAPI HookGetSystemDefaultUILanguage(void) { return (LANGID)HookGetLocaleID(); }
+static LANGID WINAPI HookGetUserDefaultUILanguage(void) { return (LANGID)HookGetLocaleID(); }
+static LCID WINAPI HookGetSystemDefaultLCID(void) { return HookGetLocaleID(); }
+static LCID WINAPI HookGetUserDefaultLCID(void) { return HookGetLocaleID(); }
+static LANGID WINAPI HookGetSystemDefaultLangID(void) { return (LANGID)HookGetLocaleID(); }
+static LANGID WINAPI HookGetUserDefaultLangID(void) { return (LANGID)HookGetLocaleID(); }
+
 HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
 	int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
@@ -294,21 +307,23 @@ LRESULT CALLBACK HookDefWindowProcA(
 	_In_ LPARAM lParam
 );
 
-static LCID WINAPI HookGetLocaleID(void)
-{
-	return settings.LCID;
-}
-
-static LCID WINAPI HookGetThreadLocale(void) { return HookGetLocaleID(); }
-static LANGID WINAPI HookGetSystemDefaultUILanguage(void) { return (LANGID)HookGetLocaleID(); }
-static LANGID WINAPI HookGetUserDefaultUILanguage(void) { return (LANGID)HookGetLocaleID(); }
-static LCID WINAPI HookGetSystemDefaultLCID(void) { return HookGetLocaleID(); }
-static LCID WINAPI HookGetUserDefaultLCID(void) { return HookGetLocaleID(); }
-static LANGID WINAPI HookGetSystemDefaultLangID(void) { return (LANGID)HookGetLocaleID(); }
-static LANGID WINAPI HookGetUserDefaultLangID(void) { return (LANGID)HookGetLocaleID(); }
-
-static DWORD WINAPI HookGetTimeZoneInformation(
+DWORD WINAPI HookGetTimeZoneInformation(
 	_Out_ LPTIME_ZONE_INFORMATION lpTimeZoneInformation
+);
+
+BOOL WINAPI HookCreateDirectoryA(
+	_In_ LPCSTR lpPathName,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes
+);
+
+HANDLE WINAPI HookCreateFileA(
+	_In_ LPCSTR lpFileName,
+	_In_ DWORD dwDesiredAccess,
+	_In_ DWORD dwShareMode,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+	_In_ DWORD dwCreationDisposition,
+	_In_ DWORD dwFlagsAndAttributes,
+	_In_opt_ HANDLE hTemplateFile
 );
 
 //Minhook version Code

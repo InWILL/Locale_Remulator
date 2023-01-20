@@ -315,3 +315,18 @@ static LANGID(WINAPI* OriginalGetUserDefaultLangID)() = GetUserDefaultLangID;
 static DWORD(WINAPI* OriginalGetTimeZoneInformation)(
 	_Out_ LPTIME_ZONE_INFORMATION lpTimeZoneInformation
 	) = GetTimeZoneInformation;
+
+static BOOL(WINAPI* OriginalCreateDirectoryA)(
+	_In_ LPCSTR lpPathName,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes
+) = CreateDirectoryA;
+
+static HANDLE(WINAPI* OriginalCreateFileA)(
+	_In_ LPCSTR lpFileName,
+	_In_ DWORD dwDesiredAccess,
+	_In_ DWORD dwShareMode,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+	_In_ DWORD dwCreationDisposition,
+	_In_ DWORD dwFlagsAndAttributes,
+	_In_opt_ HANDLE hTemplateFile
+	) = CreateFileA;

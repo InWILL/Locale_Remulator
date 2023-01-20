@@ -53,6 +53,8 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalPathRenameExtensionA, HookPathRenameExtensionA);*/
 
 	DetourAttach(&(PVOID&)OriginalGetTimeZoneInformation, HookGetTimeZoneInformation);
+	DetourAttach(&(PVOID&)OriginalCreateDirectoryA, HookCreateDirectoryA);
+	DetourAttach(&(PVOID&)OriginalCreateFileA, HookCreateFileA);
 
 	if (settings.HookLCID)
 	{
@@ -119,6 +121,8 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
 
 	DetourDetach(&(PVOID&)OriginalGetTimeZoneInformation, HookGetTimeZoneInformation);
+	DetourDetach(&(PVOID&)OriginalCreateDirectoryA, HookCreateDirectoryA);
+	DetourDetach(&(PVOID&)OriginalCreateFileA, HookCreateFileA);
 
 	if (settings.HookIME)
 	{
@@ -418,7 +422,7 @@ BOOL WINAPI HookCreateProcessA(
 	_Out_ LPPROCESS_INFORMATION lpProcessInformation
 )
 {
-	//MessageBoxA(NULL, lpApplicationName, "HookCreateProcessA", NULL);
+	//MessageBoxA(NULL, lpCommandLine, "HookCreateProcessA", NULL);
 	return DetourCreateProcessWithDllExA(
 		lpApplicationName,
 		lpCommandLine,
@@ -1099,4 +1103,35 @@ DWORD WINAPI HookGetTimeZoneInformation(
 		lpTimeZoneInformation->Bias = -settings.Bias;
 	}
 	return ret;
+}
+
+BOOL WINAPI HookCreateDirectoryA(
+	_In_ LPCSTR lpPathName,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes
+)
+{
+	LPWSTR lpPathNameW = MultiByteToWideCharInternal(lpPathName);
+	return CreateDirectoryW(lpPathNameW, lpSecurityAttributes);
+}
+
+HANDLE WINAPI HookCreateFileA(
+	_In_ LPCSTR lpFileName,
+	_In_ DWORD dwDesiredAccess,
+	_In_ DWORD dwShareMode,
+	_In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+	_In_ DWORD dwCreationDisposition,
+	_In_ DWORD dwFlagsAndAttributes,
+	_In_opt_ HANDLE hTemplateFile
+)
+{
+	LPWSTR lpFileNameW = MultiByteToWideCharInternal(lpFileName);
+	return CreateFileW(
+		lpFileNameW,
+		dwDesiredAccess,
+		dwShareMode,
+		lpSecurityAttributes,
+		dwCreationDisposition,
+		dwFlagsAndAttributes,
+		hTemplateFile
+	);
 }
