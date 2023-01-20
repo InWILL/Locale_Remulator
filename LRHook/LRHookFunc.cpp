@@ -52,6 +52,8 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalGetFileVersionInfoA, HookGetFileVersionInfoA);
 	DetourAttach(&(PVOID&)OriginalPathRenameExtensionA, HookPathRenameExtensionA);*/
 
+	DetourAttach(&(PVOID&)OriginalGetTimeZoneInformation, HookGetTimeZoneInformation);
+
 	if (settings.HookLCID)
 	{
 		DetourAttach(&(PVOID&)OriginalGetThreadLocale, HookGetThreadLocale);
@@ -115,6 +117,8 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalDialogBoxParamA, HookDialogBoxParamA);
 	DetourDetach(&(PVOID&)OriginalCreateDialogIndirectParamA, HookCreateDialogIndirectParamA);
 	DetourDetach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
+
+	DetourDetach(&(PVOID&)OriginalGetTimeZoneInformation, HookGetTimeZoneInformation);
 
 	if (settings.HookIME)
 	{
@@ -1083,4 +1087,16 @@ LRESULT CALLBACK HookDefWindowProcA(
 		return DefWindowProcW(hWnd, Msg, wParam, lParam);
 	else
 		return OriginalDefWindowProcA(hWnd, Msg, wParam, lParam);
+}
+
+DWORD WINAPI HookGetTimeZoneInformation(
+	_Out_ LPTIME_ZONE_INFORMATION lpTimeZoneInformation
+)
+{
+	DWORD ret = OriginalGetTimeZoneInformation(lpTimeZoneInformation);
+	if (ret != TIME_ZONE_ID_INVALID) {
+		// Warning Bias becomes negative!!!
+		lpTimeZoneInformation->Bias = -settings.Bias;
+	}
+	return ret;
 }

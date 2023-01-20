@@ -26,13 +26,13 @@
                 <ComboBox x:Name="ComboBox_CodePage" VerticalAlignment="Center" Height="22" Margin="89,0,10,0"/>
             </Grid>
         </GroupBox>
-        <GroupBox Header="Font Settings" Grid.Row="2" Margin="0,3,0,0">
+        <GroupBox Header="TimeZone Settings" Grid.Row="2" Margin="0,3,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <Label Content="Font" HorizontalAlignment="Left" VerticalAlignment="Center" Height="26" Width="64" Margin="8,0,0,0"/>
-                <ComboBox x:Name="ComboBox_Fonts" VerticalAlignment="Center" Height="22" Margin="89,0,10,0"/>
+                <Label Content="TimeZone" HorizontalAlignment="Left" VerticalAlignment="Center" Height="26" Width="64" Margin="8,0,0,0"/>
+                <ComboBox x:Name="ComboBox_TimeZone" VerticalAlignment="Center" Height="22" Margin="89,0,10,0"/>
             </Grid>
         </GroupBox>
         <GroupBox Header="Advance Settings" Grid.Row="3" Margin="0,2,0,0">

@@ -49,7 +49,8 @@ namespace LRCSharpLibrary
                                                  p.Element("Location").Value,
                                                  uint.Parse(p.Element("CodePage").Value),
                                                  uint.Parse(p.Element("LCID").Value),
-                                                 p.Element("Font").Value,
+                                                 p.Element("TimeZone").Value,
+                                                 double.Parse(p.Element("Bias").Value),
                                                  bool.Parse(p.Element("RunAsAdmin").Value),
                                                  bool.Parse(p.Element("HookIME").Value),
                                                  bool.Parse(p.Element("HookLCID").Value)
@@ -84,7 +85,8 @@ namespace LRCSharpLibrary
                                                     "ja-JP",
                                                     932,
                                                     0x0411,
-                                                    "None",
+                                                    "Tokyo Standard Time",
+                                                    540,
                                                     false,
                                                     false,
                                                     true
@@ -94,7 +96,8 @@ namespace LRCSharpLibrary
                                                     "ja-JP",
                                                     932,
                                                     0x0411,
-                                                    "None",
+                                                    "Tokyo Standard Time",
+                                                    540,
                                                     true,
                                                     true,
                                                     true
@@ -104,7 +107,8 @@ namespace LRCSharpLibrary
                                                     "zh-TW",
                                                     950,
                                                     0x0404,
-                                                    "None",
+                                                    "Taipei Standard Time",
+                                                    480,
                                                     true,
                                                     true,
                                                     true
@@ -114,7 +118,8 @@ namespace LRCSharpLibrary
                                                     "ko-KR",
                                                     949,
                                                     0x0412,
-                                                    "Gulim",
+                                                    "Korea Standard Time",
+                                                    540,
                                                     true,
                                                     true,
                                                     true
@@ -135,7 +140,8 @@ namespace LRCSharpLibrary
                                           new XElement("Location", p.Location),
                                           new XElement("CodePage",p.CodePage),
                                           new XElement("LCID", p.LCID),
-                                          new XElement("Font", p.Font),
+                                          new XElement("TimeZone", p.TimeZone),
+                                          new XElement("Bias",p.Bias),
                                           new XElement("RunAsAdmin", p.RunAsAdmin),
                                           new XElement("HookIME", p.HookIME),
                                           new XElement("HookLCID", p.HookLCID)

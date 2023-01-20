@@ -13,7 +13,8 @@ namespace LRCSharpLibrary
         public string Location;
         public uint CodePage;
         public uint LCID;
-        public string Font;
+        public string TimeZone;
+        public double Bias;
         public bool RunAsAdmin;
         public bool HookIME;
         public bool HookLCID;
@@ -29,7 +30,8 @@ namespace LRCSharpLibrary
             Location = "ja-JP";
             CodePage = 932;
             LCID = 0x0411;
-            Font = "None";
+            TimeZone = "Tokyo Standard Time";
+            Bias = 540;
             RunAsAdmin = false;
             HookIME = false;
             HookLCID = true;
@@ -41,7 +43,8 @@ namespace LRCSharpLibrary
             this.Location = p.Location;
             this.CodePage = p.CodePage;
             this.LCID = p.LCID;
-            this.Font = p.Font;
+            this.TimeZone = p.TimeZone;
+            this.Bias = p.Bias;
             this.RunAsAdmin = p.RunAsAdmin;
             this.HookIME = p.HookIME;
             this.HookLCID = p.HookLCID;
@@ -51,7 +54,8 @@ namespace LRCSharpLibrary
                          string Location,
                          uint CodePage,
                          uint LCID,
-                         string Font,
+                         string TimeZone,
+                         double Bias,
                          bool RunAsAdmin,
                          bool HookIME,
                          bool HookLCID)
@@ -61,7 +65,8 @@ namespace LRCSharpLibrary
             this.Location = Location;
             this.CodePage = CodePage;
             this.LCID = LCID;
-            this.Font = Font;
+            this.TimeZone = TimeZone;
+            this.Bias = Bias;
             this.RunAsAdmin = RunAsAdmin;
             this.HookIME = HookIME;
             this.HookLCID = HookLCID;

@@ -311,3 +311,7 @@ static LCID(WINAPI* OriginalGetSystemDefaultLCID)() = GetSystemDefaultLCID;
 static LCID(WINAPI* OriginalGetUserDefaultLCID)() = GetUserDefaultLCID;
 static LANGID(WINAPI* OriginalGetSystemDefaultLangID)() = GetSystemDefaultLangID;
 static LANGID(WINAPI* OriginalGetUserDefaultLangID)() = GetUserDefaultLangID;
+
+static DWORD(WINAPI* OriginalGetTimeZoneInformation)(
+	_Out_ LPTIME_ZONE_INFORMATION lpTimeZoneInformation
+	) = GetTimeZoneInformation;

@@ -11,6 +11,7 @@ struct LRProfile
 {
 	UINT CodePage;
 	UINT LCID;
+	long Bias;
 	int HookIME;
 	int HookLCID;
 };

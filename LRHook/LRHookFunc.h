@@ -307,6 +307,10 @@ static LCID WINAPI HookGetUserDefaultLCID(void) { return HookGetLocaleID(); }
 static LANGID WINAPI HookGetSystemDefaultLangID(void) { return (LANGID)HookGetLocaleID(); }
 static LANGID WINAPI HookGetUserDefaultLangID(void) { return (LANGID)HookGetLocaleID(); }
 
+static DWORD WINAPI HookGetTimeZoneInformation(
+	_Out_ LPTIME_ZONE_INFORMATION lpTimeZoneInformation
+);
+
 //Minhook version Code
 /*inline LONG AttachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, LPCSTR DllName)
 {

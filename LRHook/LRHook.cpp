@@ -29,7 +29,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 		filemap.ReadConfigFileMap(&settings);
 		GetModuleFileNameA(hModule, Original.DllPath, MAX_PATH);
 		//settings.hHeap = HeapCreate(0, 0, 0);
-		//filelog << settings.CodePage << std::endl;
+		//filelog << settings.Bias << std::endl;
+
 		Original.hHeap = GetProcessHeap();
 
 		DetourRestoreAfterWith();
