@@ -92,9 +92,6 @@ Please install [Microsoft Visual C++ Redistributable](https://docs.microsoft.com
 
 Please update Locale_Remulator to 1.4.3-beta.2+
 
-## Donate
-
-![收款码405x250](https://user-images.githubusercontent.com/13805009/185916994-6a17d723-27f6-4eec-8571-ad869ad99cf0.png)
 
 ### [English](#english--%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87) | 简体中文
 
