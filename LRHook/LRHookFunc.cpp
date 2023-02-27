@@ -1110,7 +1110,7 @@ BOOL WINAPI HookCreateDirectoryA(
 	_In_opt_ LPSECURITY_ATTRIBUTES lpSecurityAttributes
 )
 {
-	LPWSTR lpPathNameW = MultiByteToWideCharInternal(lpPathName);
+	LPWSTR lpPathNameW = MultiByteToWideCharInternal(lpPathName,Original.CodePage);
 	return CreateDirectoryW(lpPathNameW, lpSecurityAttributes);
 }
 
@@ -1124,7 +1124,7 @@ HANDLE WINAPI HookCreateFileA(
 	_In_opt_ HANDLE hTemplateFile
 )
 {
-	LPWSTR lpFileNameW = MultiByteToWideCharInternal(lpFileName);
+	LPWSTR lpFileNameW = MultiByteToWideCharInternal(lpFileName,Original.CodePage);
 	return CreateFileW(
 		lpFileNameW,
 		dwDesiredAccess,
