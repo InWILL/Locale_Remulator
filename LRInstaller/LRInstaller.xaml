@@ -5,10 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LRInstaller"
         mc:Ignorable="d"
-        Title="LRInstaller" Height="440" Width="393" ResizeMode="CanMinimize">
+        Title="LRInstaller" Height="515" Width="393" ResizeMode="CanMinimize">
     <Grid Margin="0,10,0,-6">
         <Grid.RowDefinitions>
             <RowDefinition Height="170*"/>
+            <RowDefinition Height="75*"/>
             <RowDefinition Height="75*"/>
             <RowDefinition Height="75*"/>
             <RowDefinition Height="75*"/>
@@ -31,7 +32,7 @@
                 <Button x:Name="Button_Restart_Explorer" Content="Restart Windows Explorer" VerticalAlignment="Center" Height="20" Margin="10,0,10,0" Click="Button_Restart_Explorer_Click"/>
             </Grid>
         </GroupBox>
-        <GroupBox Header="(3) Customise your profiles" Grid.Row="3" Margin="10,10,10,10">
+        <GroupBox Header="(3) Customise your profiles (optional)" Grid.Row="3" Margin="10,10,10,10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -40,6 +41,16 @@
             </Grid>
         </GroupBox>
         <TextBlock TextWrapping="Wrap" Margin="10,10,10,10"><Run Text="Welcome to Locale_Remulator!"/><LineBreak/><Run Text="If you want to use LR without installation"/><Run Text=" (i.e., portable application), y"/><Run Text="ou can run LREditor to create shortcut. "/><LineBreak/><Run Text="Please follow the steps below to install LR:"/><LineBreak/><Run Text="   1. Install Locale_Remulator on this PC (requires admin rights)."/><LineBreak/><Run Text="   2. Run LREditor to customise the profile list;"/><LineBreak/><Run Text="   3. Right-click on any application and you will see the Locale_Remulator items. Enjoy!"/></TextBlock>
+        <GroupBox Header="(4) Apply for file types (optional)" Grid.Row="4" Margin="10,10,10,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Button Content="EXE file only" Margin="10,8,10,8" RenderTransformOrigin="0.044,-0.439" Click="Button_FileType_EXE_Click"/>
+                <Button Grid.Column="1" Content="ALL file types" Margin="10,8,9,8" Click="Button_FileType_ALL_Click"/>
+            </Grid>
+        </GroupBox>
 
     </Grid>
 </Window>

@@ -24,27 +24,45 @@ namespace LRInstaller
 
         private void Button_Install_Click(object sender, RoutedEventArgs e)
         {
-            var proc = new Process();
-            proc.StartInfo.FileName = "ServerRegistrationManager.exe";
-            proc.StartInfo.Arguments = "install LRSubMenus.dll -codebase";
-            proc.StartInfo.Verb = "runas";
-            proc.Start();
+            try
+            {
+                var proc = new Process();
+                proc.StartInfo.FileName = "ServerRegistrationManager.exe";
+                proc.StartInfo.Arguments = "install LRSubMenus.dll -codebase";
+                proc.StartInfo.Verb = "runas";
+                proc.Start();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void Button_Uninstall_Click(object sender, RoutedEventArgs e)
         {
-            var proc = new Process();
-            proc.StartInfo.FileName = "ServerRegistrationManager.exe";
-            proc.StartInfo.Arguments = "uninstall LRSubMenus.dll";
-            proc.StartInfo.Verb = "runas";
-            proc.Start();
+            try
+            {
+                var proc = new Process();
+                proc.StartInfo.FileName = "ServerRegistrationManager.exe";
+                proc.StartInfo.Arguments = "uninstall LRSubMenus.dll";
+                proc.StartInfo.Verb = "runas";
+                proc.Start();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
-
-        private void Button_Restart_Explorer_Click(object sender, RoutedEventArgs e)
+        private void Restart_Explorer()
         {
             var explorerProcess = Process.GetProcesses().FirstOrDefault(p => p.ProcessName == "explorer");
             if (explorerProcess != null)
                 explorerProcess.Kill();
+        }
+
+        private void Button_Restart_Explorer_Click(object sender, RoutedEventArgs e)
+        {
+            Restart_Explorer();
         }
 
         private void Button_LREditor_Click(object sender, RoutedEventArgs e)
@@ -54,5 +72,20 @@ namespace LRInstaller
             proc.Start();
         }
 
+        private void Button_FileType_EXE_Click(object sender, RoutedEventArgs e)
+        {
+            LRConfig.FileType = "exe";
+            LRProfile[] profiles = LRConfig.GetProfiles();
+            LRConfig.WriteConfig(profiles);
+            Restart_Explorer();
+        }
+
+        private void Button_FileType_ALL_Click(object sender, RoutedEventArgs e)
+        {
+            LRConfig.FileType = "all";
+            LRProfile[] profiles = LRConfig.GetProfiles();
+            LRConfig.WriteConfig(profiles);
+            Restart_Explorer();
+        }
     }
 }
