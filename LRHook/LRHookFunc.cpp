@@ -55,6 +55,8 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalGetTimeZoneInformation, HookGetTimeZoneInformation);
 	DetourAttach(&(PVOID&)OriginalCreateDirectoryA, HookCreateDirectoryA);
 	DetourAttach(&(PVOID&)OriginalCreateFileA, HookCreateFileA);
+	
+	DetourAttach(&(PVOID&)OriginalGetLocaleInfoW, HookGetLocaleInfoW);
 
 	if (settings.HookLCID)
 	{
@@ -924,7 +926,14 @@ INT_PTR WINAPI HookDialogBoxParamA(
 	_In_ LPARAM dwInitParam
 )
 {
-	return DialogBoxParamW(hInstance, (LPCWSTR)lpTemplateName, hWndParent, lpDialogFunc, dwInitParam);
+	LPWSTR lpTemplateNameW = MultiByteToWideCharInternal(lpTemplateName);
+	return DialogBoxParamW(
+		hInstance, 
+		lpTemplateNameW ? lpTemplateNameW : (LPCWSTR)lpTemplateName, 
+		hWndParent, 
+		lpDialogFunc, 
+		dwInitParam
+	);
 }
 
 HWND WINAPI HookCreateDialogIndirectParamA(
@@ -1134,4 +1143,15 @@ HANDLE WINAPI HookCreateFileA(
 		dwFlagsAndAttributes,
 		hTemplateFile
 	);
+}
+
+int WINAPI HookGetLocaleInfoW(
+	_In_ LCID Locale,
+	_In_ LCTYPE LCType,
+	_Out_writes_opt_(cchData) LPWSTR lpLCData,
+	_In_ int cchData
+)
+{
+	//MessageBoxA(NULL, "HookGetLocaleInfoA", NULL, NULL);
+	return OriginalGetLocaleInfoW(settings.LCID, LCType,lpLCData,cchData);
 }

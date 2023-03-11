@@ -326,6 +326,13 @@ HANDLE WINAPI HookCreateFileA(
 	_In_opt_ HANDLE hTemplateFile
 );
 
+int WINAPI HookGetLocaleInfoW(
+	_In_ LCID Locale,
+	_In_ LCTYPE LCType,
+	_Out_writes_opt_(cchData) LPWSTR lpLCData,
+	_In_ int cchData
+);
+
 //Minhook version Code
 /*inline LONG AttachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, LPCSTR DllName)
 {
