@@ -45,7 +45,7 @@ void AttachFunctions()
 
 	DetourAttach(&(PVOID&)OriginalDialogBoxParamA, HookDialogBoxParamA);
 	DetourAttach(&(PVOID&)OriginalCreateDialogIndirectParamA, HookCreateDialogIndirectParamA);
-	DetourAttach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
+	//DetourAttach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
 	/*DetourAttach(&(PVOID&)OriginalGetModuleFileNameA, HookGetModuleFileNameA);
 	DetourAttach(&(PVOID&)OriginalLoadLibraryExA, HookLoadLibraryExA);
 	DetourAttach(&(PVOID&)OriginalGetFileVersionInfoSizeA, HookGetFileVersionInfoSizeA);
@@ -56,6 +56,7 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalCreateDirectoryA, HookCreateDirectoryA);
 	DetourAttach(&(PVOID&)OriginalCreateFileA, HookCreateFileA);
 	
+	DetourAttach(&(PVOID&)OriginalGetLocaleInfoA, HookGetLocaleInfoA);
 	DetourAttach(&(PVOID&)OriginalGetLocaleInfoW, HookGetLocaleInfoW);
 
 	if (settings.HookLCID)
@@ -110,9 +111,14 @@ void DetachFunctions()
 	//DetourDetach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
 
 	DetourDetach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
-	DetourDetach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
+	//DetourDetach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	DetourDetach(&(PVOID&)OriginalDirectSoundEnumerateA, HookDirectSoundEnumerateA);
+	DetourDetach(&(PVOID&)OriginalCreateFontA, HookCreateFontA);
+	DetourDetach(&(PVOID&)OriginalCreateFontW, HookCreateFontW);
 	DetourDetach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
+	DetourDetach(&(PVOID&)OriginalCreateFontIndirectW, HookCreateFontIndirectW);
+	DetourDetach(&(PVOID&)OriginalCreateFontIndirectExA, HookCreateFontIndirectExA);
+	DetourDetach(&(PVOID&)OriginalCreateFontIndirectExW, HookCreateFontIndirectExW);
 	DetourDetach(&(PVOID&)OriginalTextOutA, HookTextOutA);
 	DetourDetach(&(PVOID&)OriginalDrawTextExA, HookDrawTextExA);
 	DetourDetach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
@@ -125,6 +131,9 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalGetTimeZoneInformation, HookGetTimeZoneInformation);
 	DetourDetach(&(PVOID&)OriginalCreateDirectoryA, HookCreateDirectoryA);
 	DetourDetach(&(PVOID&)OriginalCreateFileA, HookCreateFileA);
+
+	DetourDetach(&(PVOID&)OriginalGetLocaleInfoA, HookGetLocaleInfoA);
+	DetourDetach(&(PVOID&)OriginalGetLocaleInfoW, HookGetLocaleInfoW);
 
 	if (settings.HookIME)
 	{
@@ -1145,6 +1154,16 @@ HANDLE WINAPI HookCreateFileA(
 	);
 }
 
+int WINAPI HookGetLocaleInfoA(
+	_In_ LCID Locale,
+	_In_ LCTYPE LCType,
+	_Out_writes_opt_(cchData) LPSTR lpLCData,
+	_In_ int cchData
+)
+{
+	return OriginalGetLocaleInfoA(settings.LCID, LCType, lpLCData, cchData);
+}
+
 int WINAPI HookGetLocaleInfoW(
 	_In_ LCID Locale,
 	_In_ LCTYPE LCType,
@@ -1152,6 +1171,5 @@ int WINAPI HookGetLocaleInfoW(
 	_In_ int cchData
 )
 {
-	//MessageBoxA(NULL, "HookGetLocaleInfoA", NULL, NULL);
 	return OriginalGetLocaleInfoW(settings.LCID, LCType,lpLCData,cchData);
 }

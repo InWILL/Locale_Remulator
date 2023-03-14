@@ -331,6 +331,13 @@ static HANDLE(WINAPI* OriginalCreateFileA)(
 	_In_opt_ HANDLE hTemplateFile
 	) = CreateFileA;
 
+static int(WINAPI* OriginalGetLocaleInfoA)(
+	_In_ LCID Locale,
+	_In_ LCTYPE LCType,
+	_Out_writes_opt_(cchData) LPSTR lpLCData,
+	_In_ int cchData
+	) = GetLocaleInfoA;
+
 static int(WINAPI* OriginalGetLocaleInfoW)(
 	_In_ LCID Locale,
 	_In_ LCTYPE LCType,
