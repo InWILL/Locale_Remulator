@@ -1129,7 +1129,12 @@ BOOL WINAPI HookCreateDirectoryA(
 )
 {
 	LPWSTR lpPathNameW = MultiByteToWideCharInternal(lpPathName,Original.CodePage);
-	return CreateDirectoryW(lpPathNameW, lpSecurityAttributes);
+	BOOL ret = CreateDirectoryW(lpPathNameW, lpSecurityAttributes);
+	if (lpPathNameW)
+	{
+		FreeStringInternal(lpPathNameW);
+	}
+	return ret;
 }
 
 HANDLE WINAPI HookCreateFileA(
@@ -1143,7 +1148,7 @@ HANDLE WINAPI HookCreateFileA(
 )
 {
 	LPWSTR lpFileNameW = MultiByteToWideCharInternal(lpFileName,Original.CodePage);
-	return CreateFileW(
+	HANDLE ret = CreateFileW(
 		lpFileNameW,
 		dwDesiredAccess,
 		dwShareMode,
@@ -1152,6 +1157,11 @@ HANDLE WINAPI HookCreateFileA(
 		dwFlagsAndAttributes,
 		hTemplateFile
 	);
+	if (lpFileNameW)
+	{
+		FreeStringInternal(lpFileNameW);
+	}
+	return ret;
 }
 
 int WINAPI HookGetLocaleInfoA(
