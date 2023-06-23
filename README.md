@@ -17,7 +17,7 @@ Download available at <https://github.com/InWILL/Locale_Remulator/releases/lates
 
 ## Warning
 
-From 2023.6.21, Nexon updated NGS, now LR would be detected as innormal program and game would be closed with 'NGS Hacking Detected (0xD1040104)'. And if you try too many times, your account would be banned. To deal with this situation, we don't recommend use LR to play Nexon' games. 
+From 2023.6.21, Nexon updated NGS, now LR would be detected as innormal program and game would be closed with `NGS Hacking Detected (0xD1040104)`. And if you try too many times, your account would be banned. To deal with this situation, we don't recommend use LR to play Nexon' games. 
 
 ## Getting Started
 
@@ -111,7 +111,7 @@ Please update Locale_Remulator to 1.4.3-beta.2+
 
 ## 警告
 
-从2023年6月21日起，Nexon更新了NGS，现在LR将被检测为异常程序，并且游戏将被关闭并显示“检测到NGS Hacking (0xD1040104)”。如果您尝试太多次，游戏帐户将被封禁。针对这种情况，我们不建议使用LR来玩Nexon的游戏。
+从2023年6月21日起，Nexon更新了NGS，现在LR将被检测为异常程序，并且游戏将被关闭并显示`检测到NGS Hacking (0xD1040104)`。如果您尝试太多次，游戏帐户将被封禁。针对这种情况，我们不建议使用LR来玩Nexon的游戏。
 
 ## 入门
 
