@@ -433,7 +433,7 @@ BOOL WINAPI HookCreateProcessA(
 	_Out_ LPPROCESS_INFORMATION lpProcessInformation
 )
 {
-	MessageBoxA(NULL, lpCommandLine, "HookCreateProcessA", NULL);
+	//MessageBoxA(NULL, lpCommandLine, "HookCreateProcessA", NULL);
 	return DetourCreateProcessWithDllExA(
 		lpApplicationName,
 		lpCommandLine,
