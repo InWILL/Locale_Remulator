@@ -433,7 +433,7 @@ BOOL WINAPI HookCreateProcessA(
 	_Out_ LPPROCESS_INFORMATION lpProcessInformation
 )
 {
-	//MessageBoxA(NULL, lpCommandLine, "HookCreateProcessA", NULL);
+	MessageBoxA(NULL, lpCommandLine, "HookCreateProcessA", NULL);
 	return DetourCreateProcessWithDllExA(
 		lpApplicationName,
 		lpCommandLine,
@@ -462,7 +462,22 @@ BOOL WINAPI HookCreateProcessW(
 	_Out_ LPPROCESS_INFORMATION lpProcessInformation
 )
 {
-	//MessageBoxW(NULL, lpApplicationName, TEXT("HookCreateProcessW"), NULL);
+	//MessageBoxW(NULL, lpCommandLine, TEXT("HookCreateProcessW"), NULL);
+	if (lpCommandLine && wcsstr(lpCommandLine, L"BlackXchg.aes") != NULL)
+	{
+		return OriginalCreateProcessW(
+			lpApplicationName,
+			lpCommandLine,
+			lpProcessAttributes,
+			lpThreadAttributes,
+			bInheritHandles,
+			dwCreationFlags,
+			lpEnvironment,
+			lpCurrentDirectory,
+			lpStartupInfo,
+			lpProcessInformation
+		);
+	}
 	return DetourCreateProcessWithDllExW(
 		lpApplicationName,
 		lpCommandLine,
