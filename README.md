@@ -11,10 +11,6 @@ The project is similar with Locale-Emulator, but LE doesn't support 64-bit appli
 
 The most important reason is that Japan MapleStory will become 64-bit.
 
-### Warning
-
-From 2023.6.21, Nexon updated NGS, now LR would be detected as innormal program and game would be closed with `NGS Hacking Detected (0xD1040104)`. And if you try too many times, your account would be banned. To deal with this situation, we don't recommend use LR to play Nexon' games. 
-
 ## Download
 
 Download available at <https://github.com/InWILL/Locale_Remulator/releases/latest>.
@@ -104,10 +100,6 @@ Please update Locale_Remulator to 1.4.3-beta.2+
 该项目与Locale-Emulator类似，但LE不支持64位应用程序，所以我基于Detours开始一个新项目。
 
 最重要的原因是日服冒险岛将变成64位。
-
-### 警告
-
-从2023年6月21日起，Nexon更新了NGS，现在LR将被检测为异常程序，并且游戏将被关闭并显示`检测到NGS Hacking (0xD1040104)`。如果您尝试太多次，游戏帐户将被封禁。针对这种情况，我们不建议使用LR来玩Nexon的游戏。
 
 ## 下载
 
