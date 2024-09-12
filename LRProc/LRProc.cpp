@@ -12,9 +12,9 @@ using namespace System::Reflection;
 using namespace System::Runtime::InteropServices;
 
 #ifdef _DEBUG
-#using <../LRSubMenu/bin/Debug/LRSubMenus.dll>
+#using <..\\LRSubMenu\\bin\\Debug\\LRSubMenus.dll>
 #else
-#using <../LRSubMenu/bin/Release/LRSubMenus.dll>
+#using <..\\LRSubMenu\\bin\\Release\\LRSubMenus.dll>
 #endif
 
 const int GuidLength = 37;
