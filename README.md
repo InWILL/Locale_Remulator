@@ -71,6 +71,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 * **InWILL** - *Initial work* - [InWILL](https://github.com/InWILL)
 * **lintx** - [lintx](https://github.com/lintx)
+* **KaiHuaDou** - [KaiHuaDou](https://github.com/KaiHuaDou)
 
 See also the list of [contributors](https://github.com/InWILL/Locale_Remulator/graphs/contributors) who participated in this project.
 
