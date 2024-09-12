@@ -1,16 +1,18 @@
 ﻿<Window x:Class="LREditor.InputBox"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LREditor"
-        mc:Ignorable="d"
-        Title="InputBox" Height="150" Width="300">
-    <Grid>
-        <Label Content="New Name:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBox_NewName" Margin="0,41,10,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="244"/>
-        <Button Content="Cancel" Margin="0,0,10,10" HorizontalAlignment="Right" Width="50" Height="30" VerticalAlignment="Bottom" IsCancel="True"/>
-        <Button Content="Save" Margin="0,0,65,10" HorizontalAlignment="Right" Width="50" Height="30" VerticalAlignment="Bottom" IsDefault="True" Click="Button_Save_Click"/>
-
-    </Grid>
+        Title="InputBox"
+        MaxWidth="320"
+        SizeToContent="WidthAndHeight">
+    <StackPanel Margin="10">
+        <TextBlock Margin="0,0,0,5" Text="New Name:" />
+        <TextBox x:Name="TextBox_NewName" Margin="0,5,0,5" TextWrapping="Wrap" />
+        <StackPanel Margin="0,5,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
+            <Button Margin="0,0,5,0" Padding="20,3"
+                    Click="Button_Save_Click" Content="Save" IsDefault="True" />
+            <Button Margin="5,0,0,0" Padding="20,3"
+                    Content="Cancel" IsCancel="True" />
+        </StackPanel>
+    </StackPanel>
 </Window>
