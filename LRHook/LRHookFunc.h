@@ -96,6 +96,14 @@ HINSTANCE WINAPI HookShellExecuteW(
 	_In_ INT nShowCmd
 );
 
+BOOL WINAPI HookShellExecuteExA(
+_Inout_ SHELLEXECUTEINFOA* pExecInfo
+);
+
+BOOL WINAPI HookShellExecuteExW(
+_Inout_ SHELLEXECUTEINFOW* pExecInfo
+);
+
 int WINAPI HookMessageBoxA(
 	_In_opt_ HWND hWnd,
 	_In_opt_ LPCSTR lpText,

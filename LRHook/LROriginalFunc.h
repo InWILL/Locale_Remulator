@@ -106,6 +106,14 @@ static HINSTANCE(WINAPI* OriginalShellExecuteW)(
 	_In_ INT nShowCmd
 	) = ShellExecuteW;
 
+static BOOL(WINAPI* OriginalShellExecuteExA)(
+	_Inout_ SHELLEXECUTEINFOA* pExecInfo
+	) = ShellExecuteExA;
+
+static BOOL(WINAPI* OriginalShellExecuteExW)(
+	_Inout_ SHELLEXECUTEINFOW* pExecInfo
+	) = ShellExecuteExW;
+
 static int(WINAPI* OriginalMessageBoxA)(
 	_In_opt_ HWND hWnd,
 	_In_opt_ LPCSTR lpText,
