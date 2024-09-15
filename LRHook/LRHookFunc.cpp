@@ -9,12 +9,17 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourAttach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
 	DetourAttach(&(PVOID&)OriginalGetCPInfo, HookGetCPInfo);
+	DetourAttach(&(PVOID&)OriginalGetThreadLocale, HookGetThreadLocale);
+	DetourAttach(&(PVOID&)OriginalGetSystemDefaultUILanguage, HookGetSystemDefaultUILanguage);
+	DetourAttach(&(PVOID&)OriginalGetUserDefaultUILanguage, HookGetUserDefaultUILanguage);
+	DetourAttach(&(PVOID&)OriginalGetSystemDefaultLCID, HookGetSystemDefaultLCID);
+	DetourAttach(&(PVOID&)OriginalGetUserDefaultLCID, HookGetUserDefaultLCID);
+	DetourAttach(&(PVOID&)OriginalGetSystemDefaultLangID, HookGetSystemDefaultLangID);
+	DetourAttach(&(PVOID&)OriginalGetUserDefaultLangID, HookGetUserDefaultLangID);
 	DetourAttach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 
 	DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
-	DetourAttach(&(PVOID&)OriginalRegisterClassA, HookRegisterClassA);
-	DetourAttach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
 	DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
 	DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 
@@ -64,13 +69,8 @@ void AttachFunctions()
 
 	if (settings.HookLCID)
 	{
-		DetourAttach(&(PVOID&)OriginalGetThreadLocale, HookGetThreadLocale);
-		DetourAttach(&(PVOID&)OriginalGetSystemDefaultUILanguage, HookGetSystemDefaultUILanguage);
-		DetourAttach(&(PVOID&)OriginalGetUserDefaultUILanguage, HookGetUserDefaultUILanguage);
-		DetourAttach(&(PVOID&)OriginalGetSystemDefaultLCID, HookGetSystemDefaultLCID);
-		DetourAttach(&(PVOID&)OriginalGetUserDefaultLCID, HookGetUserDefaultLCID);
-		DetourAttach(&(PVOID&)OriginalGetSystemDefaultLangID, HookGetSystemDefaultLangID);
-		DetourAttach(&(PVOID&)OriginalGetUserDefaultLangID, HookGetUserDefaultLangID);
+		DetourAttach(&(PVOID&)OriginalRegisterClassA, HookRegisterClassA);
+		DetourAttach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
 	}
 	
 	Original.CodePage = OriginalGetACP();
@@ -94,12 +94,17 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalGetACP, HookGetACP);
 	DetourDetach(&(PVOID&)OriginalGetOEMCP, HookGetOEMCP);
 	DetourDetach(&(PVOID&)OriginalGetCPInfo, HookGetCPInfo);
+	DetourDetach(&(PVOID&)OriginalGetThreadLocale, HookGetThreadLocale);
+	DetourDetach(&(PVOID&)OriginalGetSystemDefaultUILanguage, HookGetSystemDefaultUILanguage);
+	DetourDetach(&(PVOID&)OriginalGetUserDefaultUILanguage, HookGetUserDefaultUILanguage);
+	DetourDetach(&(PVOID&)OriginalGetSystemDefaultLCID, HookGetSystemDefaultLCID);
+	DetourDetach(&(PVOID&)OriginalGetUserDefaultLCID, HookGetUserDefaultLCID);
+	DetourDetach(&(PVOID&)OriginalGetSystemDefaultLangID, HookGetSystemDefaultLangID);
+	DetourDetach(&(PVOID&)OriginalGetUserDefaultLangID, HookGetUserDefaultLangID);
 	DetourDetach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 
 	DetourDetach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
-	DetourDetach(&(PVOID&)OriginalRegisterClassA, HookRegisterClassA);
-	DetourDetach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
 	DetourDetach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
 	DetourDetach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 	DetourDetach(&(PVOID&)OriginalCharPrevExA, HookCharPrevExA);
@@ -139,6 +144,12 @@ void DetachFunctions()
 
 	DetourDetach(&(PVOID&)OriginalGetLocaleInfoA, HookGetLocaleInfoA);
 	DetourDetach(&(PVOID&)OriginalGetLocaleInfoW, HookGetLocaleInfoW);
+
+	if (settings.HookLCID)
+	{
+		DetourDetach(&(PVOID&)OriginalRegisterClassA, HookRegisterClassA);
+		DetourDetach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
+	}
 
 	if (settings.HookIME)
 	{
