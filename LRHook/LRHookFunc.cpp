@@ -28,8 +28,8 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalCreateProcessW, HookCreateProcessW);
 	//DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
 	//DetourAttach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
-	DetourAttach(&(PVOID&)OriginalShellExecuteExA, HookShellExecuteExA);
-	DetourAttach(&(PVOID&)OriginalShellExecuteExW, HookShellExecuteExW);
+	//DetourAttach(&(PVOID&)OriginalShellExecuteExA, HookShellExecuteExA);
+	//DetourAttach(&(PVOID&)OriginalShellExecuteExW, HookShellExecuteExW);
 	
 	
 	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
@@ -112,8 +112,8 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalCreateProcessW, HookCreateProcessW);
 	//DetourDetach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
 	//DetourDetach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
-	DetourDetach(&(PVOID&)OriginalShellExecuteExA, HookShellExecuteExA);
-	DetourDetach(&(PVOID&)OriginalShellExecuteExW, HookShellExecuteExW);
+	//DetourDetach(&(PVOID&)OriginalShellExecuteExA, HookShellExecuteExA);
+	//DetourDetach(&(PVOID&)OriginalShellExecuteExW, HookShellExecuteExW);
 
 	DetourDetach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourDetach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
@@ -562,28 +562,7 @@ BOOL WINAPI HookShellExecuteExA(
 {
 	//MessageBoxA(NULL, pExecInfo->lpFile, "ShellExecuteExA", NULL);
 
-	STARTUPINFOA si;
-	PROCESS_INFORMATION pi;
-	ZeroMemory(&si, sizeof(STARTUPINFOA));
-	ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
-	si.cb = sizeof(STARTUPINFOA);
-
-	bool ret = DetourCreateProcessWithDllExA(
-		pExecInfo->lpFile, 
-		(LPSTR)pExecInfo->lpParameters, 
-		NULL,
-		NULL, 
-		FALSE, 
-		CREATE_DEFAULT_ERROR_MODE, 
-		NULL, 
-		pExecInfo->lpDirectory,
-		&si, 
-		&pi, 
-		Original.DllPath, 
-		OriginalCreateProcessA
-	);
-
-	return ret;
+	return OriginalShellExecuteExA(pExecInfo);
 }
 
 BOOL WINAPI HookShellExecuteExW(
@@ -592,28 +571,7 @@ BOOL WINAPI HookShellExecuteExW(
 {
 	//MessageBoxW(NULL, L"ShellExecuteExW", L"ShellExecuteExW", NULL);
 
-	STARTUPINFOW si;
-	PROCESS_INFORMATION pi;
-	ZeroMemory(&si, sizeof(STARTUPINFOW));
-	ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
-	si.cb = sizeof(STARTUPINFOW);
-
-	bool ret = DetourCreateProcessWithDllExW(
-		pExecInfo->lpFile,
-		(LPWSTR)pExecInfo->lpParameters,
-		NULL,
-		NULL,
-		FALSE,
-		CREATE_DEFAULT_ERROR_MODE,
-		NULL,
-		pExecInfo->lpDirectory,
-		&si,
-		&pi,
-		Original.DllPath,
-		OriginalCreateProcessW
-	);
-
-	return ret;
+	return OriginalShellExecuteExW(pExecInfo);
 }
 
 BOOL WINAPI HookSetWindowTextA(
