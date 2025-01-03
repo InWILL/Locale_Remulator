@@ -56,10 +56,6 @@ namespace LREditor
 
 		private void Button_SaveAs_Click(object sender, RoutedEventArgs e)
 		{
-			if (ComboBox_Profile.SelectedIndex == -1)
-			{
-				return;
-			}
 			var f = new InputBox();
 			LRProfile item = (LRProfile)ComboBox_Profile.SelectedItem;
 			if (f.ShowDialog() == true && !string.IsNullOrEmpty(f.InputResult))
@@ -126,12 +122,13 @@ namespace LREditor
 				string shortcutAddress = string.Format("{0}.{1}.lnk", filepath, profile.Name);
 				IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(shortcutAddress);
 				string CommandLine = filepath;
-				if (TextBox_Arguments.Text != "Enter Arguments here...")
+				string args = "";
+				if (TextBox_Arguments.Text != "Enter Arguments here..." && !string.IsNullOrWhiteSpace(TextBox_Arguments.Text))
 				{
-					CommandLine = "\"" + filepath + "\" " + TextBox_Arguments.Text;
+					args = TextBox_Arguments.Text;
 				}
 				shortcut.TargetPath = LRConfig.CurrentPath + "\\LRProc.exe";
-				shortcut.Arguments = profile.Guid + " " + CommandLine;
+				shortcut.Arguments = profile.Guid + " " + "\"" + CommandLine + "\"" + args;
 				shortcut.IconLocation = filepath;
 				shortcut.WorkingDirectory = Path.GetDirectoryName(filepath);
 				try
