@@ -125,10 +125,10 @@ namespace LREditor
 				string args = "";
 				if (TextBox_Arguments.Text != "Enter Arguments here..." && !string.IsNullOrWhiteSpace(TextBox_Arguments.Text))
 				{
-					args = TextBox_Arguments.Text;
+					args = " " + TextBox_Arguments.Text;
 				}
 				shortcut.TargetPath = LRConfig.CurrentPath + "\\LRProc.exe";
-				shortcut.Arguments = profile.Guid + " " + "\"" + CommandLine + "\"" + args;
+				shortcut.Arguments = profile.Guid + " \"" + CommandLine + "\"" + args;
 				shortcut.IconLocation = filepath;
 				shortcut.WorkingDirectory = Path.GetDirectoryName(filepath);
 				try
