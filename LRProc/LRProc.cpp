@@ -62,6 +62,13 @@ You can also run LREditor to use this applicaction.
 	beta.Bias = alpha->Bias; // Bias will become negative in HookGetTimeZoneInformation
 	beta.HookIME = alpha->HookIME;
 	beta.HookLCID = alpha->HookLCID;
+	// Convert managed System::String to unmanaged std::wstring
+	std::wstring wLocation;
+	const wchar_t* chars = (const wchar_t*)Marshal::StringToHGlobalUni(alpha->Location).ToPointer();
+	wLocation = chars;
+	Marshal::FreeHGlobal(System::IntPtr((void*)chars));
+	// Set name of Location
+	beta.Location = wLocation.c_str();
 
 	LRConfigFileMap filemap;
 	filemap.WrtieConfigFileMap(&beta);
