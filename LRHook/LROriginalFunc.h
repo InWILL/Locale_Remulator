@@ -28,6 +28,14 @@ static int (WINAPI* OriginalWideCharToMultiByte)(
 	LPBOOL lpUsedDefaultChar
 	) = WideCharToMultiByte;
 
+static int (WINAPI* OriginalGetUserDefaultLocaleName)(
+	LPWSTR lpLocalName,
+	int cchLocalName) = GetUserDefaultLocaleName;
+
+static int (WINAPI* OriginalGetSystemDefaultLocaleName)(
+	LPWSTR lpLocalName,
+	int cchLocalName) = GetSystemDefaultLocaleName;
+
 static UINT(WINAPI* OriginalGetACP)(void) = GetACP;
 static UINT(WINAPI* OriginalGetOEMCP)(void) = GetOEMCP;
 static BOOL(WINAPI* OriginalGetCPInfo)(
