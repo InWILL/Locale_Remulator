@@ -4,6 +4,100 @@ ORIGINAL Original = { NULL };
 
 //OriginalNtUserCreateWindowEx = AttachDllFunc("NtUserCreateWindowEx", HookNtUserCreateWindowEx, "user32.dll");
 
+typedef struct _LARGE_UNICODE_STRING
+{
+	ULONG Length;
+	ULONG MaximumLength : 31;
+	ULONG Ansi : 1;
+
+	union
+	{
+		PWSTR   UnicodeBuffer;
+		PSTR    AnsiBuffer;
+		ULONG64 Buffer;
+	};
+
+} LARGE_UNICODE_STRING, * PLARGE_UNICODE_STRING;
+
+typedef struct _UNICODE_STRING {
+	USHORT Length;
+	USHORT MaximumLength;
+	PWSTR  Buffer;
+} UNICODE_STRING, * PUNICODE_STRING;
+
+typedef struct _STRING {
+	USHORT Length;
+	USHORT MaximumLength;
+	PCHAR Buffer;
+} STRING, * PSTRING;
+
+typedef STRING ANSI_STRING;
+typedef PSTRING PANSI_STRING;
+
+static PVOID OriginalNtUserCreateWindowEx = DetourFindFunction("win32u.dll", "NtUserCreateWindowEx");
+static PVOID OriginalRtlAnsiStringToUnicodeString = DetourFindFunction("ntdll.dll", "RtlAnsiStringToUnicodeString");
+static PVOID OriginalRtlDuplicateUnicodeString = DetourFindFunction("ntdll.dll", "RtlDuplicateUnicodeString");
+
+LRESULT NTAPI WindowProcW(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	WNDPROC             PrevProc;
+	FNUSERMESSAGECALL   MessageCall;
+	PLeGlobalData       GlobalData = LeGetGlobalData();
+
+	PrevProc = (WNDPROC)GlobalData->GetWindowDataA(Window);
+
+	if (Message < countof(MessageTable))
+	{
+		MessageCall = gapfnMessageCall[MessageTable[Message].Function].UserCall;
+		return MessageCall(PrevProc, Window, Message, wParam, lParam);
+	}
+
+	return CallUserMessageCallA();
+}
+
+LRESULT CALLBACK CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	HWND hWnd = (HWND)wParam;
+	WNDPROC OriginalProcA = (WNDPROC)GetWindowLongA(hWnd, GWLP_WNDPROC);
+	SetWindowLongW(hWnd, GWLP_WNDPROC, WindowProcW);
+	return CallNextHookEx(Original.CbtHook, nCode, wParam, lParam);
+}
+
+HWND WINAPI HookNtUserCreateWindowEx(DWORD ex_style, PLARGE_UNICODE_STRING class_name,
+	PLARGE_UNICODE_STRING version, PLARGE_UNICODE_STRING window_name,
+	DWORD style, INT x, INT y, INT cx, INT cy,
+	HWND parent, HMENU menu, HINSTANCE instance, void* params,
+	DWORD flags, HINSTANCE client_instance, DWORD unk, BOOL ansi)
+{
+	static FILE* f = fopen("test.txt", "w");
+	LPSTR lstr;
+	LPWSTR wstr;
+	if (window_name != nullptr && window_name->Buffer != NULL)
+	{
+		//if (window_name->Ansi)
+		{
+			fprintf(f, "%lx %d %d %d\n", ex_style, window_name->Length, window_name->MaximumLength, window_name->Ansi);
+			lstr = WideCharToMultiByteInternal(window_name->UnicodeBuffer, 949);
+			wstr = MultiByteToWideCharInternal(lstr, 949);
+			window_name->AnsiBuffer = lstr;
+			fputs(lstr, f);
+		}
+		Original.CbtHook = SetWindowsHookExA(WH_CBT, CBTProc, NULL, GetCurrentThreadId());
+	}
+
+	typedef HWND(WINAPI* Fn)(DWORD ex_style, PLARGE_UNICODE_STRING class_name,
+		PLARGE_UNICODE_STRING version, PLARGE_UNICODE_STRING window_name,
+		DWORD style, INT x, INT y, INT cx, INT cy,
+		HWND parent, HMENU menu, HINSTANCE instance, void* params,
+		DWORD flags, HINSTANCE client_instance, DWORD unk, BOOL ansi);
+	HWND ret = ((Fn)OriginalNtUserCreateWindowEx)(ex_style, class_name,
+		version, window_name,
+		style, x, y, cx, cy,
+		parent, menu, instance, params,
+		flags, client_instance, unk, ansi);
+	return ret;
+}
+
 void AttachFunctions() 
 {
 	DetourAttach(&(PVOID&)OriginalGetACP, HookGetACP);
@@ -19,74 +113,75 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 
-	DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
-	DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
-	DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
+	DetourAttach(&(PVOID&)OriginalNtUserCreateWindowEx, HookNtUserCreateWindowEx);
+	//DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
+	//DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
+	//DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 
-	DetourAttach(&(PVOID&)OriginalCharPrevExA, HookCharPrevExA);
-	DetourAttach(&(PVOID&)OriginalCharNextExA, HookCharNextExA);
-	DetourAttach(&(PVOID&)OriginalIsDBCSLeadByteEx, HookIsDBCSLeadByteEx);
-	DetourAttach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
-	
-	DetourAttach(&(PVOID&)OriginalWinExec, HookWinExec);
-	DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
-	DetourAttach(&(PVOID&)OriginalCreateProcessW, HookCreateProcessW);
-	//DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
-	//DetourAttach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
-	//DetourAttach(&(PVOID&)OriginalShellExecuteExA, HookShellExecuteExA);
-	//DetourAttach(&(PVOID&)OriginalShellExecuteExW, HookShellExecuteExW);
-	
-	
-	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
-	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
-	DetourAttach(&(PVOID&)OriginalDirectSoundEnumerateA, HookDirectSoundEnumerateA);
-	DetourAttach(&(PVOID&)OriginalCreateFontA, HookCreateFontA);
-	DetourAttach(&(PVOID&)OriginalCreateFontW, HookCreateFontW);
-	DetourAttach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
-	DetourAttach(&(PVOID&)OriginalCreateFontIndirectW, HookCreateFontIndirectW);
-	DetourAttach(&(PVOID&)OriginalCreateFontIndirectExA, HookCreateFontIndirectExA);
-	DetourAttach(&(PVOID&)OriginalCreateFontIndirectExW, HookCreateFontIndirectExW);
-	DetourAttach(&(PVOID&)OriginalTextOutA, HookTextOutA);
-	DetourAttach(&(PVOID&)OriginalDrawTextExA, HookDrawTextExA);
-	DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
-	DetourAttach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
+	//DetourAttach(&(PVOID&)OriginalCharPrevExA, HookCharPrevExA);
+	//DetourAttach(&(PVOID&)OriginalCharNextExA, HookCharNextExA);
+	//DetourAttach(&(PVOID&)OriginalIsDBCSLeadByteEx, HookIsDBCSLeadByteEx);
+	//DetourAttach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
+	//
+	//DetourAttach(&(PVOID&)OriginalWinExec, HookWinExec);
+	//DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
+	//DetourAttach(&(PVOID&)OriginalCreateProcessW, HookCreateProcessW);
+	////DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
+	////DetourAttach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
+	////DetourAttach(&(PVOID&)OriginalShellExecuteExA, HookShellExecuteExA);
+	////DetourAttach(&(PVOID&)OriginalShellExecuteExW, HookShellExecuteExW);
+	//
+	//
+	//DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
+	////DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
+	//DetourAttach(&(PVOID&)OriginalDirectSoundEnumerateA, HookDirectSoundEnumerateA);
+	//DetourAttach(&(PVOID&)OriginalCreateFontA, HookCreateFontA);
+	//DetourAttach(&(PVOID&)OriginalCreateFontW, HookCreateFontW);
+	//DetourAttach(&(PVOID&)OriginalCreateFontIndirectA, HookCreateFontIndirectA);
+	//DetourAttach(&(PVOID&)OriginalCreateFontIndirectW, HookCreateFontIndirectW);
+	//DetourAttach(&(PVOID&)OriginalCreateFontIndirectExA, HookCreateFontIndirectExA);
+	//DetourAttach(&(PVOID&)OriginalCreateFontIndirectExW, HookCreateFontIndirectExW);
+	//DetourAttach(&(PVOID&)OriginalTextOutA, HookTextOutA);
+	//DetourAttach(&(PVOID&)OriginalDrawTextExA, HookDrawTextExA);
+	//DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
+	//DetourAttach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 
-	DetourAttach(&(PVOID&)OriginalDialogBoxParamA, HookDialogBoxParamA);
-	DetourAttach(&(PVOID&)OriginalCreateDialogIndirectParamA, HookCreateDialogIndirectParamA);
-	//DetourAttach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
-	/*DetourAttach(&(PVOID&)OriginalGetModuleFileNameA, HookGetModuleFileNameA);
-	DetourAttach(&(PVOID&)OriginalLoadLibraryExA, HookLoadLibraryExA);
-	DetourAttach(&(PVOID&)OriginalGetFileVersionInfoSizeA, HookGetFileVersionInfoSizeA);
-	DetourAttach(&(PVOID&)OriginalGetFileVersionInfoA, HookGetFileVersionInfoA);
-	DetourAttach(&(PVOID&)OriginalPathRenameExtensionA, HookPathRenameExtensionA);*/
+	//DetourAttach(&(PVOID&)OriginalDialogBoxParamA, HookDialogBoxParamA);
+	//DetourAttach(&(PVOID&)OriginalCreateDialogIndirectParamA, HookCreateDialogIndirectParamA);
+	////DetourAttach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
+	///*DetourAttach(&(PVOID&)OriginalGetModuleFileNameA, HookGetModuleFileNameA);
+	//DetourAttach(&(PVOID&)OriginalLoadLibraryExA, HookLoadLibraryExA);
+	//DetourAttach(&(PVOID&)OriginalGetFileVersionInfoSizeA, HookGetFileVersionInfoSizeA);
+	//DetourAttach(&(PVOID&)OriginalGetFileVersionInfoA, HookGetFileVersionInfoA);
+	//DetourAttach(&(PVOID&)OriginalPathRenameExtensionA, HookPathRenameExtensionA);*/
 
-	DetourAttach(&(PVOID&)OriginalGetTimeZoneInformation, HookGetTimeZoneInformation);
-	DetourAttach(&(PVOID&)OriginalCreateDirectoryA, HookCreateDirectoryA);
-	DetourAttach(&(PVOID&)OriginalCreateFileA, HookCreateFileA);
-	
-	DetourAttach(&(PVOID&)OriginalGetLocaleInfoA, HookGetLocaleInfoA);
-	DetourAttach(&(PVOID&)OriginalGetLocaleInfoW, HookGetLocaleInfoW);
+	//DetourAttach(&(PVOID&)OriginalGetTimeZoneInformation, HookGetTimeZoneInformation);
+	//DetourAttach(&(PVOID&)OriginalCreateDirectoryA, HookCreateDirectoryA);
+	//DetourAttach(&(PVOID&)OriginalCreateFileA, HookCreateFileA);
+	//
+	//DetourAttach(&(PVOID&)OriginalGetLocaleInfoA, HookGetLocaleInfoA);
+	//DetourAttach(&(PVOID&)OriginalGetLocaleInfoW, HookGetLocaleInfoW);
 
-	if (settings.HookLCID)
-	{
-		DetourAttach(&(PVOID&)OriginalRegisterClassA, HookRegisterClassA);
-		DetourAttach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
-	}
-	
-	Original.CodePage = OriginalGetACP();
-	if (settings.HookIME)
-	{
-		if (Original.CodePage == 936 && (settings.CodePage == 932 || settings.CodePage == 950))
-		{
-			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA);
-			DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
-		} 
-		else
-		{
-			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
-			//DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA_WM);
-		}
-	}
+	//if (settings.HookLCID)
+	//{
+	//	DetourAttach(&(PVOID&)OriginalRegisterClassA, HookRegisterClassA);
+	//	DetourAttach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
+	//}
+	//
+	//Original.CodePage = OriginalGetACP();
+	//if (settings.HookIME)
+	//{
+	//	if (Original.CodePage == 936 && (settings.CodePage == 932 || settings.CodePage == 950))
+	//	{
+	//		DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA);
+	//		DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA);
+	//	} 
+	//	else
+	//	{
+	//		DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
+	//		//DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA_WM);
+	//	}
+	//}
 }
 
 void DetachFunctions() 

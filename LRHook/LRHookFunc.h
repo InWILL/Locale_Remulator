@@ -12,6 +12,7 @@ struct ORIGINAL
 	char DllPath[MAX_PATH];
 	const char* lpDefaultChar = "";
 	BOOL lpUsedDefaultChar = TRUE;
+	HHOOK CbtHook;
 };
 
 extern LRProfile settings;
