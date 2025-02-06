@@ -12,7 +12,7 @@
 
 
 LRProfile settings;
-//std::wofstream filelog;
+std::wofstream filelog;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
 	if (DetourIsHelperProcess()) {
@@ -23,7 +23,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 		#ifdef _DEBUG
 			std::cout << "DLL_PROCESS_ATTACH\n";
 		#endif
-		//filelog.open("test.log", std::ios::out);
+		filelog.open("test.log", std::ios::out);
 
 		LRConfigFileMap filemap;
 		filemap.ReadConfigFileMap(&settings);
@@ -56,7 +56,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 			std::cout << "DLL_PROCESS_DETACH\n";
 		#endif
 		
-		//filelog.close();
+		filelog.close();
 
 		DetourTransactionBegin();
 		DetourUpdateThread(GetCurrentThread());
