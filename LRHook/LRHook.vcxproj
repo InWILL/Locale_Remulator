@@ -165,8 +165,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="LRCommonFunc.cpp" />
     <ClCompile Include="LRHook.cpp" />
     <ClCompile Include="LRHookFunc.cpp" />
+    <ClCompile Include="LRWin32u.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LRCommonLibrary\LRCommonLibrary.vcxproj">
@@ -177,8 +179,11 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LRCommonFunc.h" />
     <ClInclude Include="LRHookFunc.h" />
+    <ClInclude Include="LRWin32u.h" />
     <ClInclude Include="LROriginalFunc.h" />
+    <ClInclude Include="MessageTable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

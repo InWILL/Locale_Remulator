@@ -3,16 +3,8 @@
 
 #include "LRHookFunc.h"
 
-#include"../LRCommonLibrary/LRCommonLibrary.h"
-#pragma comment(lib, "LRCommonLibrary.lib")
-
-
 //typedef int (WINAPI* MESSAGEBOXA)(HWND, LPCSTR, LPCSTR, UINT);
 //MESSAGEBOXA fpMessageBoxA = NULL;
-
-
-LRProfile settings;
-//std::wofstream filelog;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
 	if (DetourIsHelperProcess()) {
@@ -23,7 +15,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 		#ifdef _DEBUG
 			std::cout << "DLL_PROCESS_ATTACH\n";
 		#endif
-		//filelog.open("test.log", std::ios::out);
+		filelog.open("test.log", std::ios::out);
 
 		LRConfigFileMap filemap;
 		filemap.ReadConfigFileMap(&settings);
@@ -56,7 +48,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 			std::cout << "DLL_PROCESS_DETACH\n";
 		#endif
 		
-		//filelog.close();
+		filelog.close();
 
 		DetourTransactionBegin();
 		DetourUpdateThread(GetCurrentThread());
