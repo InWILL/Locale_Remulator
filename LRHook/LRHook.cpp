@@ -3,16 +3,8 @@
 
 #include "LRHookFunc.h"
 
-#include"../LRCommonLibrary/LRCommonLibrary.h"
-#pragma comment(lib, "LRCommonLibrary.lib")
-
-
 //typedef int (WINAPI* MESSAGEBOXA)(HWND, LPCSTR, LPCSTR, UINT);
 //MESSAGEBOXA fpMessageBoxA = NULL;
-
-
-LRProfile settings;
-std::wofstream filelog;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
 	if (DetourIsHelperProcess()) {

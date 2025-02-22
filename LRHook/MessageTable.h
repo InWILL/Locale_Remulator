@@ -78,3 +78,33 @@ enum MessageFunctionIndex
     POINTERINPUT = 0x00000042,
     TOUCHHITTESTING = 0x00000043,
 };
+
+typedef LRESULT(NTAPI* UNICODE_MESSAGECALL)(
+    WNDPROC     PrevProc,
+    HWND        Window,
+    UINT        Message,
+    WPARAM      wParam,
+    LPARAM      lParam
+    );
+typedef LRESULT(NTAPI* ANSI_MESSAGECALL)(
+    HWND        Window,
+    UINT        Message,
+    WPARAM      wParam,
+    LPARAM      lParam,
+    ULONG_PTR   xParam,
+    ULONG       xpfnProc,
+    ULONG       Flags
+    );
+
+typedef struct
+{
+    UNICODE_MESSAGECALL KernelCall;
+    ANSI_MESSAGECALL    UserCall;
+
+} MESSAGE_FUNCTION_TABLE;
+
+//MESSAGE_FUNCTION_TABLE MessageCall[] =
+//{
+//    {UNICODE_INLPCREATESTRUCT, ANSI_INLPCREATESTRUCT}, // WM_NULL
+//
+//};

@@ -168,7 +168,7 @@
     <ClCompile Include="LRCommonFunc.cpp" />
     <ClCompile Include="LRHook.cpp" />
     <ClCompile Include="LRHookFunc.cpp" />
-    <ClCompile Include="LRHookWin32u.cpp" />
+    <ClCompile Include="LRWin32u.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LRCommonLibrary\LRCommonLibrary.vcxproj">
@@ -181,7 +181,7 @@
   <ItemGroup>
     <ClInclude Include="LRCommonFunc.h" />
     <ClInclude Include="LRHookFunc.h" />
-    <ClInclude Include="LRHookWin32u.h" />
+    <ClInclude Include="LRWin32u.h" />
     <ClInclude Include="LROriginalFunc.h" />
     <ClInclude Include="MessageTable.h" />
   </ItemGroup>

@@ -1,47 +1,25 @@
 #include"LRHookFunc.h"
-#include"LRHookWin32u.h"
+#include"LRWin32u.h"
 #include"MessageTable.h"
 
-ORIGINAL Original = { NULL };
-
 //OriginalNtUserCreateWindowEx = AttachDllFunc("NtUserCreateWindowEx", HookNtUserCreateWindowEx, "user32.dll");
-
-typedef struct _LARGE_UNICODE_STRING
-{
-	ULONG Length;
-	ULONG MaximumLength : 31;
-	ULONG Ansi : 1;
-
-	union
-	{
-		PWSTR   UnicodeBuffer;
-		PSTR    AnsiBuffer;
-		ULONG64 Buffer;
-	};
-
-} LARGE_UNICODE_STRING, * PLARGE_UNICODE_STRING;
-
-typedef struct _UNICODE_STRING {
-	USHORT Length;
-	USHORT MaximumLength;
-	PWSTR  Buffer;
-} UNICODE_STRING, * PUNICODE_STRING;
-
-typedef struct _STRING {
-	USHORT Length;
-	USHORT MaximumLength;
-	PCHAR Buffer;
-} STRING, * PSTRING;
-
-typedef STRING ANSI_STRING;
-typedef PSTRING PANSI_STRING;
 
 static PVOID OriginalNtUserCreateWindowEx = DetourFindFunction("win32u.dll", "NtUserCreateWindowEx");
 static PVOID OriginalNtUserMessageCall = DetourFindFunction("win32u.dll", "NtUserMessageCall");
 
 HHOOK CbtHook;
 //FILE* f = fopen("test.txt", "w");
-LRESULT NTAPI UserfnINLPCREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+
+/**
+ * @brief 
+ * @param PrevProc 
+ * @param Window 
+ * @param Message 
+ * @param wParam 
+ * @param lParam 
+ * @return 
+ */
+LRESULT NTAPI UNICODE_INLPCREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	LPCREATESTRUCTW CreateStructW;
 	CREATESTRUCTA   CreateStructA;
@@ -51,12 +29,12 @@ LRESULT NTAPI UserfnINLPCREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Message
 	if (CreateStructW)
 	{
 		CreateStructA = *(LPCREATESTRUCTA)CreateStructW;
-		CreateStructA.lpszClass	= WideCharToMultiByteInternal(CreateStructW->lpszClass, 949);
-		CreateStructA.lpszName	= WideCharToMultiByteInternal(CreateStructW->lpszName, 949);
+		CreateStructA.lpszClass	= WideCharToMultiByteInternal(CreateStructW->lpszClass, settings.CodePage);
+		CreateStructA.lpszName	= WideCharToMultiByteInternal(CreateStructW->lpszName, settings.CodePage);
 		
 		lParam = (LPARAM)&CreateStructA;
 
-		LPSTR lstr = WideCharToMultiByteInternal(CreateStructW->lpszName, 949);
+		LPSTR lstr = WideCharToMultiByteInternal(CreateStructW->lpszName, settings.CodePage);
 		//fputws(CreateStructW->lpszName, f);
 		
 		/*if(CreateStructW->lpszName)*/
@@ -65,7 +43,7 @@ LRESULT NTAPI UserfnINLPCREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Message
 	return CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
 }
 
-LRESULT NTAPI KernelINLPCREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
+LRESULT NTAPI ANSI_INLPCREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
 {
 	LPCREATESTRUCTA CreateStructA;
 	CREATESTRUCTW   CreateStructW;
@@ -75,13 +53,14 @@ LRESULT NTAPI KernelINLPCREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, L
 	if (CreateStructA)
 	{
 		CreateStructW = *(LPCREATESTRUCTW)CreateStructA;
-		CreateStructW.lpszClass = MultiByteToWideCharInternal(CreateStructA->lpszClass, 949);
+		CreateStructW.lpszClass = MultiByteToWideCharInternal(CreateStructA->lpszClass, settings.CodePage);
 		if (CreateStructA->lpszClass != nullptr)
 		{
-			CreateStructW.lpszName = MultiByteToWideCharInternal(CreateStructA->lpszName, 949);
+			CreateStructW.lpszName = MultiByteToWideCharInternal(CreateStructA->lpszName, settings.CodePage);
 			
 			CLEAR_FLAG(Flags, WINDOW_FLAG_ANSI);
-			filelog << CreateStructW.lpszName << std::endl;
+			/*if(CreateStructA->lpszName)
+			filelog << CreateStructA->lpszName << std::endl;*/
 		}
 		lParam = (LPARAM)&CreateStructW;
 	}
@@ -113,7 +92,7 @@ LRESULT NTAPI WindowProcW(HWND Window, UINT Message, WPARAM wParam, LPARAM lPara
 	if (Message == WM_CREATE || Message == WM_NCCREATE)
 	{
 		//filelog << std::hex << Message << std::endl;
-		return UserfnINLPCREATESTRUCT(PrevProc, Window, Message, wParam, lParam);
+		return UNICODE_INLPCREATESTRUCT(PrevProc, Window, Message, wParam, lParam);
 	}
 	
 	return CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
@@ -136,12 +115,26 @@ HWND WINAPI HookNtUserCreateWindowEx(DWORD ex_style, PLARGE_UNICODE_STRING class
 	HWND parent, HMENU menu, HINSTANCE instance, void* params,
 	DWORD flags, HINSTANCE client_instance, DWORD unk, BOOL ansi)
 {
-	if (FLAG_ON(ex_style, WS_EX_ANSI))
+	LARGE_UNICODE_STRING UnicodeWindowName;
+
+	InitEmptyLargeString(&UnicodeWindowName);
+
+	LOOP_ONCE
 	{
-		/*fprintf(f, "%lx %d %d %d\n", ex_style, window_name->Length, window_name->MaximumLength, window_name->Ansi);
-		LPSTR lstr = WideCharToMultiByteInternal(window_name->UnicodeBuffer, 949);
-		fputs(lstr, f);*/
-		
+		if (!FLAG_ON(ex_style, WS_EX_ANSI))
+		{
+			break;
+		}
+		if (window_name != nullptr)
+		{
+			if (CaptureAnsiWindowName(window_name, &UnicodeWindowName) == nullptr)
+				break;
+		}
+
+		window_name = &UnicodeWindowName;
+		// fprintf(f, "%lx %d %d %d\n", ex_style, window_name->Length, window_name->MaximumLength, window_name->Ansi);
+		//LPSTR lstr = WideCharToMultiByteInternal(window_name->UnicodeBuffer, 949);
+		//filelog << lstr << std::endl;
 		CbtHook = SetWindowsHookExA(WH_CBT, CBTProc, nullptr, GetCurrentThreadId());
 	}
 
@@ -156,7 +149,8 @@ HWND WINAPI HookNtUserCreateWindowEx(DWORD ex_style, PLARGE_UNICODE_STRING class
 		parent, menu, instance, params,
 		flags, client_instance, unk, ansi);
 
-	UnhookWindowsHookEx(CbtHook);
+	if (CbtHook != nullptr)
+		UnhookWindowsHookEx(CbtHook);
 
 	return ret;
 }
@@ -173,7 +167,7 @@ LRESULT WINAPI HookNtUserMessageCall(
 {
 	if (Message == WM_CREATE || Message == WM_NCCREATE)
 	{
-		return KernelINLPCREATESTRUCT(
+		return ANSI_INLPCREATESTRUCT(
 			Window,
 			Message,
 			wParam,
