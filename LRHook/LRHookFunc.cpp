@@ -5,20 +5,27 @@
 //OriginalNtUserCreateWindowEx = AttachDllFunc("NtUserCreateWindowEx", HookNtUserCreateWindowEx, "user32.dll");
 
 static PVOID OriginalNtUserCreateWindowEx = DetourFindFunction("win32u.dll", "NtUserCreateWindowEx");
-static PVOID OriginalNtUserMessageCall = DetourFindFunction("win32u.dll", "NtUserMessageCall");
+
+typedef LRESULT(WINAPI* NtUserMessageCallFn)(
+	HWND         Window,
+	UINT         Message,
+	WPARAM       wParam,
+	LPARAM       lParam,
+	ULONG_PTR    xParam,
+	ULONG        xpfnProc,
+	ULONG        Flags
+	);
+static NtUserMessageCallFn OriginalNtUserMessageCall = (NtUserMessageCallFn)DetourFindFunction("win32u.dll", "NtUserMessageCall");
 
 HHOOK CbtHook;
 //FILE* f = fopen("test.txt", "w");
 
-/**
- * @brief 
- * @param PrevProc 
- * @param Window 
- * @param Message 
- * @param wParam 
- * @param lParam 
- * @return 
- */
+/* Unicde to Ansi UserCall Functions */
+LRESULT NTAPI UNICODE_EMPTY(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	return CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
+}
+
 LRESULT NTAPI UNICODE_INLPCREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	LPCREATESTRUCTW CreateStructW;
@@ -43,6 +50,21 @@ LRESULT NTAPI UNICODE_INLPCREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Messa
 	return CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
 }
 
+/* Ansi to Unicode KernelCall Functions */
+LRESULT NTAPI ANSI_EMPTY(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
+{
+	return OriginalNtUserMessageCall(
+		Window,
+		Message,
+		wParam,
+		lParam,
+		xParam,
+		xpfnProc,
+		Flags
+	);
+}
+
+
 LRESULT NTAPI ANSI_INLPCREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
 {
 	LPCREATESTRUCTA CreateStructA;
@@ -64,17 +86,7 @@ LRESULT NTAPI ANSI_INLPCREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LP
 		}
 		lParam = (LPARAM)&CreateStructW;
 	}
-
-	typedef LRESULT(WINAPI* Fn)(
-		HWND         Window,
-		UINT         Message,
-		WPARAM       wParam,
-		LPARAM       lParam,
-		ULONG_PTR    xParam,
-		ULONG        xpfnProc,
-		ULONG        Flags
-		);
-	return ((Fn)OriginalNtUserMessageCall)(
+	return OriginalNtUserMessageCall(
 		Window,
 		Message,
 		wParam,
@@ -88,11 +100,9 @@ LRESULT NTAPI ANSI_INLPCREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LP
 LRESULT NTAPI WindowProcW(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	WNDPROC	PrevProc = (WNDPROC)GetPropW(Window, L"OriginalProcA");
-	//filelog << std::hex << Message << std::endl;
-	if (Message == WM_CREATE || Message == WM_NCCREATE)
+	if(Message < MessageSize)
 	{
-		//filelog << std::hex << Message << std::endl;
-		return UNICODE_INLPCREATESTRUCT(PrevProc, Window, Message, wParam, lParam);
+		return MessageTable[Message].UnicodeCall(PrevProc, Window, Message, wParam, lParam);
 	}
 	
 	return CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
@@ -165,9 +175,9 @@ LRESULT WINAPI HookNtUserMessageCall(
 	ULONG        Flags
 )
 {
-	if (Message == WM_CREATE || Message == WM_NCCREATE)
+	if(Message < MessageSize)
 	{
-		return ANSI_INLPCREATESTRUCT(
+		return MessageTable[Message].AnsiCall(
 			Window,
 			Message,
 			wParam,
@@ -177,16 +187,7 @@ LRESULT WINAPI HookNtUserMessageCall(
 			Flags
 		);
 	}
-	typedef LRESULT(WINAPI* Fn)(
-		HWND         Window,
-		UINT         Message,
-		WPARAM       wParam,
-		LPARAM       lParam,
-		ULONG_PTR    xParam,
-		ULONG        xpfnProc,
-		ULONG        Flags
-		);
-	return ((Fn)OriginalNtUserMessageCall)(
+	return OriginalNtUserMessageCall(
 		Window,
 		Message,
 		wParam,
