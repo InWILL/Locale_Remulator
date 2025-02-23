@@ -25,18 +25,6 @@ static LCID WINAPI HookGetSystemDefaultLCID(void) { return HookGetLocaleID(); }
 static LCID WINAPI HookGetUserDefaultLCID(void) { return HookGetLocaleID(); }
 static LANGID WINAPI HookGetSystemDefaultLangID(void) { return (LANGID)HookGetLocaleID(); }
 static LANGID WINAPI HookGetUserDefaultLangID(void) { return (LANGID)HookGetLocaleID(); }
-inline int WINAPI HookGetUserDefaultLocaleName(LPWSTR lpLocalName, int cchLocalName)
-{
-	wcscpy(lpLocalName, settings.Location.c_str() + '\0');
-	return settings.Location.length() + 1;
-}
-
-static int WINAPI HookGetSystemDefaultLocaleName(LPWSTR lpLocalName, int cchLocalName)
-{
-	wcscpy(lpLocalName, settings.Location.c_str() + '\0');
-	return settings.Location.length() + 1;
-}
-
 
 int WINAPI HookMultiByteToWideChar(UINT CodePage, DWORD dwFlags,
 	LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
@@ -102,7 +90,8 @@ inline LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/) {
 
 inline VOID FreeStringInternal(LPVOID pBuffer/*ecx*/)
 {
-	HeapFree(Original.hHeap, 0, pBuffer);
+	if(pBuffer)
+		HeapFree(Original.hHeap, 0, pBuffer);
 }
 
 inline LPWSTR MultiByteToWideCharInternal(LPCSTR lstr, UINT CodePage = CP_ACP)

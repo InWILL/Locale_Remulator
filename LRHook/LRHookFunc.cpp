@@ -28,26 +28,58 @@ LRESULT NTAPI UNICODE_EMPTY(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM 
 
 LRESULT NTAPI UNICODE_INLPCREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-	LPCREATESTRUCTW CreateStructW;
-	CREATESTRUCTA   CreateStructA;
+	LRESULT			Result;
+	LPCREATESTRUCTW	CreateStructW;
+	CREATESTRUCTA	CreateStructA;
 
 	CreateStructW = (LPCREATESTRUCTW)lParam;
+
+	CreateStructA.lpszClass	= nullptr;
+	CreateStructA.lpszName	= nullptr;
 
 	if (CreateStructW)
 	{
 		CreateStructA = *(LPCREATESTRUCTA)CreateStructW;
-		CreateStructA.lpszClass	= WideCharToMultiByteInternal(CreateStructW->lpszClass, settings.CodePage);
-		CreateStructA.lpszName	= WideCharToMultiByteInternal(CreateStructW->lpszName, settings.CodePage);
-		
-		lParam = (LPARAM)&CreateStructA;
+		CreateStructA.lpszClass	= WideCharToMultiByteInternal(CreateStructW->lpszClass);
+		CreateStructA.lpszName	= WideCharToMultiByteInternal(CreateStructW->lpszName);
 
-		LPSTR lstr = WideCharToMultiByteInternal(CreateStructW->lpszName, settings.CodePage);
-		//fputws(CreateStructW->lpszName, f);
-		
-		/*if(CreateStructW->lpszName)*/
-		//filelog << lstr << std::endl;
+		lParam = (LPARAM)&CreateStructA;
 	}
-	return CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
+
+	Result = CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
+
+	FreeStringInternal((LPVOID)CreateStructA.lpszClass);
+	FreeStringInternal((LPVOID)CreateStructA.lpszName);
+
+	return Result;
+}
+
+LRESULT NTAPI UNICODE_INLPMDICREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	LRESULT				Result;
+	LPMDICREATESTRUCTW	MdiCreateStructW;
+	MDICREATESTRUCTA	MdiCreateStructA;
+
+	MdiCreateStructW = (LPMDICREATESTRUCTW)lParam;
+
+	MdiCreateStructA.szClass = nullptr;
+	MdiCreateStructA.szTitle = nullptr;
+
+	if (MdiCreateStructW)
+	{
+		MdiCreateStructA = *(LPMDICREATESTRUCTA)MdiCreateStructW;
+		MdiCreateStructA.szClass = WideCharToMultiByteInternal(MdiCreateStructW->szClass);
+		MdiCreateStructA.szTitle = WideCharToMultiByteInternal(MdiCreateStructW->szTitle);
+
+		lParam = (LPARAM)&MdiCreateStructA;
+	}
+
+	Result = CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
+
+	FreeStringInternal((LPVOID)MdiCreateStructA.szClass);
+	FreeStringInternal((LPVOID)MdiCreateStructA.szTitle);
+
+	return Result;
 }
 
 /* Ansi to Unicode KernelCall Functions */
@@ -67,18 +99,21 @@ LRESULT NTAPI ANSI_EMPTY(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam
 
 LRESULT NTAPI ANSI_INLPCREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
 {
+	LRESULT			Result;
 	LPCREATESTRUCTA CreateStructA;
 	CREATESTRUCTW   CreateStructW;
 
 	CreateStructA = (LPCREATESTRUCTA)lParam;
+	CreateStructW.lpszClass	=	nullptr;
+	CreateStructW.lpszName	=	nullptr;
 	
 	if (CreateStructA)
 	{
 		CreateStructW = *(LPCREATESTRUCTW)CreateStructA;
-		CreateStructW.lpszClass = MultiByteToWideCharInternal(CreateStructA->lpszClass, settings.CodePage);
+		CreateStructW.lpszClass = MultiByteToWideCharInternal(CreateStructA->lpszClass);
 		if (CreateStructA->lpszClass != nullptr)
 		{
-			CreateStructW.lpszName = MultiByteToWideCharInternal(CreateStructA->lpszName, settings.CodePage);
+			CreateStructW.lpszName = MultiByteToWideCharInternal(CreateStructA->lpszName);
 			
 			CLEAR_FLAG(Flags, WINDOW_FLAG_ANSI);
 			/*if(CreateStructA->lpszName)
@@ -86,15 +121,40 @@ LRESULT NTAPI ANSI_INLPCREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LP
 		}
 		lParam = (LPARAM)&CreateStructW;
 	}
-	return OriginalNtUserMessageCall(
-		Window,
-		Message,
-		wParam,
-		lParam,
-		xParam,
-		xpfnProc,
-		Flags
-		);
+	Result = OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
+	FreeStringInternal((LPVOID)CreateStructW.lpszClass);
+	FreeStringInternal((LPVOID)CreateStructW.lpszName);
+	
+	return Result;
+}
+
+LRESULT NTAPI ANSI_INLPMDICREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
+{
+	LRESULT				Result;
+	LPMDICREATESTRUCTA  MdiCreateStructA;
+	MDICREATESTRUCTW    MdiCreateStructW;
+
+	MdiCreateStructA = (LPMDICREATESTRUCTA)lParam;
+	MdiCreateStructW.szClass = nullptr;
+	MdiCreateStructW.szTitle = nullptr;
+
+	if (MdiCreateStructA)
+	{
+		MdiCreateStructW = *(LPMDICREATESTRUCTW)MdiCreateStructA;
+		MdiCreateStructW.szClass = MultiByteToWideCharInternal(MdiCreateStructA->szClass);
+		MdiCreateStructW.szTitle = MultiByteToWideCharInternal(MdiCreateStructA->szTitle);
+
+		CLEAR_FLAG(Flags, WINDOW_FLAG_ANSI);
+
+		lParam = (LPARAM)&MdiCreateStructW;
+	}
+	
+	Result = OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
+
+	FreeStringInternal((LPVOID)MdiCreateStructW.szClass);
+	FreeStringInternal((LPVOID)MdiCreateStructW.szTitle);
+
+	return Result;
 }
 
 LRESULT NTAPI WindowProcW(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
@@ -212,8 +272,6 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalGetUserDefaultLangID, HookGetUserDefaultLangID);
 	DetourAttach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
-	DetourAttach(&(PVOID&)OriginalGetUserDefaultLocaleName, HookGetUserDefaultLocaleName);
-	DetourAttach(&(PVOID&)OriginalGetSystemDefaultLocaleName, HookGetSystemDefaultLocaleName);
 
 	DetourAttach(&(PVOID&)OriginalNtUserCreateWindowEx, HookNtUserCreateWindowEx);
 	DetourAttach(&(PVOID&)OriginalNtUserMessageCall, HookNtUserMessageCall);
@@ -242,8 +300,6 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalGetUserDefaultLangID, HookGetUserDefaultLangID);
 	DetourDetach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
-	DetourDetach(&(PVOID&)OriginalGetUserDefaultLocaleName, HookGetUserDefaultLocaleName);
-	DetourDetach(&(PVOID&)OriginalGetSystemDefaultLocaleName, HookGetSystemDefaultLocaleName);
 
 	
 	DetourDetach(&(PVOID&)OriginalWinExec, HookWinExec);

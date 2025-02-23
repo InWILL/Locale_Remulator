@@ -9,7 +9,6 @@ int LRConfigFileMap::WrtieConfigFileMap(LRProfile *profile)
 	SetEnvironmentVariableW(L"LRBIAS", (LPCWSTR)&profile->Bias);
 	SetEnvironmentVariableW(L"LRHookIME", (LPCWSTR)&profile->HookIME);
 	SetEnvironmentVariableW(L"LRHookLCID", (LPCWSTR)&profile->HookLCID);
-	SetEnvironmentVariableW(L"LRLocation", (LPCWSTR)&profile->Location);
 	return 0;
 }
 
@@ -20,8 +19,5 @@ int LRConfigFileMap::ReadConfigFileMap(LRProfile* profile)
 	GetEnvironmentVariableW(L"LRBIAS", (LPWSTR)&profile->Bias, sizeof(long));
 	GetEnvironmentVariableW(L"LRHookIME", (LPWSTR)&profile->HookIME,sizeof(int));
 	GetEnvironmentVariableW(L"LRHookLCID", (LPWSTR)&profile->HookLCID, sizeof(int));
-	wchar_t buffer[LOCALE_NAME_MAX_LENGTH];
-	GetEnvironmentVariableW(L"LRLocation", buffer, LOCALE_NAME_MAX_LENGTH);
-	profile->Location = buffer;
 	return 0;
 }
