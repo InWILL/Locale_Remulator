@@ -11,11 +11,13 @@
 LRESULT NTAPI UNICODE_EMPTY(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);
 LRESULT NTAPI UNICODE_INLPCREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);
 LRESULT NTAPI UNICODE_INLPMDICREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);
+LRESULT NTAPI UNICODE_INSTRINGNULL(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);
 
 /* Ansi to Unicode KernelCall Functions */
 LRESULT NTAPI ANSI_EMPTY(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags);
 LRESULT NTAPI ANSI_INLPCREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags);
 LRESULT NTAPI ANSI_INLPMDICREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags);
+LRESULT NTAPI ANSI_INSTRINGNULL(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags);
 
 typedef LRESULT(NTAPI* UNICODE_MESSAGECALL)(
     WNDPROC     PrevProc,
@@ -55,7 +57,7 @@ MESSAGE_FUNCTION_TABLE MessageTable[MessageSize] =
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x0009
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_ENABLE
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_SETREDRAW
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_SETTEXT
+    {UNICODE_INSTRINGNULL,          ANSI_INSTRINGNULL       }, // WM_SETTEXT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_GETTEXT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_GETTEXTLENGTH
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_PAINT
@@ -69,7 +71,7 @@ MESSAGE_FUNCTION_TABLE MessageTable[MessageSize] =
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x0017
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_SHOWWINDOW
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x0019
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_SETTINGCHANGE
+    {UNICODE_INSTRINGNULL,          ANSI_INSTRINGNULL       }, // WM_SETTINGCHANGE
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_DEVMODECHANGE
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_ACTIVATEAPP
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_FONTCHANGE
@@ -237,7 +239,7 @@ MESSAGE_FUNCTION_TABLE MessageTable[MessageSize] =
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x00BF
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x00C0
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // EM_LINELENGTH
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // EM_REPLACESEL
+    {UNICODE_INSTRINGNULL,          ANSI_INSTRINGNULL       }, // EM_REPLACESEL
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x00C3
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // EM_GETLINE
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // EM_LIMITTEXT

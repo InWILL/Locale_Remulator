@@ -20,7 +20,9 @@ static NtUserMessageCallFn OriginalNtUserMessageCall = (NtUserMessageCallFn)Deto
 HHOOK CbtHook;
 //FILE* f = fopen("test.txt", "w");
 
+/*************************************/
 /* Unicde to Ansi UserCall Functions */
+/*************************************/
 LRESULT NTAPI UNICODE_EMPTY(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	return CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
@@ -82,7 +84,32 @@ LRESULT NTAPI UNICODE_INLPMDICREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Me
 	return Result;
 }
 
+LRESULT NTAPI UNICODE_INSTRINGNULL(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	LRESULT Result;
+	LPWSTR	Unicode;
+	LPSTR	Ansi;
+
+	Unicode = (LPWSTR)lParam;
+
+	Ansi = nullptr;
+
+	if (Unicode)
+	{
+		Ansi	=	WideCharToMultiByteInternal(Unicode);
+		lParam	=	(LPARAM)Ansi;
+	}
+
+	Result = CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
+	
+	FreeStringInternal(Ansi);
+
+	return Result;
+}
+
+/****************************************/
 /* Ansi to Unicode KernelCall Functions */
+/****************************************/
 LRESULT NTAPI ANSI_EMPTY(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
 {
 	return OriginalNtUserMessageCall(
@@ -154,6 +181,27 @@ LRESULT NTAPI ANSI_INLPMDICREATESTRUCT(HWND Window, UINT Message, WPARAM wParam,
 	FreeStringInternal((LPVOID)MdiCreateStructW.szClass);
 	FreeStringInternal((LPVOID)MdiCreateStructW.szTitle);
 
+	return Result;
+}
+
+LRESULT NTAPI ANSI_INSTRINGNULL(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
+{
+	LRESULT	Result;
+	LPSTR	Ansi;
+	LPWSTR	Unicode;
+
+	Ansi	= (LPSTR)lParam;
+	Unicode	= nullptr;
+
+	if (Ansi)
+	{
+		Unicode = MultiByteToWideCharInternal(Ansi);
+		lParam = (LPARAM)Unicode;
+		CLEAR_FLAG(Flags, WINDOW_FLAG_ANSI);
+	}
+
+	Result = OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
+	FreeStringInternal(Unicode);
 	return Result;
 }
 
