@@ -12,12 +12,22 @@ LRESULT NTAPI UNICODE_EMPTY(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM 
 LRESULT NTAPI UNICODE_INLPCREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);
 LRESULT NTAPI UNICODE_INLPMDICREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);
 LRESULT NTAPI UNICODE_INSTRINGNULL(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);
+LRESULT NTAPI UNICODE_INSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);
+LRESULT NTAPI UNICODE_INCBOXSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);
+LRESULT NTAPI UNICODE_INLBOXSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);
+LRESULT NTAPI UNICODE_OUTLBOXSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);
+LRESULT NTAPI UNICODE_INCNTOUTSTRINGNULL(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);
 
 /* Ansi to Unicode KernelCall Functions */
 LRESULT NTAPI ANSI_EMPTY(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags);
 LRESULT NTAPI ANSI_INLPCREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags);
 LRESULT NTAPI ANSI_INLPMDICREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags);
 LRESULT NTAPI ANSI_INSTRINGNULL(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags);
+LRESULT NTAPI ANSI_INSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags);
+LRESULT NTAPI ANSI_INCBOXSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags);
+LRESULT NTAPI ANSI_INLBOXSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags);
+LRESULT NTAPI ANSI_OUTLBOXSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags);
+LRESULT NTAPI ANSI_INCNTOUTSTRINGNULL(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags);
 
 typedef LRESULT(NTAPI* UNICODE_MESSAGECALL)(
     WNDPROC     PrevProc,
@@ -72,7 +82,7 @@ MESSAGE_FUNCTION_TABLE MessageTable[MessageSize] =
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_SHOWWINDOW
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x0019
     {UNICODE_INSTRINGNULL,          ANSI_INSTRINGNULL       }, // WM_SETTINGCHANGE
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_DEVMODECHANGE
+    {UNICODE_INSTRING,              ANSI_INSTRING           }, // WM_DEVMODECHANGE
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_ACTIVATEAPP
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_FONTCHANGE
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_TIMECHANGE
@@ -368,17 +378,17 @@ MESSAGE_FUNCTION_TABLE MessageTable[MessageSize] =
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_GETEDITSEL
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_LIMITTEXT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_SETEDITSEL
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_ADDSTRING
+    {UNICODE_INCBOXSTRING,          ANSI_INCBOXSTRING       }, // CB_ADDSTRING
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_DELETESTRING
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_DIR
+    {UNICODE_INSTRING,              ANSI_INSTRING           }, // CB_DIR
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_GETCOUNT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_GETCURSEL
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_GETLBTEXT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_GETLBTEXTLEN
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_INSERTSTRING
+    {UNICODE_INCBOXSTRING,          ANSI_INCBOXSTRING       }, // CB_INSERTSTRING
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_RESETCONTENT
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_FINDSTRING
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_SELECTSTRING
+    {UNICODE_INCBOXSTRING,          ANSI_INCBOXSTRING       }, // CB_FINDSTRING
+    {UNICODE_INCBOXSTRING,          ANSI_INCBOXSTRING       }, // CB_SELECTSTRING
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_SETCURSEL
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_SHOWDROPDOWN
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_GETITEMDATA
@@ -389,7 +399,7 @@ MESSAGE_FUNCTION_TABLE MessageTable[MessageSize] =
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_SETEXTENDEDUI
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_GETEXTENDEDUI
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_GETDROPPEDSTATE
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_FINDSTRINGEXACT
+    {UNICODE_INCBOXSTRING,          ANSI_INCBOXSTRING       }, // CB_FINDSTRINGEXACT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_SETLOCALE
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_GETLOCALE
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // CB_GETTOPINDEX
@@ -429,8 +439,8 @@ MESSAGE_FUNCTION_TABLE MessageTable[MessageSize] =
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x017D
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x017E
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x017F
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_ADDSTRING
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_INSERTSTRING
+    {UNICODE_INLBOXSTRING,          ANSI_INLBOXSTRING       }, // LB_ADDSTRING
+    {UNICODE_INLBOXSTRING,          ANSI_INLBOXSTRING       }, // LB_INSERTSTRING
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_DELETESTRING
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_SELITEMRANGEEX
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_RESETCONTENT
@@ -438,20 +448,20 @@ MESSAGE_FUNCTION_TABLE MessageTable[MessageSize] =
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_SETCURSEL
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_GETSEL
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_GETCURSEL
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_GETTEXT
+    {UNICODE_OUTLBOXSTRING,         ANSI_OUTLBOXSTRING      }, // LB_GETTEXT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_GETTEXTLEN
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_GETCOUNT
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_SELECTSTRING
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_DIR
+    {UNICODE_INLBOXSTRING,          ANSI_INLBOXSTRING       }, // LB_SELECTSTRING
+    {UNICODE_INSTRING,              ANSI_INSTRING           }, // LB_DIR
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_GETTOPINDEX
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_FINDSTRING
+    {UNICODE_INLBOXSTRING,          ANSI_INLBOXSTRING       }, // LB_FINDSTRING
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_GETSELCOUNT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_GETSELITEMS
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_SETTABSTOPS
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_GETHORIZONTALEXTENT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_SETHORIZONTALEXTENT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_SETCOLUMNWIDTH
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_ADDFILE
+    {UNICODE_INSTRING,              ANSI_INSTRING           }, // LB_ADDFILE
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_SETTOPINDEX
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_GETITEMRECT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_GETITEMDATA
@@ -463,7 +473,7 @@ MESSAGE_FUNCTION_TABLE MessageTable[MessageSize] =
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_GETCARETINDEX
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_SETITEMHEIGHT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_GETITEMHEIGHT
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_FINDSTRINGEXACT
+    {UNICODE_INLBOXSTRING,          ANSI_INLBOXSTRING       }, // LB_FINDSTRINGEXACT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x01A3
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x01A4
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_SETLOCALE
@@ -471,11 +481,11 @@ MESSAGE_FUNCTION_TABLE MessageTable[MessageSize] =
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_SETCOUNT
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_INITSTORAGE
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_ITEMFROMPOINT
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x01AA
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x01AB
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x01AC
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x01AD
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x01AE
+    {UNICODE_INLBOXSTRING,          ANSI_INLBOXSTRING       }, // 0x01AA
+    {UNICODE_INLBOXSTRING,          ANSI_INLBOXSTRING       }, // 0x01AB
+    {UNICODE_INLBOXSTRING,          ANSI_INLBOXSTRING       }, // 0x01AC
+    {UNICODE_INLBOXSTRING,          ANSI_INLBOXSTRING       }, // 0x01AD
+    {UNICODE_INLBOXSTRING,          ANSI_INLBOXSTRING       }, // 0x01AE
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x01AF
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // 0x01B0
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // LB_MULTIPLEADDSTRING
@@ -825,7 +835,7 @@ MESSAGE_FUNCTION_TABLE MessageTable[MessageSize] =
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_PAINTCLIPBOARD
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_VSCROLLCLIPBOARD
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_SIZECLIPBOARD
-    {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_ASKCBFORMATNAME
+    {UNICODE_INCNTOUTSTRINGNULL,    ANSI_INCNTOUTSTRINGNULL }, // WM_ASKCBFORMATNAME
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_CHANGECBCHAIN
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_HSCROLLCLIPBOARD
     {UNICODE_EMPTY,                 ANSI_EMPTY              }, // WM_QUERYNEWPALETTE

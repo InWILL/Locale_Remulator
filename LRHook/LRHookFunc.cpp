@@ -107,6 +107,59 @@ LRESULT NTAPI UNICODE_INSTRINGNULL(WNDPROC PrevProc, HWND Window, UINT Message, 
 	return Result;
 }
 
+LRESULT NTAPI UNICODE_OUTSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	MessageBoxA(NULL,"UNICODE_OUTSTRING",NULL,NULL);
+	LPWSTR	UnicodeBuffer;
+	LPSTR	AnsiBuffer;
+	UINT	UnicodeSize, AnsiSize;
+
+	UnicodeSize = wParam;
+	UnicodeBuffer = (LPWSTR)lParam;
+
+	AnsiSize = UnicodeSize * sizeof(WCHAR);
+	AnsiBuffer = (LPSTR)AllocateZeroedMemory(AnsiSize);
+	if (AnsiBuffer == nullptr)
+		return 0;
+
+	wParam = AnsiSize;
+	lParam = (LPARAM)AnsiBuffer;
+
+	AnsiSize = CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
+
+	if (AnsiSize != 0)
+		WideCharToMultiByte(CP_ACP, 0, UnicodeBuffer, UnicodeSize, AnsiBuffer, AnsiSize, NULL, NULL);
+
+	FreeStringInternal(AnsiBuffer);
+
+	return AnsiSize / sizeof(WCHAR);
+}
+
+LRESULT NTAPI UNICODE_INSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	return UNICODE_INSTRINGNULL(PrevProc, Window, Message, wParam, lParam);
+}
+
+LRESULT NTAPI UNICODE_INCBOXSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	return UNICODE_INSTRINGNULL(PrevProc, Window, Message, wParam, lParam);
+}
+
+LRESULT NTAPI UNICODE_INLBOXSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	return UNICODE_INSTRINGNULL(PrevProc, Window, Message, wParam, lParam);
+}
+
+LRESULT NTAPI UNICODE_OUTLBOXSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	return UNICODE_INSTRINGNULL(PrevProc, Window, Message, wParam, lParam);
+}
+
+LRESULT NTAPI UNICODE_INCNTOUTSTRINGNULL(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	return UNICODE_INSTRINGNULL(PrevProc, Window, Message, wParam, lParam);
+}
+
 /****************************************/
 /* Ansi to Unicode KernelCall Functions */
 /****************************************/
@@ -203,6 +256,31 @@ LRESULT NTAPI ANSI_INSTRINGNULL(HWND Window, UINT Message, WPARAM wParam, LPARAM
 	Result = OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
 	FreeStringInternal(Unicode);
 	return Result;
+}
+
+LRESULT NTAPI ANSI_INSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
+{
+	return ANSI_INSTRINGNULL(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
+}
+
+LRESULT NTAPI ANSI_INCBOXSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
+{
+	return ANSI_INSTRINGNULL(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
+}
+
+LRESULT NTAPI ANSI_INLBOXSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
+{
+	return ANSI_INSTRINGNULL(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
+}
+
+LRESULT NTAPI ANSI_OUTLBOXSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
+{
+	return ANSI_INSTRINGNULL(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
+}
+
+LRESULT NTAPI ANSI_INCNTOUTSTRINGNULL(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
+{
+	return ANSI_INSTRINGNULL(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
 }
 
 LRESULT NTAPI WindowProcW(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)

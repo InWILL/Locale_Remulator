@@ -84,9 +84,9 @@ BOOL WINAPI HookShellExecuteExW(
 _Inout_ SHELLEXECUTEINFOW* pExecInfo
 );
 
-inline LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/) {
-	return HeapAlloc(Original.hHeap, HEAP_ZERO_MEMORY, size);
-}
+//inline LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/) {
+//	return HeapAlloc(Original.hHeap, HEAP_ZERO_MEMORY, size);
+//}
 
 inline VOID FreeStringInternal(LPVOID pBuffer/*ecx*/)
 {
