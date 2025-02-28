@@ -4,11 +4,25 @@
 
 //OriginalNtUserCreateWindowEx = AttachDllFunc("NtUserCreateWindowEx", HookNtUserCreateWindowEx, "user32.dll");
 
-typedef HWND(WINAPI* NtUserCreateWindowExFn)(DWORD ex_style, PLARGE_UNICODE_STRING class_name,
-	PLARGE_UNICODE_STRING version, PLARGE_UNICODE_STRING window_name,
-	DWORD style, INT x, INT y, INT cx, INT cy,
-	HWND parent, HMENU menu, HINSTANCE instance, void* params,
-	DWORD flags, HINSTANCE client_instance, DWORD unk, BOOL ansi);
+typedef HWND(WINAPI* NtUserCreateWindowExFn)(
+	ULONG                   ExStyle,
+	PLARGE_UNICODE_STRING   ClassName,
+	PLARGE_UNICODE_STRING   ClassVersion,
+	PLARGE_UNICODE_STRING   WindowName,
+	ULONG                   Style,
+	LONG                    X,
+	LONG                    Y,
+	LONG                    Width,
+	LONG                    Height,
+	HWND                    ParentWnd,
+	HMENU                   Menu,
+	PVOID                   Instance,
+	LPVOID                  Param,
+	ULONG                   ShowMode,
+	ULONG                   Unknown1,
+	ULONG                   Unknown2,
+	ULONG                   Unknown3
+	);
 static NtUserCreateWindowExFn OriginalNtUserCreateWindowEx = (NtUserCreateWindowExFn)DetourFindFunction("win32u.dll", "NtUserCreateWindowEx");
 
 typedef LRESULT(WINAPI* NtUserMessageCallFn)(
@@ -366,40 +380,67 @@ LRESULT CALLBACK CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
 	return CallNextHookEx(CbtHook, nCode, wParam, lParam);
 }
 
-HWND WINAPI HookNtUserCreateWindowEx(DWORD ex_style, PLARGE_UNICODE_STRING class_name,
-	PLARGE_UNICODE_STRING version, PLARGE_UNICODE_STRING window_name,
-	DWORD style, INT x, INT y, INT cx, INT cy,
-	HWND parent, HMENU menu, HINSTANCE instance, void* params,
-	DWORD flags, HINSTANCE client_instance, DWORD unk, BOOL ansi)
+HWND WINAPI HookNtUserCreateWindowEx(
+	ULONG                   ExStyle,
+	PLARGE_UNICODE_STRING   ClassName,
+	PLARGE_UNICODE_STRING   ClassVersion,
+	PLARGE_UNICODE_STRING   WindowName,
+	ULONG                   Style,
+	LONG                    X,
+	LONG                    Y,
+	LONG                    Width,
+	LONG                    Height,
+	HWND                    ParentWnd,
+	HMENU                   Menu,
+	PVOID                   Instance,
+	LPVOID                  Param,
+	ULONG                   ShowMode,
+	ULONG                   Unknown1,
+	ULONG                   Unknown2,
+	ULONG                   Unknown3
+)
 {
-	//LARGE_UNICODE_STRING UnicodeWindowName;
+	LARGE_UNICODE_STRING UnicodeWindowName;
 
-	//InitEmptyLargeString(&UnicodeWindowName);
+	InitEmptyLargeString(&UnicodeWindowName);
 
-	//LOOP_ONCE
-	//{
-	//	if (!FLAG_ON(ex_style, WS_EX_ANSI))
-	//	{
-	//		break;
-	//	}
-	//	if (window_name != nullptr)
-	//	{
-	//		if (CaptureAnsiWindowName(window_name, &UnicodeWindowName) == nullptr)
-	//			break;
-	//	}
+	LOOP_ONCE
+	{
+		if (!FLAG_ON(Style, WS_EX_ANSI))
+		{
+			break;
+		}
+		if (WindowName != nullptr)
+		{
+			if (CaptureAnsiWindowName(WindowName, &UnicodeWindowName) == nullptr)
+				break;
+		}
 
-	//	window_name = &UnicodeWindowName;
-	//	//fprintf(f, "%lx %d %d %d\n", ex_style, window_name->Length, window_name->MaximumLength, window_name->Ansi);
-	//	//LPSTR lstr = WideCharToMultiByteInternal(window_name->UnicodeBuffer, 949);
-	//	//filelog << lstr << std::endl;
-	//	
-	//}
-	CbtHook = SetWindowsHookExA(WH_CBT, CBTProc, nullptr, GetCurrentThreadId());
-	HWND ret = OriginalNtUserCreateWindowEx(ex_style, class_name,
-		version, window_name,
-		style, x, y, cx, cy,
-		parent, menu, instance, params,
-		flags, client_instance, unk, ansi);
+		WindowName = &UnicodeWindowName;
+		//fprintf(f, "%lx %d %d %d\n", ex_style, window_name->Length, window_name->MaximumLength, window_name->Ansi);
+		//LPSTR lstr = WideCharToMultiByteInternal(WindowName->UnicodeBuffer, 949);
+		//filelog << lstr << std::endl;
+		CbtHook = SetWindowsHookExA(WH_CBT, CBTProc, nullptr, GetCurrentThreadId());
+	}
+	
+	HWND ret = OriginalNtUserCreateWindowEx(ExStyle,
+		ClassName,
+		ClassVersion,
+		WindowName,
+		Style,
+		X,
+		Y,
+		Width,
+		Height,
+		ParentWnd,
+		Menu,
+		Instance,
+		Param,
+		ShowMode,
+		Unknown1,
+		Unknown2,
+		Unknown3
+	);
 
 	if (CbtHook)
 		UnhookWindowsHookEx(CbtHook);
