@@ -4,7 +4,12 @@
 
 //OriginalNtUserCreateWindowEx = AttachDllFunc("NtUserCreateWindowEx", HookNtUserCreateWindowEx, "user32.dll");
 
-static PVOID OriginalNtUserCreateWindowEx = DetourFindFunction("win32u.dll", "NtUserCreateWindowEx");
+typedef HWND(WINAPI* NtUserCreateWindowExFn)(DWORD ex_style, PLARGE_UNICODE_STRING class_name,
+	PLARGE_UNICODE_STRING version, PLARGE_UNICODE_STRING window_name,
+	DWORD style, INT x, INT y, INT cx, INT cy,
+	HWND parent, HMENU menu, HINSTANCE instance, void* params,
+	DWORD flags, HINSTANCE client_instance, DWORD unk, BOOL ansi);
+static NtUserCreateWindowExFn OriginalNtUserCreateWindowEx = (NtUserCreateWindowExFn)DetourFindFunction("win32u.dll", "NtUserCreateWindowEx");
 
 typedef LRESULT(WINAPI* NtUserMessageCallFn)(
 	HWND         Window,
@@ -17,8 +22,8 @@ typedef LRESULT(WINAPI* NtUserMessageCallFn)(
 	);
 static NtUserMessageCallFn OriginalNtUserMessageCall = (NtUserMessageCallFn)DetourFindFunction("win32u.dll", "NtUserMessageCall");
 
-HHOOK CbtHook;
-//FILE* f = fopen("test.txt", "w");
+HHOOK CbtHook = nullptr;
+FILE* f = fopen("test.txt", "w");
 
 /*************************************/
 /* Unicde to Ansi UserCall Functions */
@@ -92,6 +97,8 @@ LRESULT NTAPI UNICODE_INSTRINGNULL(WNDPROC PrevProc, HWND Window, UINT Message, 
 
 	Unicode = (LPWSTR)lParam;
 
+	MessageBoxW(NULL, Unicode, NULL, NULL);
+
 	Ansi = nullptr;
 
 	if (Unicode)
@@ -140,9 +147,21 @@ LRESULT NTAPI UNICODE_INSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPAR
 	return UNICODE_INSTRINGNULL(PrevProc, Window, Message, wParam, lParam);
 }
 
+LRESULT NTAPI UNICODE_INCNTOUTSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	MessageBoxA(NULL, "UNICODE_INCNTOUTSTRING", NULL, NULL);
+	return CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
+}
+
 LRESULT NTAPI UNICODE_INCBOXSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	return UNICODE_INSTRINGNULL(PrevProc, Window, Message, wParam, lParam);
+}
+
+LRESULT NTAPI UNICODE_OUTCBOXSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	MessageBoxA(NULL, "UNICODE_OUTCBOXSTRING", NULL, NULL);
+	return CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
 }
 
 LRESULT NTAPI UNICODE_INLBOXSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
@@ -158,6 +177,12 @@ LRESULT NTAPI UNICODE_OUTLBOXSTRING(WNDPROC PrevProc, HWND Window, UINT Message,
 LRESULT NTAPI UNICODE_INCNTOUTSTRINGNULL(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	return UNICODE_INSTRINGNULL(PrevProc, Window, Message, wParam, lParam);
+}
+
+LRESULT NTAPI UNICODE_GETDBCSTEXTLENGTHS(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	MessageBoxA(NULL, "UNICODE_GETDBCSTEXTLENGTHS", NULL, NULL);
+	return CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
 }
 
 /****************************************/
@@ -258,14 +283,38 @@ LRESULT NTAPI ANSI_INSTRINGNULL(HWND Window, UINT Message, WPARAM wParam, LPARAM
 	return Result;
 }
 
+LRESULT NTAPI ANSI_OUTSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
+{
+	LRESULT Result;
+	MessageBoxA(NULL, "ANSI_OUTSTRING", NULL, NULL);
+	Result = OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
+	return Result;
+}
+
 LRESULT NTAPI ANSI_INSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
 {
 	return ANSI_INSTRINGNULL(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
 }
 
+LRESULT NTAPI ANSI_INCNTOUTSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
+{
+	LRESULT Result;
+	MessageBoxA(NULL, "ANSI_INCNTOUTSTRING", NULL, NULL);
+	Result = OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
+	return Result;
+}
+
 LRESULT NTAPI ANSI_INCBOXSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
 {
 	return ANSI_INSTRINGNULL(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
+}
+
+LRESULT NTAPI ANSI_OUTCBOXSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
+{
+	LRESULT Result;
+	MessageBoxA(NULL, "ANSI_OUTCBOXSTRING", NULL, NULL);
+	Result = OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
+	return Result;
 }
 
 LRESULT NTAPI ANSI_INLBOXSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
@@ -281,6 +330,14 @@ LRESULT NTAPI ANSI_OUTLBOXSTRING(HWND Window, UINT Message, WPARAM wParam, LPARA
 LRESULT NTAPI ANSI_INCNTOUTSTRINGNULL(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
 {
 	return ANSI_INSTRINGNULL(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
+}
+
+LRESULT NTAPI ANSI_GETDBCSTEXTLENGTHS(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
+{
+	LRESULT Result;
+	MessageBoxA(NULL, "ANSI_GETDBCSTEXTLENGTHS", NULL, NULL);
+	Result = OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
+	return Result;
 }
 
 LRESULT NTAPI WindowProcW(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
@@ -299,9 +356,13 @@ LRESULT CALLBACK CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
 	HWND hWnd = (HWND)wParam;
 	WNDPROC OriginalProcA = (WNDPROC)GetWindowLongA(hWnd, GWLP_WNDPROC);
 
-	SetPropW(hWnd, L"OriginalProcA", OriginalProcA);
+	if (nCode == HCBT_CREATEWND)
+	{
+		SetPropW(hWnd, L"OriginalProcA", OriginalProcA);
 
-	SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG)WindowProcW);
+		SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG)WindowProcW);
+	}
+	
 	return CallNextHookEx(CbtHook, nCode, wParam, lParam);
 }
 
@@ -311,41 +372,36 @@ HWND WINAPI HookNtUserCreateWindowEx(DWORD ex_style, PLARGE_UNICODE_STRING class
 	HWND parent, HMENU menu, HINSTANCE instance, void* params,
 	DWORD flags, HINSTANCE client_instance, DWORD unk, BOOL ansi)
 {
-	LARGE_UNICODE_STRING UnicodeWindowName;
+	//LARGE_UNICODE_STRING UnicodeWindowName;
 
-	InitEmptyLargeString(&UnicodeWindowName);
+	//InitEmptyLargeString(&UnicodeWindowName);
 
-	LOOP_ONCE
-	{
-		if (!FLAG_ON(ex_style, WS_EX_ANSI))
-		{
-			break;
-		}
-		if (window_name != nullptr)
-		{
-			if (CaptureAnsiWindowName(window_name, &UnicodeWindowName) == nullptr)
-				break;
-		}
+	//LOOP_ONCE
+	//{
+	//	if (!FLAG_ON(ex_style, WS_EX_ANSI))
+	//	{
+	//		break;
+	//	}
+	//	if (window_name != nullptr)
+	//	{
+	//		if (CaptureAnsiWindowName(window_name, &UnicodeWindowName) == nullptr)
+	//			break;
+	//	}
 
-		window_name = &UnicodeWindowName;
-		// fprintf(f, "%lx %d %d %d\n", ex_style, window_name->Length, window_name->MaximumLength, window_name->Ansi);
-		//LPSTR lstr = WideCharToMultiByteInternal(window_name->UnicodeBuffer, 949);
-		//filelog << lstr << std::endl;
-		CbtHook = SetWindowsHookExA(WH_CBT, CBTProc, nullptr, GetCurrentThreadId());
-	}
-
-	typedef HWND(WINAPI* Fn)(DWORD ex_style, PLARGE_UNICODE_STRING class_name,
-		PLARGE_UNICODE_STRING version, PLARGE_UNICODE_STRING window_name,
-		DWORD style, INT x, INT y, INT cx, INT cy,
-		HWND parent, HMENU menu, HINSTANCE instance, void* params,
-		DWORD flags, HINSTANCE client_instance, DWORD unk, BOOL ansi);
-	HWND ret = ((Fn)OriginalNtUserCreateWindowEx)(ex_style, class_name,
+	//	window_name = &UnicodeWindowName;
+	//	//fprintf(f, "%lx %d %d %d\n", ex_style, window_name->Length, window_name->MaximumLength, window_name->Ansi);
+	//	//LPSTR lstr = WideCharToMultiByteInternal(window_name->UnicodeBuffer, 949);
+	//	//filelog << lstr << std::endl;
+	//	
+	//}
+	CbtHook = SetWindowsHookExA(WH_CBT, CBTProc, nullptr, GetCurrentThreadId());
+	HWND ret = OriginalNtUserCreateWindowEx(ex_style, class_name,
 		version, window_name,
 		style, x, y, cx, cy,
 		parent, menu, instance, params,
 		flags, client_instance, unk, ansi);
 
-	if (CbtHook != nullptr)
+	if (CbtHook)
 		UnhookWindowsHookEx(CbtHook);
 
 	return ret;
@@ -361,27 +417,17 @@ LRESULT WINAPI HookNtUserMessageCall(
 	ULONG        Flags
 )
 {
-	if(Message < MessageSize)
+	LOOP_ONCE
 	{
-		return MessageTable[Message].AnsiCall(
-			Window,
-			Message,
-			wParam,
-			lParam,
-			xParam,
-			xpfnProc,
-			Flags
-		);
+		if (Message >= MessageSize)
+			break;
+
+		if (!FLAG_ON(Flags, WINDOW_FLAG_ANSI))
+			break;
+
+		return MessageTable[Message].AnsiCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
 	}
-	return OriginalNtUserMessageCall(
-		Window,
-		Message,
-		wParam,
-		lParam,
-		xParam,
-		xpfnProc,
-		Flags
-		);
+	return OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
 }
 
 void AttachFunctions() 
