@@ -406,7 +406,7 @@ HWND WINAPI HookNtUserCreateWindowEx(
 
 	LOOP_ONCE
 	{
-		if (!FLAG_ON(Style, WS_EX_ANSI))
+		if (!FLAG_ON(ExStyle, WS_EX_ANSI))
 		{
 			break;
 		}
