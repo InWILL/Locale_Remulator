@@ -163,7 +163,7 @@ LRESULT NTAPI UNICODE_INSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPAR
 
 LRESULT NTAPI UNICODE_INCNTOUTSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-	MessageBoxA(NULL, "UNICODE_INCNTOUTSTRING", NULL, NULL);
+	//MessageBoxA(NULL, "UNICODE_INCNTOUTSTRING", NULL, NULL);
 	return CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
 }
 
@@ -174,7 +174,7 @@ LRESULT NTAPI UNICODE_INCBOXSTRING(WNDPROC PrevProc, HWND Window, UINT Message, 
 
 LRESULT NTAPI UNICODE_OUTCBOXSTRING(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-	MessageBoxA(NULL, "UNICODE_OUTCBOXSTRING", NULL, NULL);
+	//MessageBoxA(NULL, "UNICODE_OUTCBOXSTRING", NULL, NULL);
 	return CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
 }
 
@@ -195,7 +195,7 @@ LRESULT NTAPI UNICODE_INCNTOUTSTRINGNULL(WNDPROC PrevProc, HWND Window, UINT Mes
 
 LRESULT NTAPI UNICODE_GETDBCSTEXTLENGTHS(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-	MessageBoxA(NULL, "UNICODE_GETDBCSTEXTLENGTHS", NULL, NULL);
+	//MessageBoxA(NULL, "UNICODE_GETDBCSTEXTLENGTHS", NULL, NULL);
 	return CallWindowProcA(PrevProc, Window, Message, wParam, lParam);
 }
 
@@ -374,7 +374,7 @@ LRESULT CALLBACK CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
 	{
 		SetPropW(hWnd, L"OriginalProcA", OriginalProcA);
 
-		SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG)WindowProcW);
+		SetWindowLongW(hWnd, GWLP_WNDPROC, (LONG)WindowProcW);
 	}
 	
 	return CallNextHookEx(CbtHook, nCode, wParam, lParam);
@@ -486,6 +486,7 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 
+	//DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
 	DetourAttach(&(PVOID&)OriginalNtUserCreateWindowEx, HookNtUserCreateWindowEx);
 	DetourAttach(&(PVOID&)OriginalNtUserMessageCall, HookNtUserMessageCall);
 
@@ -528,12 +529,11 @@ HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
 	int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-	LPCWSTR wstrlpClassName = lpClassName ? MultiByteToWideCharInternal(lpClassName) : NULL;
-	LPCWSTR wstrlpWindowName = lpWindowName ? MultiByteToWideCharInternal(lpWindowName) : NULL;
-	HWND ret = CreateWindowExW(
+	CbtHook = SetWindowsHookExA(WH_CBT, CBTProc, nullptr, GetCurrentThreadId());
+	HWND ret = OriginalCreateWindowExA(
 		dwExStyle,
-		wstrlpClassName,
-		wstrlpWindowName,
+		lpClassName,
+		lpWindowName,
 		dwStyle,
 		X,
 		Y,
@@ -544,14 +544,8 @@ HWND WINAPI HookCreateWindowExA(
 		hInstance,
 		lpParam
 	);
-	if (wstrlpClassName)
-	{
-		FreeStringInternal((LPVOID)wstrlpClassName);
-	}
-	if (wstrlpWindowName)
-	{
-		FreeStringInternal((LPVOID)wstrlpWindowName);
-	}
+	if (CbtHook)
+		UnhookWindowsHookEx(CbtHook);
 	return ret;
 }
 
