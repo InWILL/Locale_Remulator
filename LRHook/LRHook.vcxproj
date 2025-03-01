@@ -167,6 +167,7 @@
   <ItemGroup>
     <ClCompile Include="LRHook.cpp" />
     <ClCompile Include="LRHookFunc.cpp" />
+    <ClCompile Include="User32Hook.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LRCommonLibrary\LRCommonLibrary.vcxproj">
@@ -179,6 +180,7 @@
   <ItemGroup>
     <ClInclude Include="LRHookFunc.h" />
     <ClInclude Include="LROriginalFunc.h" />
+    <ClInclude Include="User32Hook.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,4 +1,7 @@
+#include<detours.h>
 #include"LRHookFunc.h"
+#include"LROriginalFunc.h"
+#include"User32Hook.h"
 
 ORIGINAL Original = { NULL };
 

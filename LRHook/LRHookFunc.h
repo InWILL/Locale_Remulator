@@ -1,7 +1,5 @@
 #pragma once
 #include<Windows.h>
-#include<detours.h>
-#include"LROriginalFunc.h"
 #include"../LRCommonLibrary/LRCommonLibrary.h"
 #pragma comment(lib, "LRCommonLibrary.lib")
 
