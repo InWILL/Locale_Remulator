@@ -18,8 +18,6 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalGetUserDefaultLangID, HookGetUserDefaultLangID);
 	DetourAttach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
-	DetourAttach(&(PVOID&)OriginalGetUserDefaultLocaleName, HookGetUserDefaultLocaleName);
-	DetourAttach(&(PVOID&)OriginalGetSystemDefaultLocaleName, HookGetSystemDefaultLocaleName);
 
 	DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
 	DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
@@ -105,8 +103,6 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalGetUserDefaultLangID, HookGetUserDefaultLangID);
 	DetourDetach(&(PVOID&)OriginalMultiByteToWideChar, HookMultiByteToWideChar);
 	DetourDetach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
-	DetourDetach(&(PVOID&)OriginalGetUserDefaultLocaleName, HookGetUserDefaultLocaleName);
-	DetourDetach(&(PVOID&)OriginalGetSystemDefaultLocaleName, HookGetSystemDefaultLocaleName);
 
 	DetourDetach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
 	DetourDetach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);

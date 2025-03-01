@@ -14,7 +14,6 @@ struct LRProfile
 	long Bias;
 	int HookIME;
 	int HookLCID;
-	std::wstring Location;
 };
 
 const int BUF_SIZE = sizeof(LRProfile);

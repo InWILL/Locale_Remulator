@@ -39,17 +39,6 @@ static LCID WINAPI HookGetSystemDefaultLCID(void) { return HookGetLocaleID(); }
 static LCID WINAPI HookGetUserDefaultLCID(void) { return HookGetLocaleID(); }
 static LANGID WINAPI HookGetSystemDefaultLangID(void) { return (LANGID)HookGetLocaleID(); }
 static LANGID WINAPI HookGetUserDefaultLangID(void) { return (LANGID)HookGetLocaleID(); }
-inline int WINAPI HookGetUserDefaultLocaleName(LPWSTR lpLocalName, int cchLocalName)
-{
-	wcscpy(lpLocalName, settings.Location.c_str() + '\0');
-	return settings.Location.length() + 1;
-}
-
-static int WINAPI HookGetSystemDefaultLocaleName(LPWSTR lpLocalName, int cchLocalName)
-{
-	wcscpy(lpLocalName, settings.Location.c_str() + '\0');
-	return settings.Location.length() + 1;
-}
 
 HWND WINAPI HookCreateWindowExA(
 	DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle,
