@@ -1,11 +1,49 @@
-#include<detours.h>
 #include"LRHookFunc.h"
-#include"LROriginalFunc.h"
 #include"User32Hook.h"
 
 ORIGINAL Original = { NULL };
 
 //OriginalNtUserCreateWindowEx = AttachDllFunc("NtUserCreateWindowEx", HookNtUserCreateWindowEx, "user32.dll");
+
+LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/) {
+	return HeapAlloc(Original.hHeap, HEAP_ZERO_MEMORY, size);
+}
+
+VOID FreeStringInternal(LPVOID pBuffer/*ecx*/)
+{
+	HeapFree(Original.hHeap, 0, pBuffer);
+}
+
+LPWSTR MultiByteToWideCharInternal(LPCSTR lstr, UINT CodePage)
+{
+	int lsize = lstrlenA(lstr)/* size without '\0' */, n = 0;
+	int wsize = (lsize + 1) << 1;
+	LPWSTR wstr = (LPWSTR)HeapAlloc(Original.hHeap, 0, wsize);
+	if (wstr) {
+		if (CodePage)
+			n = OriginalMultiByteToWideChar(CodePage, 0, lstr, lsize, wstr, wsize);
+		else
+			n = MultiByteToWideChar(CodePage, 0, lstr, lsize, wstr, wsize);
+		wstr[n] = L'\0'; // make tail ! 
+	}
+	return wstr;
+}
+
+LPSTR WideCharToMultiByteInternal(LPCWSTR wstr, UINT CodePage)
+{
+	int wsize = lstrlenW(wstr)/* size without '\0' */, n = 0;
+	int lsize = (wsize + 1) << 1;
+	LPSTR lstr = (LPSTR)HeapAlloc(Original.hHeap, 0, lsize);
+	if (lstr) {
+		if (CodePage)
+			n = OriginalWideCharToMultiByte(CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
+		else
+			n = WideCharToMultiByte(CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
+		lstr[n] = '\0'; // make tail ! 
+	}
+	return lstr;
+}
+
 
 void AttachFunctions() 
 {

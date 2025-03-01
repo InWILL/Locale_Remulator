@@ -1,5 +1,7 @@
 #pragma once
 #include<Windows.h>
+#include<detours.h>
+#include"LROriginalFunc.h"
 #include"../LRCommonLibrary/LRCommonLibrary.h"
 #pragma comment(lib, "LRCommonLibrary.lib")
 
@@ -15,6 +17,12 @@ struct ORIGINAL
 extern LRProfile settings;
 extern ORIGINAL Original;
 extern std::wofstream filelog;
+
+LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/);
+VOID FreeStringInternal(LPVOID pBuffer/*ecx*/);
+LPWSTR MultiByteToWideCharInternal(LPCSTR lstr, UINT CodePage = CP_ACP);
+LPSTR WideCharToMultiByteInternal(LPCWSTR wstr, UINT CodePage = CP_ACP);
+
 
 void AttachFunctions();
 void DetachFunctions();
@@ -364,42 +372,3 @@ inline LONG DetachDllFunc(LPCSTR lpszFuncName, LPVOID lpHookAddress, LPCSTR DllN
 	return DetourDetach(&funcptr, lpHookAddress);
 	// return the original funcaddress !
 }*/
-
-inline LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/) {
-	return HeapAlloc(Original.hHeap, HEAP_ZERO_MEMORY, size);
-}
-
-inline VOID FreeStringInternal(LPVOID pBuffer/*ecx*/)
-{
-	HeapFree(Original.hHeap, 0, pBuffer);
-}
-
-inline LPWSTR MultiByteToWideCharInternal(LPCSTR lstr, UINT CodePage = CP_ACP)
-{
-	int lsize = lstrlenA(lstr)/* size without '\0' */, n = 0;
-	int wsize = (lsize + 1) << 1;
-	LPWSTR wstr = (LPWSTR)HeapAlloc(Original.hHeap, 0, wsize);
-	if (wstr) {
-		if (CodePage)
-			n = OriginalMultiByteToWideChar(CodePage, 0, lstr, lsize, wstr, wsize);
-		else
-			n = MultiByteToWideChar(CodePage, 0, lstr, lsize, wstr, wsize);
-		wstr[n] = L'\0'; // make tail ! 
-	}
-	return wstr;
-}
-
-inline LPSTR WideCharToMultiByteInternal(LPCWSTR wstr, UINT CodePage = CP_ACP)
-{
-	int wsize = lstrlenW(wstr)/* size without '\0' */, n = 0;
-	int lsize = (wsize + 1) << 1;
-	LPSTR lstr = (LPSTR)HeapAlloc(Original.hHeap, 0, lsize);
-	if (lstr) {
-		if (CodePage)
-			n = OriginalWideCharToMultiByte(CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
-		else
-			n = WideCharToMultiByte(CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
-		lstr[n] = '\0'; // make tail ! 
-	}
-	return lstr;
-}
