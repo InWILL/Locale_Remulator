@@ -5,6 +5,314 @@ ORIGINAL Original = { NULL };
 
 //OriginalNtUserCreateWindowEx = AttachDllFunc("NtUserCreateWindowEx", HookNtUserCreateWindowEx, "user32.dll");
 
+typedef struct _UNICODE_STRING {
+	USHORT Length;
+	USHORT MaximumLength;
+	PWSTR  Buffer;
+} UNICODE_STRING, * PUNICODE_STRING;
+
+typedef struct _STRING {
+	USHORT Length;
+	USHORT MaximumLength;
+	PCHAR Buffer;
+} ANSI_STRING, * PANSI_STRING;
+
+typedef struct _OBJECT_ATTRIBUTES {
+	ULONG Length;
+	HANDLE RootDirectory;
+	PUNICODE_STRING ObjectName;
+	ULONG Attributes;
+	PVOID SecurityDescriptor;        // Points to type SECURITY_DESCRIPTOR
+	PVOID SecurityQualityOfService;  // Points to type SECURITY_QUALITY_OF_SERVICE
+} OBJECT_ATTRIBUTES, * POBJECT_ATTRIBUTES;
+
+typedef struct
+{
+	UNICODE_STRING  DosPath;
+	HANDLE          Handle;
+} CURDIR;
+
+typedef struct
+{
+	/* 0x000 */ USHORT      Flags;
+	/* 0x002 */ USHORT      Length;
+	/* 0x004 */ ULONG       TimeStamp;
+	/* 0x008 */ ANSI_STRING DosPath;
+} RTL_DRIVE_LETTER_CURDIR;
+
+typedef struct
+{
+	/* 0x000 */ ULONG                   MaximumLength;
+	/* 0x004 */ ULONG                   Length;
+	/* 0x008 */ ULONG                   Flags;
+	/* 0x00c */ ULONG                   DebugFlags;
+	/* 0x010 */ HANDLE                  ConsoleHandle;
+	/* 0x014 */ ULONG                   ConsoleFlags;
+	/* 0x018 */ HANDLE                  StandardInput;
+	/* 0x01c */ HANDLE                  StandardOutput;
+	/* 0x020 */ HANDLE                  StandardError;
+	/* 0x024 */ CURDIR                  CurrentDirectory;
+	/* 0x030 */ UNICODE_STRING          DllPath;
+	/* 0x038 */ UNICODE_STRING          ImagePathName;
+	/* 0x040 */ UNICODE_STRING          CommandLine;
+	/* 0x048 */ PWCHAR                  Environment;
+	/* 0x04c */ ULONG                   StartingX;
+	/* 0x050 */ ULONG                   StartingY;
+	/* 0x054 */ ULONG                   CountX;
+	/* 0x058 */ ULONG                   CountY;
+	/* 0x05c */ ULONG                   CountCharsX;
+	/* 0x060 */ ULONG                   CountCharsY;
+	/* 0x064 */ ULONG                   FillAttribute;
+	/* 0x068 */ ULONG                   WindowFlags;
+	/* 0x06c */ ULONG                   ShowWindowFlags;
+	/* 0x070 */ UNICODE_STRING          WindowTitle;
+	/* 0x078 */ UNICODE_STRING          DesktopInfo;
+	/* 0x080 */ UNICODE_STRING          ShellInfo;
+	/* 0x088 */ UNICODE_STRING          RuntimeData;
+	/* 0x090 */ RTL_DRIVE_LETTER_CURDIR CurrentDirectores[32];
+	/* 0x290 */ ULONG_PTR               EnvironmentSize;
+	/* 0x294 */ ULONG_PTR               EnvironmentVersion;
+} RTL_USER_PROCESS_PARAMETERS, * PRTL_USER_PROCESS_PARAMETERS;
+
+typedef enum _PS_CREATE_STATE
+{
+	PsCreateInitialState = 0,
+	PsCreateFailOnFileOpen = 1,
+	PsCreateFailOnSectionCreate = 2,
+	PsCreateFailExeFormat = 3,
+	PsCreateFailMachineMismatch = 4,
+	PsCreateFailExeName = 5,    // Debugger specified
+	PsCreateSuccess = 6,
+
+	PsCreateMaximumStates
+
+} PS_CREATE_STATE;
+
+typedef struct _PS_CREATE_INFO
+{
+	SIZE_T Size;
+	PS_CREATE_STATE State;
+	union
+	{
+		// PsCreateInitialState
+		struct
+		{
+			union
+			{
+				ULONG InitFlags;
+				struct
+				{
+					UCHAR WriteOutputOnExit : 1;
+					UCHAR DetectManifest : 1;
+					UCHAR SpareBits1 : 6;
+					UCHAR IFEOKeyState : 2; // PS_IFEO_KEY_STATE
+					UCHAR SpareBits2 : 6;
+					USHORT ProhibitedImageCharacteristics : 16;
+				};
+			};
+			ACCESS_MASK AdditionalFileAccess;
+		} InitState;
+
+		// PsCreateFailOnSectionCreate
+		struct
+		{
+			HANDLE FileHandle;
+		} FailSection;
+
+		// PsCreateFailExeName
+		struct
+		{
+			HANDLE IFEOKey;
+		} ExeName;
+
+		// PsCreateSuccess
+		struct
+		{
+			union
+			{
+				ULONG OutputFlags;
+				struct
+				{
+					UCHAR ProtectedProcess : 1;
+					UCHAR AddressSpaceOverride : 1;
+					UCHAR DevOverrideEnabled : 1; // from Image File Execution Options
+					UCHAR ManifestDetected : 1;
+					UCHAR SpareBits1 : 4;
+					UCHAR SpareBits2 : 8;
+					USHORT SpareBits3 : 16;
+				};
+			};
+
+			HANDLE FileHandle;
+			HANDLE SectionHandle;
+			ULONGLONG UserProcessParametersNative;
+			ULONG UserProcessParametersWow64;
+			ULONG CurrentParameterFlags;
+			ULONGLONG PebAddressNative;
+			ULONG PebAddressWow64;
+			ULONGLONG ManifestAddress;
+			ULONG ManifestSize;
+		} SuccessState;
+	};
+} PS_CREATE_INFO, * PPS_CREATE_INFO;
+
+typedef struct _PS_ATTRIBUTE
+{
+	//    ULONG       Attribute;
+	USHORT      AttributeNumber;
+	USHORT      AttributeFlags;
+
+	ULONG_PTR   Size;
+
+	union
+	{
+		ULONG_PTR   Value;
+		PVOID       ValuePtr;
+	};
+
+	PULONG_PTR  ReturnLength;
+
+} PS_ATTRIBUTE, * PPS_ATTRIBUTE;
+
+typedef struct _PS_ATTRIBUTE_LIST
+{
+	ULONG_PTR       TotalLength;
+	PS_ATTRIBUTE    Attributes[1];
+} PS_ATTRIBUTE_LIST, * PPS_ATTRIBUTE_LIST;
+
+typedef NTSTATUS(NTAPI *NtCreateUserProcessFn)(
+	OUT     PHANDLE                         ProcessHandle,
+	OUT     PHANDLE                         ThreadHandle,
+	IN      ACCESS_MASK                     ProcessDesiredAccess,
+	IN      ACCESS_MASK                     ThreadDesiredAccess,
+	IN      POBJECT_ATTRIBUTES              ProcessObjectAttributes OPTIONAL,
+	IN      POBJECT_ATTRIBUTES              ThreadObjectAttributes OPTIONAL,
+	IN      ULONG                           ProcessFlags,                   // PROCESS_CREATE_FLAGS_*
+	IN      ULONG                           ThreadFlags,                    // THREAD_CREATE_FLAGS_*
+	IN      PRTL_USER_PROCESS_PARAMETERS    ProcessParameters,
+	IN OUT  PPS_CREATE_INFO                 CreateInfo,
+	IN      PPS_ATTRIBUTE_LIST              AttributeList
+);
+
+typedef BOOL(WINAPI *CreateProcessInternalWFn)(
+	HANDLE hUserToken,
+	LPCWSTR lpApplicationName,
+	LPWSTR lpCommandLine,
+	LPSECURITY_ATTRIBUTES lpProcessAttributes,
+	LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	BOOL bInheritHandles,
+	DWORD dwCreationFlags,
+	LPVOID lpEnvironment,
+	LPCWSTR lpCurrentDirectory,
+	LPSTARTUPINFOW lpStartupInfo,
+	LPPROCESS_INFORMATION lpProcessInformation,
+	OPTIONAL PHANDLE hRestrictedUserToken
+);
+
+static NtCreateUserProcessFn OriginalNtCreateUserProcess = (NtCreateUserProcessFn)DetourFindFunction("ntdll.dll", "NtCreateUserProcess");
+static CreateProcessInternalWFn OriginalCreateProcessInternalW = (CreateProcessInternalWFn)DetourFindFunction("kernelbase.dll", "CreateProcessInternalW");
+
+NTSTATUS NTAPI HookNtCreateUserProcess(
+	OUT     PHANDLE                         ProcessHandle,
+	OUT     PHANDLE                         ThreadHandle,
+	IN      ACCESS_MASK                     ProcessDesiredAccess,
+	IN      ACCESS_MASK                     ThreadDesiredAccess,
+	IN      POBJECT_ATTRIBUTES              ProcessObjectAttributes OPTIONAL,
+	IN      POBJECT_ATTRIBUTES              ThreadObjectAttributes OPTIONAL,
+	IN      ULONG                           ProcessFlags,                   // PROCESS_CREATE_FLAGS_*
+	IN      ULONG                           ThreadFlags,                    // THREAD_CREATE_FLAGS_*
+	IN      PRTL_USER_PROCESS_PARAMETERS    ProcessParameters,
+	IN OUT  PPS_CREATE_INFO                 CreateInfo,
+	IN      PPS_ATTRIBUTE_LIST              AttributeList
+)
+{
+	MessageBoxA(NULL, NULL, "HookNtCreateUserProcess", NULL);
+	return OriginalNtCreateUserProcess(
+		ProcessHandle,
+		ThreadHandle,
+		ProcessDesiredAccess,
+		ThreadDesiredAccess,
+		ProcessObjectAttributes OPTIONAL,
+		ThreadObjectAttributes OPTIONAL,
+		ProcessFlags,                   // PROCESS_CREATE_FLAGS_*
+		ThreadFlags,                    // THREAD_CREATE_FLAGS_*
+		ProcessParameters,
+		CreateInfo,
+		AttributeList
+	);
+}
+
+BOOL WINAPI LRCreateProcessInternalW(
+_In_opt_ LPCWSTR lpApplicationName,
+_Inout_opt_ LPWSTR lpCommandLine,
+_In_opt_ LPSECURITY_ATTRIBUTES lpProcessAttributes,
+_In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes,
+_In_ BOOL bInheritHandles,
+_In_ DWORD dwCreationFlags,
+_In_opt_ LPVOID lpEnvironment,
+_In_opt_ LPCWSTR lpCurrentDirectory,
+_In_ LPSTARTUPINFOW lpStartupInfo,
+_Out_ LPPROCESS_INFORMATION lpProcessInformation
+)
+{
+	return OriginalCreateProcessInternalW(
+		NULL,
+		lpApplicationName,
+		lpCommandLine,
+		lpProcessAttributes,
+		lpThreadAttributes,
+		bInheritHandles,
+		dwCreationFlags,
+		lpEnvironment,
+		lpCurrentDirectory,
+		lpStartupInfo,
+		lpProcessInformation,
+		NULL
+	);
+}
+
+BOOL WINAPI HookCreateProcessInternalW(
+	HANDLE hUserToken,
+	LPCWSTR lpApplicationName,
+	LPWSTR lpCommandLine,
+	LPSECURITY_ATTRIBUTES lpProcessAttributes,
+	LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	BOOL bInheritHandles,
+	DWORD dwCreationFlags,
+	LPVOID lpEnvironment,
+	LPCWSTR lpCurrentDirectory,
+	LPSTARTUPINFOW lpStartupInfo,
+	LPPROCESS_INFORMATION lpProcessInformation,
+	OPTIONAL PHANDLE hRestrictedUserToken
+)
+{
+	if (!OriginalCreateProcessInternalW(
+		hUserToken,
+		lpApplicationName,
+		lpCommandLine,
+		lpProcessAttributes,
+		lpThreadAttributes,
+		bInheritHandles,
+		dwCreationFlags | CREATE_SUSPENDED,
+		lpEnvironment,
+		lpCurrentDirectory,
+		lpStartupInfo,
+		lpProcessInformation,
+		hRestrictedUserToken))
+	{
+		return FALSE;
+	}
+	//MessageBoxW(NULL, lpApplicationName, L"HookCreateProcessInternalW", NULL);
+	LPCSTR sz = Original.DllPath;
+	DetourUpdateProcessWithDll(lpProcessInformation->hProcess, &sz, 1);
+	DetourProcessViaHelperW(lpProcessInformation->dwProcessId, Original.DllPath, LRCreateProcessInternalW);
+	if (!(dwCreationFlags & CREATE_SUSPENDED)) {
+		ResumeThread(lpProcessInformation->hThread);
+	}
+
+	return TRUE;
+}
+
 LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/) {
 	return HeapAlloc(Original.hHeap, HEAP_ZERO_MEMORY, size);
 }
@@ -69,9 +377,15 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalIsDBCSLeadByteEx, HookIsDBCSLeadByteEx);
 	DetourAttach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
 	
-	DetourAttach(&(PVOID&)OriginalWinExec, HookWinExec);
+	//DetourAttach(&(PVOID&)OriginalNtCreateUserProcess, HookNtCreateUserProcess);
+#ifdef _WIN64
 	DetourAttach(&(PVOID&)OriginalCreateProcessA, HookCreateProcessA);
 	DetourAttach(&(PVOID&)OriginalCreateProcessW, HookCreateProcessW);
+#else
+	DetourAttach(&(PVOID&)OriginalCreateProcessInternalW, HookCreateProcessInternalW);
+#endif
+	
+	//DetourAttach(&(PVOID&)OriginalWinExec, HookWinExec);
 	//DetourAttach(&(PVOID&)OriginalShellExecuteA, HookShellExecuteA);
 	//DetourAttach(&(PVOID&)OriginalShellExecuteW, HookShellExecuteW);
 	//DetourAttach(&(PVOID&)OriginalShellExecuteExA, HookShellExecuteExA);
