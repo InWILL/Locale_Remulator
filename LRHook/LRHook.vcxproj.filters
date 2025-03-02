@@ -38,5 +38,8 @@
     <ClInclude Include="User32Hook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="KernelbaseHook.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,24 +1,11 @@
 #include"LRHookFunc.h"
 #include"User32Hook.h"
+#include"KernelbaseHook.h"
 
 ORIGINAL Original = { NULL };
 
 //OriginalNtUserCreateWindowEx = AttachDllFunc("NtUserCreateWindowEx", HookNtUserCreateWindowEx, "user32.dll");
 
-typedef BOOL(WINAPI *CreateProcessInternalWFn)(
-	HANDLE hUserToken,
-	LPCWSTR lpApplicationName,
-	LPWSTR lpCommandLine,
-	LPSECURITY_ATTRIBUTES lpProcessAttributes,
-	LPSECURITY_ATTRIBUTES lpThreadAttributes,
-	BOOL bInheritHandles,
-	DWORD dwCreationFlags,
-	LPVOID lpEnvironment,
-	LPCWSTR lpCurrentDirectory,
-	LPSTARTUPINFOW lpStartupInfo,
-	LPPROCESS_INFORMATION lpProcessInformation,
-	OPTIONAL PHANDLE hRestrictedUserToken
-);
 static CreateProcessInternalWFn OriginalCreateProcessInternalW = (CreateProcessInternalWFn)DetourFindFunction("kernelbase.dll", "CreateProcessInternalW");
 
 BOOL WINAPI LRCreateProcessInternalW(

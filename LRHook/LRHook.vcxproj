@@ -178,6 +178,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="KernelbaseHook.h" />
     <ClInclude Include="LRHookFunc.h" />
     <ClInclude Include="LROriginalFunc.h" />
     <ClInclude Include="User32Hook.h" />
