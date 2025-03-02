@@ -135,7 +135,7 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalWideCharToMultiByte, HookWideCharToMultiByte);
 
 	DetourAttach(&(PVOID&)OriginalCreateWindowExA, HookCreateWindowExA);
-	DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
+	//DetourAttach(&(PVOID&)OriginalDefWindowProcA, HookDefWindowProcA);
 	DetourAttach(&(PVOID&)OriginalMessageBoxA, HookMessageBoxA);
 
 	DetourAttach(&(PVOID&)OriginalCharPrevExA, HookCharPrevExA);
@@ -158,7 +158,7 @@ void AttachFunctions()
 	//DetourAttach(&(PVOID&)OriginalShellExecuteExW, HookShellExecuteExW);
 	
 	
-	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
+	//DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
 	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	DetourAttach(&(PVOID&)OriginalDirectSoundEnumerateA, HookDirectSoundEnumerateA);
 	DetourAttach(&(PVOID&)OriginalCreateFontA, HookCreateFontA);
@@ -190,8 +190,8 @@ void AttachFunctions()
 
 	if (settings.HookLCID)
 	{
-		DetourAttach(&(PVOID&)OriginalRegisterClassA, HookRegisterClassA);
-		DetourAttach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);
+		/*DetourAttach(&(PVOID&)OriginalRegisterClassA, HookRegisterClassA);
+		DetourAttach(&(PVOID&)OriginalRegisterClassExA, HookRegisterClassExA);*/
 	}
 	
 	Original.CodePage = OriginalGetACP();
