@@ -415,87 +415,51 @@ static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WP
 	//if (lstrcmpiA(classname, "TListBox") == 0) {
 	//ntprintfA(256, 1, "%s: proc-%p hwnd=%p, msg=%04x, wParam=%d, lParam=%d\n", __FUNCTION__, lpProcAddress, hWnd, uMsg, wParam, lParam);
 	//}
-	switch (uMsg) {
-	case WM_SETTEXT:
-	case WM_SETTINGCHANGE:
-	case EM_REPLACESEL:
-	case WM_DEVMODECHANGE:
-	case CB_DIR:
-	case LB_DIR:
-	case LB_ADDFILE:
-	case CB_ADDSTRING:
-	case CB_INSERTSTRING:
-	case CB_FINDSTRING:
-	case CB_SELECTSTRING:
-	case CB_FINDSTRINGEXACT:
-	case LB_ADDSTRING:
-	case LB_INSERTSTRING:
-	case LB_SELECTSTRING:
-	case LB_FINDSTRING:
-	case LB_FINDSTRINGEXACT:
+	switch (uMsg)
 	{
-		return ANSI_INSTRINGNULL(hWnd, uMsg, wParam, lParam);
-	}	break;
-	case WM_IME_CHAR: // LN309
-	case WM_CHAR: // LN309
-	{
-		if ((wchar_t)wParam > 0x7F) { // is multibyte ... 
-			// here we exchange the order : 
-			//	char t = *((char*)&wParam + 0);
-			//	*((char*)&wParam + 0) = *((char*)&wParam + 1);
-			//	*((char*)&wParam + 1) = t;
-			wParam = ((wParam & 0xFF) << 8) | ((wParam & 0xFF00) >> 8);
-			MultiByteToWideChar(CP_ACP, 0, (LPCSTR)&wParam, -1, CharBuffer, 2);
-			//	*((wchar_t*)&wParam) = CharBuffer[0];
-			wParam = CharBuffer[0];
-		}
-	}	break;
-	case WM_GETTEXTLENGTH: // LN327
-	{
-		LRESULT len = CallWindowSendMessage(lpProcAddress, hWnd, WM_GETTEXTLENGTH, 0, 0, Param1, Param2, Param3, FunctionType);
-		if (len > 0) {
-			LPWSTR lParamW = (LPWSTR)AllocateZeroedMemory((len + 1) * sizeof(wchar_t));
-			CallWindowSendMessage(lpProcAddress, hWnd, WM_GETTEXT, (len + 1) * sizeof(wchar_t), (LPARAM)lParamW,
-				Param1, Param2, Param3, FunctionType);
-			len = WideCharToMultiByte(CP_ACP, 0, lParamW, -1, NULL, 0, NULL, NULL) - 1; // required
-			// LN793
-			if (lParamW) FreeStringInternal(lParamW);
-		}
-		return len;
-	}	break;
-	case WM_GETTEXT: // LN310
-	{
-		if (IsBadWritePtr((LPVOID)lParam, 1)) {
-			return (0);
-		}
-		else {
-			// L311
-			int len = (int)CallWindowSendMessage(lpProcAddress, hWnd, WM_GETTEXTLENGTH, 0, 0, Param1, Param2, Param3, FunctionType);
-			// no needs check len == 0 ?? 
-			LPWSTR lParamW = (LPWSTR)AllocateZeroedMemory((len + 1) * sizeof(wchar_t));
-			len = (int)CallWindowSendMessage(lpProcAddress, hWnd, uMsg, wParam, (LPARAM)lParamW, Param1, Param2, Param3, FunctionType);
-			len = WideCharToMultiByte(CP_ACP, 0, lParamW, -1, (LPSTR)lParam, len, NULL, NULL) - 1;
+		case WM_SETTEXT:
+		case WM_SETTINGCHANGE:
+		case EM_REPLACESEL:
+		case WM_DEVMODECHANGE:
+		case CB_DIR:
+		case LB_DIR:
+		case LB_ADDFILE:
+		case CB_ADDSTRING:
+		case CB_INSERTSTRING:
+		case CB_FINDSTRING:
+		case CB_SELECTSTRING:
+		case CB_FINDSTRINGEXACT:
+		case LB_ADDSTRING:
+		case LB_INSERTSTRING:
+		case LB_SELECTSTRING:
+		case LB_FINDSTRING:
+		case LB_FINDSTRINGEXACT:
+		{
+			return ANSI_INSTRINGNULL(hWnd, uMsg, wParam, lParam);
+		}	break;
+		case WM_GETTEXTLENGTH: // LN327
+		{
+			LRESULT len = CallWindowSendMessage(lpProcAddress, hWnd, WM_GETTEXTLENGTH, 0, 0, Param1, Param2, Param3, FunctionType);
 			if (len > 0) {
+				LPWSTR lParamW = (LPWSTR)AllocateZeroedMemory((len + 1) * sizeof(wchar_t));
+				CallWindowSendMessage(lpProcAddress, hWnd, WM_GETTEXT, (len + 1) * sizeof(wchar_t), (LPARAM)lParamW,
+					Param1, Param2, Param3, FunctionType);
+				len = WideCharToMultiByte(CP_ACP, 0, lParamW, -1, NULL, 0, NULL, NULL) - 1; // required
 				// LN793
 				if (lParamW) FreeStringInternal(lParamW);
 			}
-			else {
-				// L316
-				if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
-					*((LPSTR)lParam + wParam - 1) = '\0';
-				}
-				else {
-					// L317
-					*((LPSTR)lParam) = '\0';
-				}
-			}
 			return len;
+		}	break;
+		case WM_GETTEXT:
+		case WM_ASKCBFORMATNAME:
+		{
+			MessageBoxA(NULL, NULL, "WM_GETTEXT", NULL);
+			return ANSI_OUTSTRING(hWnd, uMsg, wParam, lParam);
+		}	break;
+		// ----------- common controls end ---------------
+		default:
+			break;
 		}
-	}	break;
-	// ----------- common controls end ---------------
-	default: // LN301
-		break;
-	}
 	// --------- 
 	return CallWindowSendMessage(lpProcAddress, hWnd, uMsg, wParam, lParam, Param1, Param2, Param3, FunctionType);
 }
