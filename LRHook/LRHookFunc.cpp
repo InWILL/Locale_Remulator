@@ -433,9 +433,6 @@ static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WP
 	case LB_SELECTSTRING:
 	case LB_FINDSTRING:
 	case LB_FINDSTRINGEXACT:
-	case 0x01AA:
-	case 0x01AB:
-	case 0x01AC:
 	{
 		return ANSI_INSTRINGNULL(hWnd, uMsg, wParam, lParam);
 	}	break;
