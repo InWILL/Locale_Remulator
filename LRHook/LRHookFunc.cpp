@@ -453,7 +453,6 @@ static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WP
 		case WM_GETTEXT:
 		case WM_ASKCBFORMATNAME:
 		{
-			MessageBoxA(NULL, NULL, "WM_GETTEXT", NULL);
 			return ANSI_OUTSTRING(hWnd, uMsg, wParam, lParam);
 		}	break;
 		// ----------- common controls end ---------------
