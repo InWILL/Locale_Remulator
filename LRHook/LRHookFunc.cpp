@@ -1,3 +1,7 @@
+#include<Windows.h>
+#include<detours.h>
+
+#include"LROriginalFunc.h"
 #include"LRHookFunc.h"
 #include"User32Hook.h"
 #include"KernelbaseHook.h"
@@ -167,7 +171,7 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalCreateFontIndirectW, HookCreateFontIndirectW);
 	DetourAttach(&(PVOID&)OriginalCreateFontIndirectExA, HookCreateFontIndirectExA);
 	DetourAttach(&(PVOID&)OriginalCreateFontIndirectExW, HookCreateFontIndirectExW);
-	DetourAttach(&(PVOID&)OriginalTextOutA, HookTextOutA);
+	//DetourAttach(&(PVOID&)OriginalTextOutA, HookTextOutA);
 	DetourAttach(&(PVOID&)OriginalDrawTextExA, HookDrawTextExA);
 	DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
 	DetourAttach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
@@ -412,17 +416,28 @@ static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WP
 	//ntprintfA(256, 1, "%s: proc-%p hwnd=%p, msg=%04x, wParam=%d, lParam=%d\n", __FUNCTION__, lpProcAddress, hWnd, uMsg, wParam, lParam);
 	//}
 	switch (uMsg) {
-	case EM_REPLACESEL: // LN320
-	case WM_SETTEXT: // LN320
-	case WM_SETTINGCHANGE: // LN320
-	case WM_DEVMODECHANGE: // LN320
+	case WM_SETTEXT:
+	case WM_SETTINGCHANGE:
+	case EM_REPLACESEL:
+	case WM_DEVMODECHANGE:
+	case CB_DIR:
+	case LB_DIR:
+	case LB_ADDFILE:
+	case CB_ADDSTRING:
+	case CB_INSERTSTRING:
+	case CB_FINDSTRING:
+	case CB_SELECTSTRING:
+	case CB_FINDSTRINGEXACT:
+	case LB_ADDSTRING:
+	case LB_INSERTSTRING:
+	case LB_SELECTSTRING:
+	case LB_FINDSTRING:
+	case LB_FINDSTRINGEXACT:
+	case 0x01AA:
+	case 0x01AB:
+	case 0x01AC:
 	{
-		LPCWSTR lParamW = lParam ? MultiByteToWideCharInternal((LPCSTR)lParam) : NULL;
-		//	ntprintfA(1024, 1, "3. A(%s) -> W(%S)", (LPCSTR)lParam, lParamW);
-		LRESULT hr = CallWindowSendMessage(lpProcAddress, hWnd, uMsg, wParam, (LPARAM)lParamW, Param1, Param2, Param3, FunctionType);
-		// LN301
-		if (lParamW) FreeStringInternal((LPVOID)lParamW);
-		return hr;
+		return ANSI_INSTRINGNULL(hWnd, uMsg, wParam, lParam);
 	}	break;
 	case WM_IME_CHAR: // LN309
 	case WM_CHAR: // LN309
@@ -478,31 +493,6 @@ static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WP
 				}
 			}
 			return len;
-		}
-	}	break;
-	case LB_FINDSTRINGEXACT: // LN305
-	case LB_ADDSTRING: // LN305
-	case LB_INSERTSTRING: // LN305
-	case LB_FINDSTRING: // LN305
-	case LB_ADDFILE: // LN305
-	case LB_SELECTSTRING: // LN305
-	case LB_DIR: // LN305
-		type = 1;
-		//	break;
-	case CB_FINDSTRINGEXACT: // LN306
-	case CB_ADDSTRING: // LN306
-	case CB_INSERTSTRING: // LN306
-	case CB_SELECTSTRING: // LN306
-	case CB_DIR: // LN306
-	case CB_FINDSTRING: // LN306
-	{
-		int ret = CheckWindowStyle(hWnd, type); // ebx = 0 / 1
-		if (ret != -1) {
-			LPCWSTR lParamW = lParam ? MultiByteToWideCharInternal((LPCSTR)lParam) : NULL;
-			// LN899
-			LRESULT hr = CallWindowSendMessage(lpProcAddress, hWnd, uMsg, wParam, (LPARAM)lParamW, Param1, Param2, Param3, FunctionType);
-			if (lParamW) FreeStringInternal((LPVOID)lParamW);
-			return hr;
 		}
 	}	break;
 	// ----------- common controls end ---------------

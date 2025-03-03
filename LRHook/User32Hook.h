@@ -1,5 +1,5 @@
 #pragma once
-#include<Windows.h>
+#include"LRHookFunc.h"
 
 /* Unicde to Ansi UserCall Functions */
 LRESULT NTAPI UNICODE_EMPTY(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);

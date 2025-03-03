@@ -41,5 +41,8 @@
     <ClInclude Include="KernelbaseHook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LRFunc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
