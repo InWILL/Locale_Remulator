@@ -231,67 +231,58 @@
 /****************************************/
 /* Ansi to Unicode KernelCall Functions */
 /****************************************/
-//LRESULT NTAPI ANSI_INLPCREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
-//{
-//	LRESULT			Result;
-//	LPCREATESTRUCTA CreateStructA;
-//	CREATESTRUCTW   CreateStructW;
-//
-//	CreateStructA = (LPCREATESTRUCTA)lParam;
-//	CreateStructW.lpszClass = nullptr;
-//	CreateStructW.lpszName = nullptr;
-//
-//	if (CreateStructA)
-//	{
-//		CreateStructW = *(LPCREATESTRUCTW)CreateStructA;
-//		CreateStructW.lpszClass = MultiByteToWideCharInternal(CreateStructA->lpszClass);
-//		if (CreateStructA->lpszClass != nullptr)
-//		{
-//			CreateStructW.lpszName = MultiByteToWideCharInternal(CreateStructA->lpszName);
-//
-//			CLEAR_FLAG(Flags, WINDOW_FLAG_ANSI);
-//			/*if(CreateStructA->lpszName)
-//			filelog << CreateStructA->lpszName << std::endl;*/
-//		}
-//		lParam = (LPARAM)&CreateStructW;
-//	}
-//	Result = OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
-//	FreeStringInternal((LPVOID)CreateStructW.lpszClass);
-//	FreeStringInternal((LPVOID)CreateStructW.lpszName);
-//
-//	return Result;
-//}
-//
-//LRESULT NTAPI ANSI_INLPMDICREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
-//{
-//	LRESULT				Result;
-//	LPMDICREATESTRUCTA  MdiCreateStructA;
-//	MDICREATESTRUCTW    MdiCreateStructW;
-//
-//	MdiCreateStructA = (LPMDICREATESTRUCTA)lParam;
-//	MdiCreateStructW.szClass = nullptr;
-//	MdiCreateStructW.szTitle = nullptr;
-//
-//	if (MdiCreateStructA)
-//	{
-//		MdiCreateStructW = *(LPMDICREATESTRUCTW)MdiCreateStructA;
-//		MdiCreateStructW.szClass = MultiByteToWideCharInternal(MdiCreateStructA->szClass);
-//		MdiCreateStructW.szTitle = MultiByteToWideCharInternal(MdiCreateStructA->szTitle);
-//
-//		CLEAR_FLAG(Flags, WINDOW_FLAG_ANSI);
-//
-//		lParam = (LPARAM)&MdiCreateStructW;
-//	}
-//
-//	Result = OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
-//
-//	FreeStringInternal((LPVOID)MdiCreateStructW.szClass);
-//	FreeStringInternal((LPVOID)MdiCreateStructW.szTitle);
-//
-//	return Result;
-//}
-//
-LRESULT NTAPI ANSI_INSTRINGNULL(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+LRESULT NTAPI ANSI_INLPCREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	LRESULT			Result;
+	LPCREATESTRUCTA CreateStructA;
+	CREATESTRUCTW   CreateStructW;
+
+	CreateStructA = (LPCREATESTRUCTA)lParam;
+	CreateStructW.lpszClass = nullptr;
+	CreateStructW.lpszName = nullptr;
+
+	if (CreateStructA)
+	{
+		CreateStructW = *(LPCREATESTRUCTW)CreateStructA;
+		CreateStructW.lpszClass = MultiByteToWideCharInternal(CreateStructA->lpszClass);
+		CreateStructW.lpszName = MultiByteToWideCharInternal(CreateStructA->lpszName);
+		lParam = (LPARAM)&CreateStructW;
+	}
+	Result = SendMessageW(Window, Message, wParam, lParam);
+	FreeStringInternal((LPVOID)CreateStructW.lpszClass);
+	FreeStringInternal((LPVOID)CreateStructW.lpszName);
+
+	return Result;
+}
+
+LRESULT NTAPI ANSI_INLPMDICREATESTRUCT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	LRESULT				Result;
+	LPMDICREATESTRUCTA  MdiCreateStructA;
+	MDICREATESTRUCTW    MdiCreateStructW;
+
+	MdiCreateStructA = (LPMDICREATESTRUCTA)lParam;
+	MdiCreateStructW.szClass = nullptr;
+	MdiCreateStructW.szTitle = nullptr;
+
+	if (MdiCreateStructA)
+	{
+		MdiCreateStructW = *(LPMDICREATESTRUCTW)MdiCreateStructA;
+		MdiCreateStructW.szClass = MultiByteToWideCharInternal(MdiCreateStructA->szClass);
+		MdiCreateStructW.szTitle = MultiByteToWideCharInternal(MdiCreateStructA->szTitle);
+
+		lParam = (LPARAM)&MdiCreateStructW;
+	}
+
+	Result = SendMessageW(Window, Message, wParam, lParam);
+
+	FreeStringInternal((LPVOID)MdiCreateStructW.szClass);
+	FreeStringInternal((LPVOID)MdiCreateStructW.szTitle);
+
+	return Result;
+}
+
+LRESULT NTAPI ANSI_INSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT	Result;
 	LPSTR	Ansi;
@@ -311,31 +302,58 @@ LRESULT NTAPI ANSI_INSTRINGNULL(HWND Window, UINT Message, WPARAM wParam, LPARAM
 	return Result;
 }
 
+LRESULT NTAPI ANSI_GETTEXTLENGTH(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	LRESULT UnicodeSize, AnsiSize;
+	LPWSTR UnicodeBuffer;
+
+	UnicodeSize = SendMessageW(Window, Message, wParam, lParam);
+	if (UnicodeSize == 0 || UnicodeSize == LB_ERR)
+		return 0;
+
+	UnicodeSize++;
+	UnicodeBuffer = (LPWSTR)AllocateZeroedMemory(UnicodeSize * sizeof(WCHAR));
+	if (UnicodeBuffer == nullptr)
+		return 0;
+
+	wParam = Message == WM_GETTEXTLENGTH ? UnicodeSize : wParam;
+	lParam = (LPARAM)UnicodeBuffer;
+
+	UnicodeSize = SendMessageW(Window, Message - 1, wParam, lParam);
+	if (UnicodeSize != 0 && UnicodeSize != LB_ERR)
+	{
+		AnsiSize = WideCharToMultiByte(CP_ACP, 0, UnicodeBuffer, UnicodeSize * sizeof(WCHAR), NULL, 0, NULL, NULL);
+	}
+
+	FreeStringInternal(UnicodeBuffer);
+
+	return AnsiSize;
+}
+
 LRESULT NTAPI ANSI_OUTSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-	UINT	UnicodeSize, AnsiSize;
+	LRESULT	UnicodeSize, AnsiSize;
 	LPWSTR	UnicodeBuffer;
 	LPSTR	AnsiBuffer;
 
-	UnicodeSize = wParam;
-	UnicodeBuffer = (LPWSTR)lParam;
+	AnsiBuffer = (LPSTR)lParam;
+	AnsiSize = wParam;
 
-	AnsiSize = UnicodeSize * sizeof(WCHAR);
-	AnsiBuffer = (LPSTR)AllocateZeroedMemory(AnsiSize);
-	if (AnsiBuffer == nullptr)
+	UnicodeSize = SendMessageW(Window, WM_GETTEXTLENGTH, wParam, lParam);
+	if (UnicodeSize == 0)
 		return 0;
 
-	wParam = AnsiSize;
-	lParam = (LPARAM)AnsiBuffer;
+	UnicodeSize++;
+	UnicodeBuffer = (LPWSTR)AllocateZeroedMemory(UnicodeSize * sizeof(WCHAR));
+	if (UnicodeBuffer == nullptr)
+		return 0;
 
-	AnsiSize = SendMessageW(Window, Message, wParam, lParam);
+	AnsiSize = SendMessageW(Window, Message, UnicodeSize, (LPARAM)UnicodeBuffer);
+	AnsiSize = WideCharToMultiByte(CP_ACP, 0, UnicodeBuffer, UnicodeSize, AnsiBuffer, AnsiSize, NULL, NULL);
 
-	if (AnsiSize != 0)
-		MultiByteToWideChar(CP_ACP, 0, AnsiBuffer, AnsiSize, UnicodeBuffer, UnicodeSize);
+	FreeStringInternal(UnicodeBuffer);
 
-	FreeStringInternal(AnsiBuffer);
-
-	return AnsiSize / sizeof(WCHAR);
+	return AnsiSize;
 }
 //
 //LRESULT NTAPI ANSI_INCNTOUTSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
@@ -354,10 +372,3 @@ LRESULT NTAPI ANSI_OUTSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lP
 //	return Result;
 //}
 //
-//LRESULT NTAPI ANSI_GETDBCSTEXTLENGTHS(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
-//{
-//	LRESULT Result;
-//	MessageBoxA(NULL, "ANSI_GETDBCSTEXTLENGTHS", NULL, NULL);
-//	Result = OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
-//	return Result;
-//}

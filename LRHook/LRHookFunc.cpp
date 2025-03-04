@@ -407,16 +407,17 @@ inline LRESULT CallWindowSendMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg,
 static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	DWORD_PTR Param1/*ecx*/, DWORD_PTR Param2/*ecx*/, DWORD_PTR Param3/*ecx*/, int FunctionType)
 {
-	LPCWSTR lpUnicodeWindowName = NULL, lpUnicodeClassName = NULL;
-	WCHAR CharBuffer[2];
-	int type = 0;
-
-	//char classname[256]; GetClassNameA(hWnd, classname, sizeof(classname));
-	//if (lstrcmpiA(classname, "TListBox") == 0) {
-	//ntprintfA(256, 1, "%s: proc-%p hwnd=%p, msg=%04x, wParam=%d, lParam=%d\n", __FUNCTION__, lpProcAddress, hWnd, uMsg, wParam, lParam);
-	//}
 	switch (uMsg)
 	{
+		case WM_CREATE:
+		case WM_NCCREATE:
+		{
+			return ANSI_INLPCREATESTRUCT(hWnd, uMsg, wParam, lParam);
+		}	break;
+		case WM_MDICREATE:
+		{
+			return ANSI_INLPMDICREATESTRUCT(hWnd, uMsg, wParam, lParam);
+		}	break;
 		case WM_SETTEXT:
 		case WM_SETTINGCHANGE:
 		case EM_REPLACESEL:
@@ -435,20 +436,13 @@ static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WP
 		case LB_FINDSTRING:
 		case LB_FINDSTRINGEXACT:
 		{
-			return ANSI_INSTRINGNULL(hWnd, uMsg, wParam, lParam);
+			return ANSI_INSTRING(hWnd, uMsg, wParam, lParam);
 		}	break;
 		case WM_GETTEXTLENGTH: // LN327
+		case CB_GETLBTEXTLEN:
+		case LB_GETTEXTLEN:
 		{
-			LRESULT len = CallWindowSendMessage(lpProcAddress, hWnd, WM_GETTEXTLENGTH, 0, 0, Param1, Param2, Param3, FunctionType);
-			if (len > 0) {
-				LPWSTR lParamW = (LPWSTR)AllocateZeroedMemory((len + 1) * sizeof(wchar_t));
-				CallWindowSendMessage(lpProcAddress, hWnd, WM_GETTEXT, (len + 1) * sizeof(wchar_t), (LPARAM)lParamW,
-					Param1, Param2, Param3, FunctionType);
-				len = WideCharToMultiByte(CP_ACP, 0, lParamW, -1, NULL, 0, NULL, NULL) - 1; // required
-				// LN793
-				if (lParamW) FreeStringInternal(lParamW);
-			}
-			return len;
+			return ANSI_GETTEXTLENGTH(hWnd, uMsg, wParam, lParam);
 		}	break;
 		case WM_GETTEXT:
 		case WM_ASKCBFORMATNAME:
