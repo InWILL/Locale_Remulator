@@ -178,12 +178,6 @@ void AttachFunctions()
 
 	//DetourAttach(&(PVOID&)OriginalDialogBoxParamA, HookDialogBoxParamA);
 	DetourAttach(&(PVOID&)OriginalCreateDialogIndirectParamA, HookCreateDialogIndirectParamA);
-	//DetourAttach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
-	/*DetourAttach(&(PVOID&)OriginalGetModuleFileNameA, HookGetModuleFileNameA);
-	DetourAttach(&(PVOID&)OriginalLoadLibraryExA, HookLoadLibraryExA);
-	DetourAttach(&(PVOID&)OriginalGetFileVersionInfoSizeA, HookGetFileVersionInfoSizeA);
-	DetourAttach(&(PVOID&)OriginalGetFileVersionInfoA, HookGetFileVersionInfoA);
-	DetourAttach(&(PVOID&)OriginalPathRenameExtensionA, HookPathRenameExtensionA);*/
 
 	DetourAttach(&(PVOID&)OriginalGetTimeZoneInformation, HookGetTimeZoneInformation);
 	DetourAttach(&(PVOID&)OriginalCreateDirectoryA, HookCreateDirectoryA);
@@ -261,7 +255,6 @@ void DetachFunctions()
 
 	DetourDetach(&(PVOID&)OriginalDialogBoxParamA, HookDialogBoxParamA);
 	DetourDetach(&(PVOID&)OriginalCreateDialogIndirectParamA, HookCreateDialogIndirectParamA);
-	DetourDetach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
 
 	DetourDetach(&(PVOID&)OriginalGetTimeZoneInformation, HookGetTimeZoneInformation);
 	DetourDetach(&(PVOID&)OriginalCreateDirectoryA, HookCreateDirectoryA);
@@ -1022,100 +1015,6 @@ HWND WINAPI HookCreateDialogIndirectParamA(
 )
 {
 	return CreateDialogIndirectParamW(hInstance, lpTemplate, hWndParent, lpDialogFunc, dwInitParam);
-}
-
-BOOL WINAPI HookVerQueryValueA(
-	LPCVOID pBlock,
-	LPCSTR lpSubBlock,
-	LPVOID* lplpBuffer,
-	PUINT puLen
-)
-{
-	/*
-	if (lstrcmpA(lpSubBlock, "\\VarFileInfo\\Translation") == 0)
-	{
-		// if query location info, we change that value : 
-		BOOL ret = OriginalVerQueryValueA(pBlock, lpSubBlock, lplpBuffer, puLen);
-		if (ret && *puLen >= sizeof(DWORD))
-		{
-			LPWORD lpTranslate = (LPWORD)(*lplpBuffer);
-			filelog << lpTranslate[0] << " " << lpTranslate[1] << std::endl;
-			lpTranslate[0] = (WORD)1041;
-			lpTranslate[1] = (WORD)1200; // change the first default one !
-			return ret;
-		}
-	}*/
-	if (lstrlenA(lpSubBlock) > 2 && lpSubBlock[0] == '\\' && lpSubBlock[1] == 'S')
-	{
-		LPWSTR lpSubBlockW = MultiByteToWideCharInternal(lpSubBlock);
-		LPWSTR lpBufferW;
-		BOOL ret = VerQueryValueW(pBlock, lpSubBlockW, (LPVOID*)&lpBufferW, puLen);
-		LPSTR lpBufferA = WideCharToMultiByteInternal(lpBufferW);
-		*lplpBuffer = lpBufferA;
-		*puLen = lstrlenA(lpBufferA);
-		FreeStringInternal(lpSubBlockW);
-		return ret;
-	}
-	return OriginalVerQueryValueA(pBlock, lpSubBlock, lplpBuffer, puLen);
-}
-
-DWORD WINAPI HookGetModuleFileNameA(
-	HMODULE hModule,
-	LPSTR lpFilename,
-	DWORD nSize
-)
-{
-	LPWSTR lpFilenameW = (LPWSTR)AllocateZeroedMemory(MAX_PATH);
-	DWORD ret = GetModuleFileNameW(hModule, lpFilenameW, nSize);
-	OriginalWideCharToMultiByte(settings.CodePage, 0, lpFilenameW, MAX_PATH, lpFilename, MAX_PATH, NULL, NULL);
-	FreeStringInternal(lpFilenameW);
-	return ret;
-}
-
-HMODULE WINAPI HookLoadLibraryExA(
-	_In_ LPCSTR lpLibFileName,
-	_Reserved_ HANDLE hFile,
-	_In_ DWORD dwFlags
-)
-{
-	LPWSTR lpLibFileNameW = MultiByteToWideCharInternal(lpLibFileName);
-	HMODULE ret = LoadLibraryExW(lpLibFileNameW, hFile, dwFlags);
-	FreeStringInternal(lpLibFileNameW);
-	return ret;
-}
-
-DWORD WINAPI HookGetFileVersionInfoSizeA(
-	_In_ LPCSTR lpwstrFilename,
-	_Out_ LPDWORD lpdwHandle
-)
-{
-	LPWSTR lpwstrFilenameW = MultiByteToWideCharInternal(lpwstrFilename);
-	DWORD ret = GetFileVersionInfoSizeW(lpwstrFilenameW, lpdwHandle);
-	FreeStringInternal(lpwstrFilenameW);
-	return ret;
-}
-
-BOOL WINAPI HookGetFileVersionInfoA(
-	_In_                LPCSTR lptstrFilename, /* Filename of version stamped file */
-	_Reserved_          DWORD dwHandle,          /* Information from GetFileVersionSize */
-	_In_                DWORD dwLen,             /* Length of buffer for info */
-	_Out_writes_bytes_(dwLen) LPVOID lpData            /* Buffer to place the data structure */
-)
-{
-	LPWSTR lptstrFilenameW = MultiByteToWideCharInternal(lptstrFilename);
-	BOOL ret = GetFileVersionInfoW(lptstrFilenameW, dwHandle, dwLen, lpData);
-	MessageBoxW(NULL, lptstrFilenameW, NULL, NULL);
-	FreeStringInternal(lptstrFilenameW);
-	return ret;
-}
-
-BOOL WINAPI HookPathRenameExtensionA(
-	LPSTR pszPath,
-	LPCSTR pszExt
-)
-{
-	//MessageBoxA(NULL, pszPath, NULL, NULL);
-	return OriginalPathRenameExtensionA(pszPath, pszExt);
 }
 
 ATOM WINAPI HookRegisterClassA(

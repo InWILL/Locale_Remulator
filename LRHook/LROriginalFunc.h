@@ -254,42 +254,6 @@ static HWND(WINAPI* OriginalCreateDialogIndirectParamA)(
 	_In_ LPARAM dwInitParam
 	) = CreateDialogIndirectParamA;
 
-static BOOL(WINAPI* OriginalVerQueryValueA)(
-	LPCVOID pBlock,
-	LPCSTR lpSubBlock,
-	LPVOID* lplpBuffer,
-	PUINT puLen
-) = VerQueryValueA;
-
-static DWORD(WINAPI* OriginalGetModuleFileNameA)(
-	HMODULE hModule,
-	LPSTR lpFilename,
-	DWORD nSize
-	) = GetModuleFileNameA;
-
-static HMODULE(WINAPI* OriginalLoadLibraryExA)(
-	_In_ LPCSTR lpLibFileName,
-	_Reserved_ HANDLE hFile,
-	_In_ DWORD dwFlags
-	) = LoadLibraryExA;
-
-static DWORD(WINAPI* OriginalGetFileVersionInfoSizeA)(
-	_In_ LPCSTR lpwstrFilename,
-	_Out_ LPDWORD lpdwHandle
-	) = GetFileVersionInfoSizeA;
-
-static BOOL(WINAPI* OriginalGetFileVersionInfoA)(
-	_In_                LPCSTR lptstrFilename, /* Filename of version stamped file */
-	_Reserved_          DWORD dwHandle,          /* Information from GetFileVersionSize */
-	_In_                DWORD dwLen,             /* Length of buffer for info */
-	_Out_writes_bytes_(dwLen) LPVOID lpData            /* Buffer to place the data structure */
-	) = GetFileVersionInfoA;
-
-static BOOL(WINAPI* OriginalPathRenameExtensionA)(
-	LPSTR pszPath,
-	LPCSTR pszExt
-	) = PathRenameExtensionA;
-
 static ATOM(WINAPI* OriginalRegisterClassA)(
 	_In_ CONST WNDCLASSA* lpWndClass
 	) = RegisterClassA;
