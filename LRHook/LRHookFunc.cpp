@@ -72,7 +72,7 @@ BOOL WINAPI HookCreateProcessInternalW(
 	{
 		return FALSE;
 	}
-	//MessageBoxW(NULL, lpApplicationName, L"HookCreateProcessInternalW", NULL);
+	//MessageBoxW(NULL, lpCommandLine, L"HookCreateProcessInternalW", NULL);
 	LPCSTR sz = Original.DllPath;
 	DetourUpdateProcessWithDll(lpProcessInformation->hProcess, &sz, 1);
 	DetourProcessViaHelperW(lpProcessInformation->dwProcessId, Original.DllPath, LRCreateProcessInternalW);
@@ -176,7 +176,7 @@ void AttachFunctions()
 	DetourAttach(&(PVOID&)OriginalGetClipboardData, HookGetClipboardData);
 	DetourAttach(&(PVOID&)OriginalSetClipboardData, HookSetClipboardData);
 
-	DetourAttach(&(PVOID&)OriginalDialogBoxParamA, HookDialogBoxParamA);
+	//DetourAttach(&(PVOID&)OriginalDialogBoxParamA, HookDialogBoxParamA);
 	DetourAttach(&(PVOID&)OriginalCreateDialogIndirectParamA, HookCreateDialogIndirectParamA);
 	//DetourAttach(&(PVOID&)OriginalVerQueryValueA, HookVerQueryValueA);
 	/*DetourAttach(&(PVOID&)OriginalGetModuleFileNameA, HookGetModuleFileNameA);
@@ -360,106 +360,52 @@ BOOL WINAPI HookGetCPInfo(
 	return OriginalGetCPInfo(CodePage, lpCPInfo);
 }
 
-static int CheckWindowStyle(HWND hWnd, DWORD type/*ebx*/) {
-
-	LONG_PTR n = GetWindowLongPtrW(hWnd, GWL_STYLE);
-	// window no needs conversion ?? 
-	if (n == 0) {
-		return (0);
-	}
-	else if (n == /*0x84C820E4*/(WS_POPUP | WS_CLIPSIBLINGS | WS_BORDER | WS_DLGFRAME | WS_SYSMENU |
-		WS_EX_RTLREADING | WS_EX_TOOLWINDOW | WS_EX_MDICHILD | WS_EX_TRANSPARENT | WS_EX_NOPARENTNOTIFY)) {
-		return (0);
-	}
-	else if (!(n & (WS_EX_ACCEPTFILES | WS_EX_TRANSPARENT))) {
-		return (0);
-	}
-	else if (!type && (n & WS_EX_CLIENTEDGE)) {
-		return (0);
-	}
-	else if (n & WS_EX_MDICHILD) {
-		return (0);
-	}
-	// other case : 
-	return (-1); // xor ebx, ebx !
-}
-
-inline LRESULT CallWindowSendMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
-	DWORD_PTR Param1/*ecx*/, DWORD_PTR Param2/*ecx*/, DWORD_PTR Param3/*ecx*/, int FunctionType)
-{
-	switch (FunctionType) {
-	case 0:
-	default:
-		return ((LRESULT(WINAPI*)(HWND, UINT, WPARAM, LPARAM))(DWORD_PTR)lpProcAddress)
-			(hWnd, uMsg, wParam, lParam);
-	case 1:
-		return ((LRESULT(WINAPI*)(HWND, UINT, WPARAM, LPARAM, DWORD_PTR, DWORD_PTR))(DWORD_PTR)lpProcAddress)
-			(hWnd, uMsg, wParam, lParam, Param1, Param2);
-	case 2:
-		return ((LRESULT(WINAPI*)(HWND, UINT, WPARAM, LPARAM, DWORD_PTR, DWORD_PTR, DWORD_PTR))(DWORD_PTR)lpProcAddress)
-			(hWnd, uMsg, wParam, lParam, Param1, Param2, Param3);
-	case 3:
-		return ((LRESULT(WINAPI*)(DWORD_PTR, HWND, UINT, WPARAM, LPARAM))(DWORD_PTR)lpProcAddress)
-			(Param1, hWnd, uMsg, wParam, lParam);
-	}
-}
-
-static LRESULT SendUnicodeMessage(LPVOID lpProcAddress, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
-	DWORD_PTR Param1/*ecx*/, DWORD_PTR Param2/*ecx*/, DWORD_PTR Param3/*ecx*/, int FunctionType)
+LRESULT WINAPI HookSendMessageA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
-		case WM_CREATE:
-		case WM_NCCREATE:
-		{
-			return ANSI_INLPCREATESTRUCT(hWnd, uMsg, wParam, lParam);
-		}	break;
-		case WM_MDICREATE:
-		{
-			return ANSI_INLPMDICREATESTRUCT(hWnd, uMsg, wParam, lParam);
-		}	break;
-		case WM_SETTEXT:
-		case WM_SETTINGCHANGE:
-		case EM_REPLACESEL:
-		case WM_DEVMODECHANGE:
-		case CB_DIR:
-		case LB_DIR:
-		case LB_ADDFILE:
-		case CB_ADDSTRING:
-		case CB_INSERTSTRING:
-		case CB_FINDSTRING:
-		case CB_SELECTSTRING:
-		case CB_FINDSTRINGEXACT:
-		case LB_ADDSTRING:
-		case LB_INSERTSTRING:
-		case LB_SELECTSTRING:
-		case LB_FINDSTRING:
-		case LB_FINDSTRINGEXACT:
-		{
-			return ANSI_INSTRING(hWnd, uMsg, wParam, lParam);
-		}	break;
-		case WM_GETTEXTLENGTH: // LN327
-		case CB_GETLBTEXTLEN:
-		case LB_GETTEXTLEN:
-		{
-			return ANSI_GETTEXTLENGTH(hWnd, uMsg, wParam, lParam);
-		}	break;
-		case WM_GETTEXT:
-		case WM_ASKCBFORMATNAME:
-		{
-			return ANSI_OUTSTRING(hWnd, uMsg, wParam, lParam);
-		}	break;
-		// ----------- common controls end ---------------
-		default:
-			break;
-		}
-	// --------- 
-	return CallWindowSendMessage(lpProcAddress, hWnd, uMsg, wParam, lParam, Param1, Param2, Param3, FunctionType);
-}
-
-LRESULT WINAPI HookSendMessageA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	return SendUnicodeMessage((LPVOID)(DWORD_PTR)SendMessageW, hWnd, uMsg, wParam, lParam, 0, 0, 0, 0);
+	case WM_CREATE:
+	case WM_NCCREATE:
+	{
+		return ANSI_INLPCREATESTRUCT(hWnd, uMsg, wParam, lParam);
+	}	break;
+	case WM_MDICREATE:
+	{
+		return ANSI_INLPMDICREATESTRUCT(hWnd, uMsg, wParam, lParam);
+	}	break;
+	case WM_SETTEXT:
+	case WM_SETTINGCHANGE:
+	case EM_REPLACESEL:
+	case WM_DEVMODECHANGE:
+	case CB_DIR:
+	case LB_DIR:
+	case LB_ADDFILE:
+	case CB_ADDSTRING:
+	case CB_INSERTSTRING:
+	case CB_FINDSTRING:
+	case CB_SELECTSTRING:
+	case CB_FINDSTRINGEXACT:
+	case LB_ADDSTRING:
+	case LB_INSERTSTRING:
+	case LB_SELECTSTRING:
+	case LB_FINDSTRING:
+	case LB_FINDSTRINGEXACT:
+	{
+		return ANSI_INSTRING(hWnd, uMsg, wParam, lParam);
+	}	break;
+	case WM_GETTEXTLENGTH: // LN327
+	case CB_GETLBTEXTLEN:
+	case LB_GETTEXTLEN:
+	{
+		return ANSI_GETTEXTLENGTH(hWnd, uMsg, wParam, lParam);
+	}	break;
+	case WM_GETTEXT:
+	case WM_ASKCBFORMATNAME:
+	{
+		return ANSI_OUTSTRING(hWnd, uMsg, wParam, lParam);
+	}	break;
+	}
+	return SendMessageW(hWnd, uMsg, wParam, lParam);
 }
 
 int WINAPI HookMultiByteToWideChar(UINT CodePage, DWORD dwFlags,
