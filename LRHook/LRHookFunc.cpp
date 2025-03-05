@@ -393,6 +393,11 @@ LRESULT WINAPI HookSendMessageA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	{
 		return ANSI_INSTRING(hWnd, uMsg, wParam, lParam);
 	}	break;
+	case CB_GETLBTEXT:
+	case LB_GETTEXT:
+	{
+		return ANSI_GETTEXT(hWnd, uMsg, wParam, lParam);
+	}	break;
 	case WM_GETTEXTLENGTH: // LN327
 	case CB_GETLBTEXTLEN:
 	case LB_GETTEXTLEN:
@@ -403,6 +408,10 @@ LRESULT WINAPI HookSendMessageA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	case WM_ASKCBFORMATNAME:
 	{
 		return ANSI_OUTSTRING(hWnd, uMsg, wParam, lParam);
+	}	break;
+	case EM_GETLINE:
+	{
+		return ANSI_GETLINE(hWnd, uMsg, wParam, lParam);
 	}	break;
 	}
 	return SendMessageW(hWnd, uMsg, wParam, lParam);

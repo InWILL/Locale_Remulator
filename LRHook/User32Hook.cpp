@@ -302,32 +302,57 @@ LRESULT NTAPI ANSI_INSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lPa
 	return Result;
 }
 
-LRESULT NTAPI ANSI_GETTEXTLENGTH(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+LRESULT NTAPI ANSI_GETTEXT(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
 {
-	LRESULT UnicodeSize, AnsiSize;
+	LRESULT Length;
 	LPWSTR UnicodeBuffer;
+	LPSTR AnsiBuffer;
 
-	UnicodeSize = SendMessageW(Window, Message, wParam, lParam);
-	if (UnicodeSize == 0 || UnicodeSize == LB_ERR)
-		return 0;
+	AnsiBuffer = (LPSTR)lParam;
 
-	UnicodeSize++;
-	UnicodeBuffer = (LPWSTR)AllocateZeroedMemory(UnicodeSize * sizeof(WCHAR));
+	Length = SendMessageW(Window, Message + 1, wParam, lParam);
+	if (Length < 0)
+		return Length;
+
+	Length++;
+	UnicodeBuffer = (LPWSTR)AllocateZeroedMemory(Length * sizeof(WCHAR));
 	if (UnicodeBuffer == nullptr)
 		return 0;
 
-	wParam = Message == WM_GETTEXTLENGTH ? UnicodeSize : wParam;
-	lParam = (LPARAM)UnicodeBuffer;
+	Length = SendMessageW(Window, Message, wParam, (LPARAM)UnicodeBuffer);
+	if (Length > 0)
+		Length = WideCharToMultiByte(CP_ACP, 0, UnicodeBuffer, Length, AnsiBuffer, Length * sizeof(WCHAR), NULL, NULL);
 
-	UnicodeSize = SendMessageW(Window, Message - 1, wParam, lParam);
-	if (UnicodeSize != 0 && UnicodeSize != LB_ERR)
+	FreeStringInternal(UnicodeBuffer);
+
+	return Length;
+}
+
+LRESULT NTAPI ANSI_GETTEXTLENGTH(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	LRESULT Length;
+	LPWSTR UnicodeBuffer;
+
+	Length = SendMessageW(Window, Message, wParam, lParam);
+	if (Length < 0) 
+		return Length;
+
+	Length++;
+	UnicodeBuffer = (LPWSTR)AllocateZeroedMemory(Length * sizeof(WCHAR));
+	if (UnicodeBuffer == nullptr) 
+		return 0;
+
+	wParam = Message == WM_GETTEXTLENGTH ? Length : wParam;
+
+	Length = SendMessageW(Window, Message - 1, wParam, (LPARAM)UnicodeBuffer);
+	if (Length > 0)
 	{
-		AnsiSize = WideCharToMultiByte(CP_ACP, 0, UnicodeBuffer, UnicodeSize * sizeof(WCHAR), NULL, 0, NULL, NULL);
+		Length = WideCharToMultiByte(CP_ACP, 0, UnicodeBuffer, Length * sizeof(WCHAR), NULL, 0, NULL, NULL);
 	}
 
 	FreeStringInternal(UnicodeBuffer);
 
-	return AnsiSize;
+	return Length;
 }
 
 LRESULT NTAPI ANSI_OUTSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
@@ -355,20 +380,44 @@ LRESULT NTAPI ANSI_OUTSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lP
 
 	return AnsiSize;
 }
-//
-//LRESULT NTAPI ANSI_INCNTOUTSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
-//{
-//	LRESULT Result;
-//	MessageBoxA(NULL, "ANSI_INCNTOUTSTRING", NULL, NULL);
-//	Result = OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
-//	return Result;
-//}
-//
-//LRESULT NTAPI ANSI_OUTCBOXSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam, ULONG_PTR xParam, ULONG xpfnProc, ULONG Flags)
-//{
-//	LRESULT Result;
-//	MessageBoxA(NULL, "ANSI_OUTCBOXSTRING", NULL, NULL);
-//	Result = OriginalNtUserMessageCall(Window, Message, wParam, lParam, xParam, xpfnProc, Flags);
-//	return Result;
-//}
-//
+
+LRESULT NTAPI ANSI_GETLINE(HWND Window, UINT Message, WPARAM wParam, LPARAM lParam)
+{
+	LRESULT AnsiSize, Length;
+	LPSTR AnsiBuffer;
+	LPWSTR UnicodeBuffer;
+
+	typedef union
+	{
+		USHORT  BufferSize;
+		WCHAR   UnicodeBuffer[1];
+		CHAR    AnsiBuffer[1];
+
+	} MSG_INPUT_COUNT_OUPUT_STRING, * PMSG_INPUT_COUNT_OUPUT_STRING;
+
+	PMSG_INPUT_COUNT_OUPUT_STRING ParamA, ParamW;
+
+	ParamA = (PMSG_INPUT_COUNT_OUPUT_STRING)lParam;
+
+	AnsiSize = ParamA->BufferSize;
+	AnsiBuffer = ParamA->AnsiBuffer;
+
+	UnicodeBuffer = (LPWSTR)AllocateZeroedMemory(AnsiSize);
+	if (UnicodeBuffer == nullptr)
+		return 0;
+
+	ParamW = (PMSG_INPUT_COUNT_OUPUT_STRING)UnicodeBuffer;
+	ParamW->BufferSize = AnsiSize;
+
+	Length = SendMessageW(Window, Message, wParam, lParam);
+
+	if (Length != 0)
+	{
+		Length = WideCharToMultiByte(CP_ACP, 0, UnicodeBuffer, Length, AnsiBuffer, AnsiSize, NULL, NULL);
+	}
+
+	FreeStringInternal(UnicodeBuffer);
+
+	return Length;
+}
+
