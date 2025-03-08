@@ -163,8 +163,8 @@ void AttachFunctions()
 	//DetourAttach(&(PVOID&)OriginalShellExecuteExW, HookShellExecuteExW);
 	
 	
-	//DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
-	//DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
+	DetourAttach(&(PVOID&)OriginalSetWindowTextA, HookSetWindowTextA);
+	DetourAttach(&(PVOID&)OriginalGetWindowTextA, HookGetWindowTextA);
 	DetourAttach(&(PVOID&)OriginalDirectSoundEnumerateA, HookDirectSoundEnumerateA);
 	DetourAttach(&(PVOID&)OriginalCreateFontA, HookCreateFontA);
 	DetourAttach(&(PVOID&)OriginalCreateFontW, HookCreateFontW);
@@ -408,7 +408,7 @@ LRESULT WINAPI HookSendMessageA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		return ANSI_GETLINE(hWnd, uMsg, wParam, lParam);
 	}	break;
 	}
-	return SendMessageW(hWnd, uMsg, wParam, lParam);
+	return OriginalSendMessageA(hWnd, uMsg, wParam, lParam);
 }
 
 int WINAPI HookMultiByteToWideChar(UINT CodePage, DWORD dwFlags,
@@ -603,6 +603,7 @@ BOOL WINAPI HookSetWindowTextA(
 	_In_opt_ LPCSTR lpString
 )
 {
+	return SendMessage(hWnd, WM_SETTEXT, 0, (LPARAM)lpString);
 	LPCWSTR wstr = lpString ? MultiByteToWideCharInternal(lpString) : NULL;
 	//LONG_PTR originalWndProc = GetWindowLongPtrW(hWnd, GWLP_WNDPROC);
 	//SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)DefWindowProcW);
@@ -616,6 +617,7 @@ BOOL WINAPI HookSetWindowTextA(
 
 int WINAPI HookGetWindowTextA(_In_ HWND hWnd, _Out_writes_(nMaxCount) LPSTR lpString, _In_ int nMaxCount)
 {
+	return SendMessage(hWnd, WM_GETTEXT, nMaxCount, (LPARAM)lpString);
 	int wlen = GetWindowTextLengthW(hWnd) + 1;
 	LPWSTR lpStringW = (LPWSTR)AllocateZeroedMemory(wlen * sizeof(wchar_t));
 	int wsize = GetWindowTextW(hWnd, lpStringW, wlen);
