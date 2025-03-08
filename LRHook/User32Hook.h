@@ -1,6 +1,17 @@
 #pragma once
 #include"LRHookFunc.h"
 
+typedef LRESULT(WINAPI* NtUserMessageCallFn)(
+    HWND         Window,
+    UINT         Message,
+    WPARAM       wParam,
+    LPARAM       lParam,
+    ULONG_PTR    xParam,
+    ULONG        xpfnProc,
+    ULONG        Flags
+    );
+
+
 /* Unicde to Ansi UserCall Functions */
 LRESULT NTAPI UNICODE_EMPTY(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);
 LRESULT NTAPI UNICODE_INLPCREATESTRUCT(WNDPROC PrevProc, HWND Window, UINT Message, WPARAM wParam, LPARAM lParam);

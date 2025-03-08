@@ -11,6 +11,7 @@ ORIGINAL Original = { NULL };
 //OriginalNtUserCreateWindowEx = AttachDllFunc("NtUserCreateWindowEx", HookNtUserCreateWindowEx, "user32.dll");
 
 static CreateProcessInternalWFn OriginalCreateProcessInternalW = (CreateProcessInternalWFn)DetourFindFunction("kernelbase.dll", "CreateProcessInternalW");
+static NtUserMessageCallFn OriginalNtUserMessageCall = (NtUserMessageCallFn)DetourFindFunction("win32u.dll", "NtUserMessageCall");
 
 BOOL WINAPI LRCreateProcessInternalW(
 _In_opt_ LPCWSTR lpApplicationName,

@@ -70,7 +70,7 @@ BOOL WINAPI HookCreateProcessA(
 	_Out_ LPPROCESS_INFORMATION lpProcessInformation
 );
 
-BOOL WINAPI HookCreateProcessW(
+BOOL WINAPI LRCreateProcessInternalW(
 	_In_opt_ LPCWSTR lpApplicationName,
 	_Inout_opt_ LPWSTR lpCommandLine,
 	_In_opt_ LPSECURITY_ATTRIBUTES lpProcessAttributes,
@@ -81,6 +81,21 @@ BOOL WINAPI HookCreateProcessW(
 	_In_opt_ LPCWSTR lpCurrentDirectory,
 	_In_ LPSTARTUPINFOW lpStartupInfo,
 	_Out_ LPPROCESS_INFORMATION lpProcessInformation
+);
+
+BOOL WINAPI HookCreateProcessInternalW(
+	HANDLE hUserToken,
+	LPCWSTR lpApplicationName,
+	LPWSTR lpCommandLine,
+	LPSECURITY_ATTRIBUTES lpProcessAttributes,
+	LPSECURITY_ATTRIBUTES lpThreadAttributes,
+	BOOL bInheritHandles,
+	DWORD dwCreationFlags,
+	LPVOID lpEnvironment,
+	LPCWSTR lpCurrentDirectory,
+	LPSTARTUPINFOW lpStartupInfo,
+	LPPROCESS_INFORMATION lpProcessInformation,
+	OPTIONAL PHANDLE hRestrictedUserToken
 );
 
 HINSTANCE WINAPI HookShellExecuteA(
