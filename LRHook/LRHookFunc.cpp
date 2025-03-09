@@ -603,7 +603,7 @@ BOOL WINAPI HookSetWindowTextA(
 	_In_opt_ LPCSTR lpString
 )
 {
-	return SendMessage(hWnd, WM_SETTEXT, 0, (LPARAM)lpString);
+	return SendMessageA(hWnd, WM_SETTEXT, 0, (LPARAM)lpString);
 	LPCWSTR wstr = lpString ? MultiByteToWideCharInternal(lpString) : NULL;
 	//LONG_PTR originalWndProc = GetWindowLongPtrW(hWnd, GWLP_WNDPROC);
 	//SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)DefWindowProcW);
@@ -617,7 +617,7 @@ BOOL WINAPI HookSetWindowTextA(
 
 int WINAPI HookGetWindowTextA(_In_ HWND hWnd, _Out_writes_(nMaxCount) LPSTR lpString, _In_ int nMaxCount)
 {
-	return SendMessage(hWnd, WM_GETTEXT, nMaxCount, (LPARAM)lpString);
+	return SendMessageA(hWnd, WM_GETTEXT, nMaxCount, (LPARAM)lpString);
 	int wlen = GetWindowTextLengthW(hWnd) + 1;
 	LPWSTR lpStringW = (LPWSTR)AllocateZeroedMemory(wlen * sizeof(wchar_t));
 	int wsize = GetWindowTextW(hWnd, lpStringW, wlen);
