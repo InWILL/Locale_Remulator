@@ -121,7 +121,7 @@ namespace LRSubMenus
 				var extension = Path.GetExtension(filepath);
 				if (LRConfig.FileType.Equals("exe"))
 				{
-					if (!extension.Equals(".exe"))
+					if (!extension.ToLower().Equals(".exe"))
 					{
 						return menu;
 					}
