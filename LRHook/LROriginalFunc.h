@@ -238,6 +238,19 @@ static BOOL(WINAPI* OriginalIsDBCSLeadByteEx)(
 	_In_ BYTE  TestChar
 	) = IsDBCSLeadByteEx;
 
+static BOOL(WINAPI* OriginalIsDBCSLeadByte)(
+	_In_ BYTE  TestChar
+	) = IsDBCSLeadByte;
+
+static LPSTR(WINAPI* OriginalCharNextA)(
+	_In_ LPCSTR lpsz
+	) = CharNextA;
+
+static LPSTR(WINAPI* OriginalCharPrevA)(
+	_In_ LPCSTR lpszStart,
+	_In_ LPCSTR lpszCurrent
+	) = CharPrevA;
+
 static INT_PTR(WINAPI* OriginalDialogBoxParamA)(
 	_In_opt_ HINSTANCE hInstance,
 	_In_ LPCSTR lpTemplateName,

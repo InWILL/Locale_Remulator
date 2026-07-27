@@ -98,13 +98,13 @@ LPWSTR MultiByteToWideCharInternal(LPCSTR lstr, UINT CodePage)
 	if (!lstr)
 		return NULL;
 	int lsize = lstrlenA(lstr)/* size without '\0' */, n = 0;
-	int wsize = (lsize + 1) << 1;
-	LPWSTR wstr = (LPWSTR)HeapAlloc(Original.hHeap, 0, wsize);
+	int wcount = lsize + 1/* cchWideChar is in WCHARs, not bytes */;
+	LPWSTR wstr = (LPWSTR)HeapAlloc(Original.hHeap, 0, wcount * sizeof(WCHAR));
 	if (wstr) {
 		if (CodePage)
-			n = OriginalMultiByteToWideChar(CodePage, 0, lstr, lsize, wstr, wsize);
+			n = OriginalMultiByteToWideChar(CodePage, 0, lstr, lsize, wstr, wcount);
 		else
-			n = MultiByteToWideChar(CodePage, 0, lstr, lsize, wstr, wsize);
+			n = MultiByteToWideChar(CodePage, 0, lstr, lsize, wstr, wcount);
 		wstr[n] = L'\0'; // make tail ! 
 	}
 	return wstr;
@@ -123,6 +123,29 @@ LPSTR WideCharToMultiByteInternal(LPCWSTR wstr, UINT CodePage)
 		lstr[n] = '\0'; // make tail ! 
 	}
 	return lstr;
+}
+
+// Emulated code page -> GDI font charset, so a CJK-capable font is picked on a non-CJK host.
+BYTE CodePageToCharset(UINT codePage)
+{
+	switch (codePage)
+	{
+	case 932:  return SHIFTJIS_CHARSET;
+	case 936:  return GB2312_CHARSET;
+	case 949:  return HANGUL_CHARSET;
+	case 950:  return CHINESEBIG5_CHARSET;
+	case 874:  return THAI_CHARSET;
+	case 1258: return VIETNAMESE_CHARSET;
+	default:   return DEFAULT_CHARSET;
+	}
+}
+
+// True when the host ANSI code page is single-byte (e.g. Western 1252). Uses the real
+// GetCPInfo with the host code page, not the hooked one.
+static bool HostCodePageIsSingleByte()
+{
+	CPINFO cpi;
+	return OriginalGetCPInfo(Original.CodePage, &cpi) && cpi.MaxCharSize == 1;
 }
 
 
@@ -200,6 +223,14 @@ void AttachFunctions()
 	}
 	
 	Original.CodePage = OriginalGetACP();
+	// Redirect the non-Ex DBCS stepping APIs only on a single-byte host; on a DBCS host they
+	// would corrupt the host's own multi-byte text (froze the game on a 936 host).
+	if (HostCodePageIsSingleByte())
+	{
+		DetourAttach(&(PVOID&)OriginalIsDBCSLeadByte, HookIsDBCSLeadByte);
+		DetourAttach(&(PVOID&)OriginalCharNextA, HookCharNextA);
+		DetourAttach(&(PVOID&)OriginalCharPrevA, HookCharPrevA);
+	}
 	if (settings.HookIME)
 	{
 		if (Original.CodePage == 936 && (settings.CodePage == 932 || settings.CodePage == 950))
@@ -210,7 +241,8 @@ void AttachFunctions()
 		else
 		{
 			DetourAttach(&(PVOID&)OriginalImmGetCompositionStringA, HookImmGetCompositionStringA_WM);
-			//DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA_WM);
+			// needed for apps that draw their own candidate window (e.g. MapleStory)
+			DetourAttach(&(PVOID&)OriginalImmGetCandidateListA, HookImmGetCandidateListA_WM);
 		}
 	}
 }
@@ -240,6 +272,12 @@ void DetachFunctions()
 	DetourDetach(&(PVOID&)OriginalCharPrevExA, HookCharPrevExA);
 	DetourDetach(&(PVOID&)OriginalCharNextExA, HookCharNextExA);
 	DetourDetach(&(PVOID&)OriginalIsDBCSLeadByteEx, HookIsDBCSLeadByteEx);
+	if (HostCodePageIsSingleByte())
+	{
+		DetourDetach(&(PVOID&)OriginalIsDBCSLeadByte, HookIsDBCSLeadByte);
+		DetourDetach(&(PVOID&)OriginalCharNextA, HookCharNextA);
+		DetourDetach(&(PVOID&)OriginalCharPrevA, HookCharPrevA);
+	}
 	DetourDetach(&(PVOID&)OriginalSendMessageA, HookSendMessageA);
 	
 	DetourDetach(&(PVOID&)OriginalWinExec, HookWinExec);
@@ -703,14 +741,34 @@ LONG WINAPI HookImmGetCompositionStringA_WM(
 	DWORD  dwBufLen
 )
 {
-	LONG wsize = ImmGetCompositionStringW(hIMC, dwIndex, NULL, 0);
-	LPWSTR wstr = (LPWSTR)AllocateZeroedMemory(wsize);
-	ImmGetCompositionStringW(hIMC, dwIndex, wstr, wsize);
-	LONG lsize = (wsize + 1) << 1;
+	// Only the string indices return character data; positions/attributes must pass through.
+	switch (dwIndex)
+	{
+	case GCS_COMPSTR:
+	case GCS_RESULTSTR:
+	case GCS_COMPREADSTR:
+	case GCS_RESULTREADSTR:
+		break;
+	default:
+		return OriginalImmGetCompositionStringA(hIMC, dwIndex, lpBuf, dwBufLen);
+	}
+
+	LONG byteSizeW = ImmGetCompositionStringW(hIMC, dwIndex, NULL, 0)/* in bytes, not WCHARs */;
+	if (byteSizeW <= 0)
+		return byteSizeW;
+	LPWSTR wstr = (LPWSTR)AllocateZeroedMemory(byteSizeW + sizeof(WCHAR));
+	ImmGetCompositionStringW(hIMC, dwIndex, wstr, byteSizeW);
+	int wcount = byteSizeW / sizeof(WCHAR);
+	LONG lsize;
 	if (lpBuf)
 	{
-		lsize = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lpBuf, lsize, Original.lpDefaultChar, &Original.lpUsedDefaultChar);
-		lpBuf[lsize] = '\0'; // make tail ! 
+		lsize = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wcount, lpBuf, (int)dwBufLen, NULL, NULL);
+		if (lsize >= 0 && (DWORD)lsize < dwBufLen)
+			lpBuf[lsize] = '\0'; // make tail !
+	}
+	else
+	{
+		lsize = OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wcount, NULL, 0, NULL, NULL);
 	}
 	FreeStringInternal(wstr);
 	return lsize;
@@ -751,27 +809,50 @@ DWORD WINAPI HookImmGetCandidateListA_WM(
 	DWORD           dwBufLen
 )
 {
-	DWORD ret = OriginalImmGetCandidateListA(hIMC, deIndex, lpCandList, dwBufLen);
-	if (lpCandList)
+	// Rebuild the ANSI candidate list from the Unicode one, re-encoded to the emulated code
+	// page. DBCS needs more room than the host-ACP '?' fallback, so a size query returns the
+	// larger required size and the app allocates enough.
+	DWORD wLen = ImmGetCandidateListW(hIMC, deIndex, NULL, 0);
+	if (wLen == 0)
+		return OriginalImmGetCandidateListA(hIMC, deIndex, lpCandList, dwBufLen);
+
+	LPCANDIDATELIST lpW = (LPCANDIDATELIST)AllocateZeroedMemory(wLen);
+	if (!lpW)
+		return OriginalImmGetCandidateListA(hIMC, deIndex, lpCandList, dwBufLen);
+	ImmGetCandidateListW(hIMC, deIndex, lpW, wLen);
+
+	DWORD count = lpW->dwCount;
+	DWORD headerSize = FIELD_OFFSET(CANDIDATELIST, dwOffset) + count * sizeof(DWORD);
+	DWORD required = headerSize;
+	for (DWORD i = 0; i < count; i++)
 	{
-		DWORD dwBufLenW = ImmGetCandidateListW(hIMC, deIndex, NULL, NULL);
-		LPCANDIDATELIST lpCandListW = (LPCANDIDATELIST)AllocateZeroedMemory(dwBufLenW);
-		ImmGetCandidateListW(hIMC, deIndex, lpCandListW, dwBufLenW);
-		for (int i = 0; i < lpCandList->dwCount; i++)
-		{
-			LPSTR lstr = (LPSTR)lpCandList + lpCandList->dwOffset[i];
-			LPWSTR wstr = (LPWSTR)lpCandListW + lpCandListW->dwOffset[i];
-			if (lstr)
-			{
-				int lsize = lstrlenA(lstr);
-				int wsize = wcslen(wstr);
-				OriginalWideCharToMultiByte(settings.CodePage, 0, wstr, wsize, lstr, lsize, NULL, NULL);
-				//filelog << lstr << "###" << lsize << "###" << wstr << "###" <<wsize << std::endl;
-			}
-		}
-		FreeStringInternal(lpCandListW);
+		LPWSTR ws = (LPWSTR)((LPBYTE)lpW + lpW->dwOffset[i]);
+		required += OriginalWideCharToMultiByte(settings.CodePage, 0, ws, -1, NULL, 0, NULL, NULL);
 	}
-	return ret;
+
+	if (lpCandList == NULL || dwBufLen < required)
+	{
+		FreeStringInternal(lpW);
+		return required;
+	}
+
+	ZeroMemory(lpCandList, dwBufLen);
+	lpCandList->dwSize = required;
+	lpCandList->dwStyle = lpW->dwStyle;
+	lpCandList->dwCount = count;
+	lpCandList->dwSelection = lpW->dwSelection;
+	lpCandList->dwPageStart = lpW->dwPageStart;
+	lpCandList->dwPageSize = lpW->dwPageSize;
+	DWORD pos = headerSize;
+	for (DWORD i = 0; i < count; i++)
+	{
+		LPWSTR ws = (LPWSTR)((LPBYTE)lpW + lpW->dwOffset[i]);
+		LPSTR ds = (LPSTR)((LPBYTE)lpCandList + pos);
+		lpCandList->dwOffset[i] = pos;
+		pos += OriginalWideCharToMultiByte(settings.CodePage, 0, ws, -1, ds, dwBufLen - pos, NULL, NULL);
+	}
+	FreeStringInternal(lpW);
+	return required;
 }
 
 HFONT WINAPI HookCreateFontA(
@@ -792,6 +873,9 @@ HFONT WINAPI HookCreateFontA(
 )
 {
 	LPWSTR pszFaceNameW = MultiByteToWideCharInternal(pszFaceName);
+	BYTE charset = CodePageToCharset(settings.CodePage);
+	if (charset != DEFAULT_CHARSET)
+		iCharSet = charset;
 	HFONT ret = CreateFontW(
 		cHeight,
 		cWidth,
@@ -858,9 +942,13 @@ HFONT WINAPI HookCreateFontIndirectA(
 	/*if (strcmp(settings.lfFaceName, "None") != 0)
 		strcpy(lplf->lfFaceName, settings.lfFaceName);
 	return OriginalCreateFontIndirectA(lplf);*/
-	LOGFONTW logfont = { sizeof(LOGFONTW), };
-	memcpy(&logfont, lplf, sizeof(LOGFONTW));
+	LOGFONTW logfont = { 0 };
+	// Copy only the numeric prefix; sizeof(LOGFONTW) would over-read the LOGFONTA source.
+	memcpy(&logfont, lplf, FIELD_OFFSET(LOGFONTA, lfFaceName));
 	MultiByteToWideChar(settings.CodePage, 0, lplf->lfFaceName, -1, logfont.lfFaceName, LF_FACESIZE);
+	BYTE charset = CodePageToCharset(settings.CodePage);
+	if (charset != DEFAULT_CHARSET)
+		logfont.lfCharSet = charset;
 	return CreateFontIndirectW(&logfont);
 }
 
@@ -876,9 +964,13 @@ HFONT WINAPI HookCreateFontIndirectExA(
 	ENUMLOGFONTEXDVA* lplf
 )
 {
-	ENUMLOGFONTEXDVW lplfW = { sizeof(ENUMLOGFONTEXDVW), };
-	memcpy(&lplfW, lplf, sizeof(ENUMLOGFONTEXDVW));
+	ENUMLOGFONTEXDVW lplfW = { 0 };
+	// Copy only the embedded LOGFONT's numeric prefix; the name is rebuilt below.
+	memcpy(&lplfW, lplf, FIELD_OFFSET(LOGFONTA, lfFaceName));
 	MultiByteToWideChar(settings.CodePage, 0, lplf->elfEnumLogfontEx.elfLogFont.lfFaceName, -1, lplfW.elfEnumLogfontEx.elfLogFont.lfFaceName, LF_FACESIZE);
+	BYTE charset = CodePageToCharset(settings.CodePage);
+	if (charset != DEFAULT_CHARSET)
+		lplfW.elfEnumLogfontEx.elfLogFont.lfCharSet = charset;
 	return OriginalCreateFontIndirectExW(&lplfW);
 }
 
@@ -901,7 +993,7 @@ BOOL WINAPI HookTextOutA(
 	LPWSTR wstr = MultiByteToWideCharInternal(lpString);
 	if (wstr)
 	{
-		bool ret = TextOutW(hdc, x, y, wstr, 1);
+		bool ret = TextOutW(hdc, x, y, wstr, lstrlenW(wstr));
 		FreeStringInternal(wstr);
 		return ret;
 	}
@@ -1035,6 +1127,42 @@ BOOL WINAPI HookIsDBCSLeadByteEx(
 {
 	CodePage = (CodePage >= CP_UTF7) ? CodePage : settings.CodePage;
 	return OriginalIsDBCSLeadByteEx(CodePage, TestChar);
+}
+
+// The non-Ex variants use the host ANSI code page; redirect them to the emulated one so
+// DBCS lead bytes and character stepping are handled correctly. Only attached when the
+// host code page is single-byte (see AttachFunctions) — on a DBCS host they would corrupt
+// the host's own multi-byte text.
+BOOL WINAPI HookIsDBCSLeadByte(_In_ BYTE TestChar)
+{
+	return OriginalIsDBCSLeadByteEx(settings.CodePage, TestChar);
+}
+
+LPSTR WINAPI HookCharNextA(_In_ LPCSTR lpsz)
+{
+	if (!lpsz || *lpsz == '\0')
+		return (LPSTR)lpsz;
+	if (OriginalIsDBCSLeadByteEx(settings.CodePage, (BYTE)*lpsz) && lpsz[1] != '\0')
+		return (LPSTR)(lpsz + 2);
+	return (LPSTR)(lpsz + 1);
+}
+
+LPSTR WINAPI HookCharPrevA(_In_ LPCSTR lpszStart, _In_ LPCSTR lpszCurrent)
+{
+	if (!lpszStart || !lpszCurrent || lpszCurrent <= lpszStart)
+		return (LPSTR)lpszStart;
+	// Walk forward so DBCS lead/trail pairs count as one character.
+	LPCSTR p = lpszStart;
+	LPCSTR prev = lpszStart;
+	while (p < lpszCurrent)
+	{
+		prev = p;
+		if (OriginalIsDBCSLeadByteEx(settings.CodePage, (BYTE)*p) && p[1] != '\0' && (p + 2) <= lpszCurrent)
+			p += 2;
+		else
+			p += 1;
+	}
+	return (LPSTR)prev;
 }
 
 INT_PTR WINAPI HookDialogBoxParamA(
