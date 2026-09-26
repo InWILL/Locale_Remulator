@@ -167,10 +167,10 @@ namespace LREditor
 			if (openFileDlg.ShowDialog() == true)
 			{
 				string filepath = openFileDlg.FileName;
-				string CommandLine = filepath;
-				if (TextBox_Arguments.Text != "Enter Arguments here...")
+				string CommandLine = "\"" + filepath + "\"";
+				if (TextBox_Arguments.Text != "Enter Arguments here..." && !string.IsNullOrWhiteSpace(TextBox_Arguments.Text))
 				{
-					CommandLine = "\"" + filepath + "\" " + TextBox_Arguments.Text;
+					CommandLine += " " + TextBox_Arguments.Text;
 				}
 				LRProfile profile = (LRProfile)ComboBox_Profile.SelectedItem;
 				var proc = new Process();
