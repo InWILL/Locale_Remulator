@@ -321,7 +321,10 @@ LRESULT NTAPI ANSI_GETTEXT(HWND Window, UINT Message, WPARAM wParam, LPARAM lPar
 
 	Length = SendMessageW(Window, Message, wParam, (LPARAM)UnicodeBuffer);
 	if (Length > 0)
-		Length = WideCharToMultiByte(CP_ACP, 0, UnicodeBuffer, Length, AnsiBuffer, Length * sizeof(WCHAR), NULL, NULL);
+	{
+		Length = WideCharToMultiByte(CP_ACP, 0, UnicodeBuffer, (int)Length, AnsiBuffer, (int)Length * sizeof(WCHAR), NULL, NULL);
+		AnsiBuffer[Length] = '\0';
+	}
 
 	FreeStringInternal(UnicodeBuffer);
 
@@ -347,7 +350,7 @@ LRESULT NTAPI ANSI_GETTEXTLENGTH(HWND Window, UINT Message, WPARAM wParam, LPARA
 	Length = SendMessageW(Window, Message - 1, wParam, (LPARAM)UnicodeBuffer);
 	if (Length > 0)
 	{
-		Length = WideCharToMultiByte(CP_ACP, 0, UnicodeBuffer, Length * sizeof(WCHAR), NULL, 0, NULL, NULL);
+		Length = WideCharToMultiByte(CP_ACP, 0, UnicodeBuffer, (int)Length, NULL, 0, NULL, NULL);
 	}
 
 	FreeStringInternal(UnicodeBuffer);
@@ -363,9 +366,12 @@ LRESULT NTAPI ANSI_OUTSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lP
 
 	AnsiBuffer = (LPSTR)lParam;
 	AnsiSize = wParam;
+	if (AnsiBuffer == nullptr || AnsiSize <= 0)
+		return 0;
+	AnsiBuffer[0] = '\0';
 
 	UnicodeSize = SendMessageW(Window, WM_GETTEXTLENGTH, wParam, lParam);
-	if (UnicodeSize == 0)
+	if (UnicodeSize <= 0)
 		return 0;
 
 	UnicodeSize++;
@@ -373,8 +379,10 @@ LRESULT NTAPI ANSI_OUTSTRING(HWND Window, UINT Message, WPARAM wParam, LPARAM lP
 	if (UnicodeBuffer == nullptr)
 		return 0;
 
-	AnsiSize = SendMessageW(Window, Message, UnicodeSize, (LPARAM)UnicodeBuffer);
-	AnsiSize = WideCharToMultiByte(CP_ACP, 0, UnicodeBuffer, UnicodeSize, AnsiBuffer, AnsiSize, NULL, NULL);
+	UnicodeSize = SendMessageW(Window, Message, UnicodeSize, (LPARAM)UnicodeBuffer);
+	// AnsiSize is the caller's buffer size in bytes; keep one byte for the terminator
+	AnsiSize = WideCharToMultiByteTruncate(UnicodeBuffer, (int)UnicodeSize, AnsiBuffer, (int)AnsiSize - 1);
+	AnsiBuffer[AnsiSize] = '\0';
 
 	FreeStringInternal(UnicodeBuffer);
 

@@ -125,6 +125,28 @@ static int(WINAPI* OriginalGetWindowTextA)(
 	_In_ int nMaxCount
 	) = GetWindowTextA;
 
+static int(WINAPI* OriginalGetWindowTextW)(
+	_In_ HWND hWnd,
+	_Out_writes_(nMaxCount) LPWSTR lpString,
+	_In_ int nMaxCount
+	) = GetWindowTextW;
+
+static int(WINAPI* OriginalGetWindowTextLengthW)(
+	_In_ HWND hWnd
+	) = GetWindowTextLengthW;
+
+static BOOL(WINAPI* OriginalSetWindowTextW)(
+	_In_ HWND hWnd,
+	_In_opt_ LPCWSTR lpString
+	) = SetWindowTextW;
+
+static LRESULT(WINAPI* OriginalSendMessageW)(
+	_In_ HWND hWnd,
+	_In_ UINT Msg,
+	_Pre_maybenull_ _Post_valid_ WPARAM wParam,
+	_Pre_maybenull_ _Post_valid_ LPARAM lParam
+	) = SendMessageW;
+
 static LONG(WINAPI* OriginalImmGetCompositionStringA)(
 	HIMC hIMC,
 	DWORD dwIndex,
@@ -268,6 +290,10 @@ static LRESULT(WINAPI* OriginalDefWindowProcA)(
 	_In_ WPARAM wParam,
 	_In_ LPARAM lParam
 	) = DefWindowProcA;
+
+static int(WINAPI* OriginalGetSystemMetrics)(
+	_In_ int nIndex
+	) = GetSystemMetrics;
 
 static LCID(WINAPI* OriginalGetThreadLocale)() = GetThreadLocale;
 static LANGID(WINAPI* OriginalGetSystemDefaultUILanguage)() = GetSystemDefaultUILanguage;
