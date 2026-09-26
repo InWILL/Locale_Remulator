@@ -29,10 +29,14 @@ namespace LREditor
 			ComboBox_Profile.ItemsSource = profiles;
 
 			cultureinfos = CultureInfo.GetCultures(CultureTypes.AllCultures).ToList();
-			ComboBox_CodePage.ItemsSource = cultureinfos.Select(c => c.DisplayName);
+			ComboBox_CodePage.DisplayMemberPath = "DisplayName";
+			ComboBox_CodePage.ItemsSource = cultureinfos;
+			ComboBoxFilter.Attach(ComboBox_CodePage, item => ((CultureInfo)item).DisplayName);
 
 			timezones = TimeZoneInfo.GetSystemTimeZones().ToList();
+			ComboBox_TimeZone.DisplayMemberPath = "DisplayName";
 			ComboBox_TimeZone.ItemsSource = timezones;
+			ComboBoxFilter.Attach(ComboBox_TimeZone, item => ((TimeZoneInfo)item).DisplayName);
 		}
 
 		private void Button_Save_Click(object sender, RoutedEventArgs e)
@@ -41,12 +45,19 @@ namespace LREditor
 			{
 				return;
 			}
+			var culture = ComboBox_CodePage.SelectedItem as CultureInfo;
+			var timezone = ComboBox_TimeZone.SelectedItem as TimeZoneInfo;
+			if (culture == null || timezone == null)
+			{
+				MessageBox.Show("Please select a valid CodePage and TimeZone.", "LREditor");
+				return;
+			}
 			var p = profiles[ComboBox_Profile.SelectedIndex];
-			p.Location = cultureinfos[ComboBox_CodePage.SelectedIndex].Name;
-			p.CodePage = (uint)cultureinfos[ComboBox_CodePage.SelectedIndex].TextInfo.ANSICodePage;
-			p.LCID = (uint)cultureinfos[ComboBox_CodePage.SelectedIndex].TextInfo.LCID;
-			p.TimeZone = timezones[ComboBox_TimeZone.SelectedIndex].Id;
-			p.Bias = timezones[ComboBox_TimeZone.SelectedIndex].BaseUtcOffset.TotalMinutes;
+			p.Location = culture.Name;
+			p.CodePage = (uint)culture.TextInfo.ANSICodePage;
+			p.LCID = (uint)culture.TextInfo.LCID;
+			p.TimeZone = timezone.Id;
+			p.Bias = timezone.BaseUtcOffset.TotalMinutes;
             p.RunAsAdmin = CheckBox_RunAsAdmin.IsChecked ?? false;
 			p.HookIME = CheckBox_IME.IsChecked ?? false;
 			p.HookLCID = CheckBox_LCID.IsChecked ?? false;
@@ -57,6 +68,13 @@ namespace LREditor
 		private void Button_SaveAs_Click(object sender, RoutedEventArgs e)
 		{
 			var f = new InputBox();
+			var culture = ComboBox_CodePage.SelectedItem as CultureInfo;
+			var timezone = ComboBox_TimeZone.SelectedItem as TimeZoneInfo;
+			if (culture == null || timezone == null)
+			{
+				MessageBox.Show("Please select a valid CodePage and TimeZone.", "LREditor");
+				return;
+			}
 			LRProfile item = (LRProfile)ComboBox_Profile.SelectedItem;
 			if (f.ShowDialog() == true && !string.IsNullOrEmpty(f.InputResult))
 			{
@@ -64,11 +82,11 @@ namespace LREditor
 				var p = new LRProfile();
 				p.Name = f.InputResult;
 				p.Guid = Guid.NewGuid().ToString();
-				p.Location = cultureinfos[ComboBox_CodePage.SelectedIndex].Name;
-				p.CodePage = (uint)cultureinfos[ComboBox_CodePage.SelectedIndex].TextInfo.ANSICodePage;
-				p.LCID = (uint)cultureinfos[ComboBox_CodePage.SelectedIndex].TextInfo.LCID;
-				p.TimeZone = timezones[ComboBox_TimeZone.SelectedIndex].Id;
-				p.Bias = timezones[ComboBox_TimeZone.SelectedIndex].BaseUtcOffset.TotalMinutes;
+				p.Location = culture.Name;
+				p.CodePage = (uint)culture.TextInfo.ANSICodePage;
+				p.LCID = (uint)culture.TextInfo.LCID;
+				p.TimeZone = timezone.Id;
+				p.Bias = timezone.BaseUtcOffset.TotalMinutes;
                 p.RunAsAdmin = CheckBox_RunAsAdmin.IsChecked ?? false;
 				p.HookIME = CheckBox_IME.IsChecked ?? false;
 				p.HookLCID = CheckBox_LCID.IsChecked ?? false;
@@ -98,8 +116,8 @@ namespace LREditor
 				return;
 			}
 			LRProfile p = (LRProfile)ComboBox_Profile.SelectedItem;
-			ComboBox_CodePage.SelectedIndex = cultureinfos.FindIndex(c => c.Name == p.Location);
-			ComboBox_TimeZone.SelectedIndex = timezones.FindIndex(c => c.Id == p.TimeZone);
+			ComboBox_CodePage.SelectedItem = cultureinfos.Find(c => c.Name == p.Location);
+			ComboBox_TimeZone.SelectedItem = timezones.Find(c => c.Id == p.TimeZone);
 			CheckBox_RunAsAdmin.IsChecked = p.RunAsAdmin;
 			CheckBox_IME.IsChecked = p.HookIME;
 			CheckBox_LCID.IsChecked = p.HookLCID;
