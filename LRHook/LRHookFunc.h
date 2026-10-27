@@ -7,6 +7,8 @@ struct ORIGINAL
 {
 	HANDLE hHeap;
 	UINT CodePage;
+	BYTE CharSet;
+	BOOL IsDBCS;
 	char DllPath[MAX_PATH];
 	const char* lpDefaultChar = "";
 	BOOL lpUsedDefaultChar = TRUE;
@@ -20,6 +22,7 @@ LPVOID AllocateZeroedMemory(SIZE_T size/*eax*/);
 VOID FreeStringInternal(LPVOID pBuffer/*ecx*/);
 LPWSTR MultiByteToWideCharInternal(LPCSTR lstr, UINT CodePage = CP_ACP);
 LPSTR WideCharToMultiByteInternal(LPCWSTR wstr, UINT CodePage = CP_ACP);
+int WideCharToMultiByteTruncate(LPCWSTR wstr, int wsize, LPSTR lstr, int lsize);
 
 
 void AttachFunctions();
@@ -60,6 +63,7 @@ HWND WINAPI HookCreateWindowExA(
 	int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 
 LRESULT WINAPI HookSendMessageA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+int WINAPI HookGetSystemMetrics(_In_ int nIndex);
 //LRESULT WINAPI HookCallWindowProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int WINAPI HookMultiByteToWideChar(UINT CodePage, DWORD dwFlags,
 	LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
@@ -162,6 +166,20 @@ int WINAPI HookGetWindowTextA(
 	_In_ HWND hWnd,
 	_Out_writes_(nMaxCount) LPSTR lpString,
 	_In_ int nMaxCount);
+
+LRESULT WINAPI HookSendMessageW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+int WINAPI HookGetWindowTextW(
+	_In_ HWND hWnd,
+	_Out_writes_(nMaxCount) LPWSTR lpString,
+	_In_ int nMaxCount);
+
+int WINAPI HookGetWindowTextLengthW(
+	_In_ HWND hWnd);
+
+BOOL WINAPI HookSetWindowTextW(
+	_In_ HWND hWnd,
+	_In_opt_ LPCWSTR lpString);
 
 LONG WINAPI HookImmGetCompositionStringA(
 	HIMC hIMC,
