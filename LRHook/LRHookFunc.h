@@ -290,6 +290,19 @@ BOOL WINAPI HookIsDBCSLeadByteEx(
 	_In_ BYTE  TestChar
 );
 
+BOOL WINAPI HookIsDBCSLeadByte(
+	_In_ BYTE  TestChar
+);
+
+LPSTR WINAPI HookCharNextA(
+	_In_ LPCSTR lpsz
+);
+
+LPSTR WINAPI HookCharPrevA(
+	_In_ LPCSTR lpszStart,
+	_In_ LPCSTR lpszCurrent
+);
+
 INT_PTR WINAPI HookDialogBoxParamA(
 	_In_opt_ HINSTANCE hInstance,
 	_In_ LPCSTR lpTemplateName,
