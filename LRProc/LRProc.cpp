@@ -186,6 +186,43 @@ static int RunWithLocaleEmulator(LPCWSTR CommandLine, LRProfile* beta)
 
 #endif // !_WIN64
 
+#ifdef _WIN64
+// x64: spawn the x86 helper (LRProc32.exe) which loads LoaderDll.dll
+// and performs the actual Locale Emulator launch.
+static int SpawnLeHelper(LPCWSTR lpCmdLine)
+{
+    wchar_t exePath[MAX_PATH];
+    GetModuleFileNameW(NULL, exePath, MAX_PATH);
+    wchar_t* slash = wcsrchr(exePath, L'\\');
+    if (!slash) return 1;
+    *(slash + 1) = 0;
+
+    wchar_t helper[MAX_PATH];
+    wsprintfW(helper, L"%sLRProc32.exe", exePath);
+
+    if (GetFileAttributesW(helper) == INVALID_FILE_ATTRIBUTES)
+    {
+        MessageBox(NULL,
+            L"LRProc32.exe not found. Place the x86 build next to LRProc.exe\nfor Hook32LE (Locale Emulator) support.",
+            L"Locale Remulator", MB_OK | MB_ICONERROR);
+        return 1;
+    }
+
+    STARTUPINFOW si = {0}; si.cb = sizeof(si);
+    PROCESS_INFORMATION pi = {0};
+    if (!CreateProcessW(helper, const_cast<LPWSTR>(lpCmdLine), NULL, NULL,
+        FALSE, 0, NULL, NULL, &si, &pi))
+        return 1;
+
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    DWORD exitCode = 0;
+    GetExitCodeProcess(pi.hProcess, &exitCode);
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    return (int)exitCode;
+}
+#endif // _WIN64
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdShow)
 {
 	LRCSharpLibrary::LRConfig::CheckConfigFile();
@@ -264,6 +301,9 @@ You can also run LREditor to use this applicaction.
 #ifndef _WIN64
 	if (useLocaleEmulator)
 		return RunWithLocaleEmulator(targetW, &beta);
+#else
+	if (useLocaleEmulator)
+		return SpawnLeHelper(lpCmdLine);
 #endif
 
 	DetourCreateProcessWithDllExW(NULL, targetW, NULL,
