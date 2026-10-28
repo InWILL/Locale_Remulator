@@ -208,9 +208,21 @@ static int SpawnLeHelper(LPCWSTR lpCmdLine)
         return 1;
     }
 
+    // Build child command line from __wargv (skip [0] = x64 exe path)
+    wchar_t childCmdLine[MAX_PATH * 3];
+    childCmdLine[0] = 0;
+    wcscat_s(childCmdLine, MAX_PATH * 3, L"\"");
+    wcscat_s(childCmdLine, MAX_PATH * 3, helper);
+    wcscat_s(childCmdLine, MAX_PATH * 3, L"\"");
+    for (int i = 1; i < __argc; i++)
+    {
+        wcscat_s(childCmdLine, MAX_PATH * 3, L" ");
+        wcscat_s(childCmdLine, MAX_PATH * 3, __wargv[i]);
+    }
+
     STARTUPINFOW si = {0}; si.cb = sizeof(si);
     PROCESS_INFORMATION pi = {0};
-    if (!CreateProcessW(helper, const_cast<LPWSTR>(lpCmdLine), NULL, NULL,
+    if (!CreateProcessW(helper, childCmdLine, NULL, NULL,
         FALSE, 0, NULL, NULL, &si, &pi))
         return 1;
 
